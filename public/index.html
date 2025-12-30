@@ -191,7 +191,7 @@
       if (!value) return;
 
       if (!value.startsWith("http")) {
-        value = "https://www.google.com/search?q=" + encodeURIComponent(value);
+        value = "https://www.startpage.com/search?q=" + encodeURIComponent(value);
       }
 
       iframe.src = __uv$config.prefix + __uv$config.encodeUrl(value);
