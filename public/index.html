@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Red & Black In-Browser Browser</title>
+<title>Red & Black Browser</title>
 
 <!-- UV Proxy -->
 <script src="/uv/uv.bundle.js"></script>
@@ -18,117 +18,62 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 
-<!-- Eruda DevTools -->
-<script src="https://cdn.jsdelivr.net/npm/eruda@3.4.3/eruda.js"></script>
-<script>eruda.init();</script>
+<!-- Eruda Loader (classic snippet) -->
+<script>
+(function () {
+  var src = '//cdn.jsdelivr.net/npm/eruda';
+  if (!/eruda=true/.test(window.location) && localStorage.getItem('active-eruda') != 'true') return;
+  document.write('<scr' + 'ipt src="' + src + '"></scr' + 'ipt>');
+  document.write('<scr' + 'ipt>eruda.init();</scr' + 'ipt>');
+})();
+</script>
 
 <style>
 /* ===== Body ===== */
-body {
-    margin:0;
-    padding:0;
-    font-family:sans-serif;
-    background:#141414;
-    color:#fff;
-    overflow:hidden;
-}
+body { margin:0; padding:0; font-family:sans-serif; background:#141414; color:#fff; overflow:hidden; }
 
 /* ===== Browser Bar ===== */
 #browser-bar {
     position:absolute;
-    top:0;
-    left:0;
-    width:100%;
-    height:10vh;
-    display:flex;
-    align-items:center;
+    top:0; left:0; width:100%; height:10vh;
+    display:flex; align-items:center;
     padding:0 1em;
     background:#1f1f1f;
     border-bottom:2px solid #ff5555;
     box-sizing:border-box;
+    z-index:10;
 }
-
 #urlInput {
-    flex:1;
-    height:70%;
-    font-size:4vh;
-    padding-left:0.5em;
-    border:none;
-    outline:none;
-    background:#25252a;
-    color:#ff5555;
-    border-radius:5px;
+    flex:1; height:70%; font-size:4vh; padding-left:0.5em;
+    border:none; outline:none;
+    background:#25252a; color:#ff5555; border-radius:5px;
 }
-
 #goButton {
-    margin-left:0.5em;
-    height:70%;
-    padding:0 1em;
-    font-size:4vh;
-    border:none;
-    border-radius:5px;
-    background:#ff5555;
-    color:#141414;
-    cursor:pointer;
+    margin-left:0.5em; height:70%; padding:0 1em; font-size:4vh;
+    border:none; border-radius:5px; background:#ff5555; color:#141414; cursor:pointer;
 }
-
-#toolbar {
-    display:flex;
-    gap:0.5em;
-    margin-left:1em;
-}
-
+#toolbar { display:flex; gap:0.5em; margin-left:1em; }
 .toolbar-button {
-    background:#ff5555;
-    color:#141414;
-    border:none;
-    padding:0.5em 1em;
-    font-size:3vh;
-    cursor:pointer;
-    border-radius:5px;
+    background:#ff5555; color:#141414; border:none; padding:0.5em 1em;
+    font-size:3vh; cursor:pointer; border-radius:5px;
 }
 
 /* ===== Panels ===== */
 .panel {
-    position:absolute;
-    top:10vh;
-    left:0;
-    width:20vw;
-    height:90vh;
-    background:#1f1f1f;
-    border-right:1px solid #ff5555;
-    padding:1em;
-    box-sizing:border-box;
-    overflow-y:auto;
-    display:none;
+    position:absolute; top:10vh; left:0; width:20vw; height:90vh;
+    background:#1f1f1f; border-right:1px solid #ff5555;
+    padding:1em; box-sizing:border-box; overflow-y:auto;
+    display:none; z-index:15;
 }
-
-.panel h2 {
-    margin-top:0;
-    color:#ff5555;
-}
-
+.panel h2 { margin-top:0; color:#ff5555; }
 .panel button {
-    width:100%;
-    margin:0.5em 0;
-    padding:0.5em;
-    font-size:1em;
-    background:#ff5555;
-    color:#141414;
-    border:none;
-    cursor:pointer;
-    border-radius:5px;
+    width:100%; margin:0.5em 0; padding:0.5em; font-size:1em;
+    background:#ff5555; color:#141414; border:none; cursor:pointer; border-radius:5px;
 }
 
 /* ===== Iframe ===== */
 #iframeWindow {
-    position:absolute;
-    top:10vh;
-    left:0;
-    width:100%;
-    height:90vh;
-    border:none;
-    background:#fff;
+    position:absolute; top:10vh; left:0; width:100%; height:90vh; border:none; background:#fff; z-index:5;
 }
 </style>
 </head>
@@ -142,7 +87,7 @@ body {
         <button class="toolbar-button" onclick="togglePanel('bookmarksPanel')">Bookmarks</button>
         <button class="toolbar-button" onclick="togglePanel('historyPanel')">History</button>
         <button class="toolbar-button" onclick="togglePanel('settingsPanel')">Settings</button>
-        <button class="toolbar-button" onclick="eruda.toggle()">DevTools</button>
+        <button class="toolbar-button" id="devToolsBtn">DevTools</button>
     </div>
 </div>
 
@@ -168,13 +113,14 @@ body {
     </select>
 </div>
 
-<!-- Browser iframe -->
+<!-- Browser Iframe -->
 <iframe id="iframeWindow"></iframe>
 
 <script>
 const iframe = document.getElementById("iframeWindow");
 const urlInput = document.getElementById("urlInput");
 const goButton = document.getElementById("goButton");
+const devToolsBtn = document.getElementById("devToolsBtn");
 
 const bookmarksList = document.getElementById("bookmarksList");
 const historyList = document.getElementById("historyList");
@@ -190,12 +136,12 @@ function togglePanel(id) {
     panel.style.display = (panel.style.display === 'block') ? 'none' : 'block';
 }
 
-// Update search engine
-document.getElementById("defaultSearchEngine").addEventListener("change", (e)=>{
+// Change default search engine
+document.getElementById("defaultSearchEngine").addEventListener("change", (e) => {
     defaultSearch = e.target.value;
 });
 
-// Load URL in iframe
+// Load URL function
 function loadURL(url) {
     let finalURL = url;
     if (!url.includes(".")) finalURL = defaultSearch + encodeURIComponent(url);
@@ -209,7 +155,7 @@ function loadURL(url) {
     urlInput.value = currentUnproxiedURL;
 }
 
-// Button click and Enter key
+// Go button and Enter key
 goButton.onclick = () => loadURL(urlInput.value);
 urlInput.addEventListener("keydown", e => { if(e.key === "Enter") loadURL(urlInput.value); });
 
@@ -220,10 +166,10 @@ function addBookmark() {
 }
 function renderBookmarks() {
     bookmarksList.innerHTML = "";
-    bookmarks.forEach(url=>{
+    bookmarks.forEach(url => {
         const btn = document.createElement("button");
         btn.textContent = url;
-        btn.onclick = ()=> loadURL(url);
+        btn.onclick = () => loadURL(url);
         bookmarksList.appendChild(btn);
     });
 }
@@ -231,30 +177,42 @@ function renderBookmarks() {
 // History
 function renderHistory() {
     historyList.innerHTML = "";
-    history.forEach(url=>{
+    history.forEach(url => {
         const btn = document.createElement("button");
         btn.textContent = url;
-        btn.onclick = ()=> loadURL(url);
+        btn.onclick = () => loadURL(url);
         historyList.appendChild(btn);
     });
 }
 
 // Auto-update URL bar with unproxied URL
-iframe.addEventListener("load", ()=>{
-    try{
+iframe.addEventListener("load", () => {
+    try {
         const current = iframe.contentWindow.location.href;
-        if(current.startsWith(__uv$config.prefix)){
+        if(current.startsWith(__uv$config.prefix)) {
             const decoded = __uv$config.decodeUrl(current);
             currentUnproxiedURL = decoded;
             urlInput.value = currentUnproxiedURL;
         } else {
             urlInput.value = currentUnproxiedURL;
         }
-    }catch(e){
+    } catch(e) {
         urlInput.value = currentUnproxiedURL;
     }
 });
-</script>
 
+// DevTools toggle using classic snippet method
+let erudaVisible = false;
+devToolsBtn.addEventListener("click", () => {
+    if (window.eruda) {
+        erudaVisible ? eruda.hide() : eruda.show();
+        erudaVisible = !erudaVisible;
+    } else {
+        // If Eruda not loaded yet, activate via URL/localStorage
+        localStorage.setItem('active-eruda','true');
+        alert('Reload the page with "?eruda=true" in URL to enable DevTools');
+    }
+});
+</script>
 </body>
 </html>
