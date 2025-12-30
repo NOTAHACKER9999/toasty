@@ -1,206 +1,249 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Embedded Browser</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<title>Multi Browser</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Ultraviolet -->
-  <script src="/uv/uv.bundle.js"></script>
-  <script src="/uv/uv.config.js"></script>
+<!-- Ultraviolet -->
+<script src="/uv/uv.bundle.js"></script>
+<script src="/uv/uv.config.js"></script>
 
-  <script>
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker.register("/uv/sw.js", {
-          scope: __uv$config.prefix,
-        });
-      });
-    }
-  </script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/uv/sw.js", {
+      scope: __uv$config.prefix,
+    });
+  });
+}
+</script>
 
-  <style>
-    :root {
-      --bg: #0b0b0b;
-      --frame: #141414;
-      --bar: #1c1c1c;
-      --border: #2a2a2a;
-      --text: #e6e6e6;
-      --muted: #9a9a9a;
-      --accent: #ff2a2a;
-    }
+<style>
+:root {
+  --bg:#070707;
+  --panel:#111;
+  --bar:#1a1a1a;
+  --border:#2a2a2a;
+  --text:#eaeaea;
+  --muted:#888;
+  --accent:#ff2a2a;
+}
 
-    * {
-      box-sizing: border-box;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-    }
+* {
+  box-sizing: border-box;
+  font-family: system-ui, sans-serif;
+}
 
-    body {
-      margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-    }
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  background: var(--bg);
+  overflow: hidden;
+}
 
-    /* Browser frame */
-    .browser {
-      width: 95%;
-      height: 95%;
-      max-width: 1400px;
-      background: var(--frame);
-      border-radius: 14px;
-      box-shadow: 0 25px 80px rgba(0,0,0,0.7);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
+/* ====== APP ====== */
+#browserApp {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
 
-    /* Top bar */
-    .topbar {
-      height: 44px;
-      background: var(--bar);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      padding: 0 12px;
-      gap: 12px;
-    }
+/* ====== TABS ====== */
+#tabs {
+  height: 38px;
+  background: var(--panel);
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+  gap: 6px;
+  border-bottom: 1px solid var(--border);
+}
 
-    .window-controls {
-      display: flex;
-      gap: 8px;
-    }
+.tab {
+  background: #151515;
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--muted);
+  white-space: nowrap;
+}
 
-    .dot {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-    }
+.tab.active {
+  background: #202020;
+  color: var(--text);
+}
 
-    .red { background: #ff5f56; }
-    .yellow { background: #ffbd2e; }
-    .green { background: #27c93f; }
+#newTab {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 20px;
+  cursor: pointer;
+}
 
-    .nav {
-      display: flex;
-      gap: 8px;
-      margin-left: 8px;
-    }
+/* ====== TOP BAR ====== */
+#topbar {
+  height: 46px;
+  background: var(--bar);
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  gap: 10px;
+  border-bottom: 1px solid var(--border);
+}
 
-    .nav button {
-      background: #222;
-      border: 1px solid var(--border);
-      color: var(--muted);
-      width: 32px;
-      height: 28px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
+#nav button {
+  background: #222;
+  border: 1px solid var(--border);
+  color: var(--text);
+  width: 34px;
+  height: 30px;
+  border-radius: 6px;
+  cursor: pointer;
+}
 
-    .nav button:hover {
-      color: var(--text);
-    }
+#address {
+  flex: 1;
+  height: 30px;
+  background: #0d0d0d;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0 10px;
+  color: var(--text);
+}
 
-    .address-bar {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      margin-left: 12px;
-      background: #101010;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 0 10px;
-      height: 30px;
-      gap: 8px;
-    }
+/* ====== CONTENT ====== */
+#content {
+  flex: 1;
+  position: relative;
+  background: black;
+}
 
-    .address-bar input {
-      flex: 1;
-      background: none;
-      border: none;
-      outline: none;
-      color: var(--text);
-      font-size: 14px;
-    }
+iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: none;
+}
 
-    .address-bar input::placeholder {
-      color: #666;
-    }
-
-    .go {
-      background: var(--accent);
-      border: none;
-      color: #fff;
-      height: 22px;
-      padding: 0 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 13px;
-    }
-
-    /* Content */
-    .content {
-      flex: 1;
-      background: black;
-    }
-
-    iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-      background: black;
-    }
-  </style>
+iframe.active {
+  display: block;
+}
+</style>
 </head>
 
 <body>
-  <div class="browser">
-    <div class="topbar">
-      <div class="window-controls">
-        <div class="dot red"></div>
-        <div class="dot yellow"></div>
-        <div class="dot green"></div>
-      </div>
+<div id="browserApp">
 
-      <div class="nav">
-        <button onclick="iframeWindow.contentWindow.history.back()">←</button>
-        <button onclick="iframeWindow.contentWindow.history.forward()">→</button>
-      </div>
-
-      <div class="address-bar">
-        <input id="urlInput" type="text" placeholder="Enter URL or search…" />
-        <button class="go" id="searchButton">Go</button>
-      </div>
-    </div>
-
-    <div class="content">
-      <iframe id="iframeWindow"></iframe>
-    </div>
+  <!-- Tabs -->
+  <div id="tabs">
+    <button id="newTab">＋</button>
   </div>
 
-  <script>
-    const input = document.getElementById("urlInput");
-    const button = document.getElementById("searchButton");
-    const iframe = document.getElementById("iframeWindow");
+  <!-- Controls -->
+  <div id="topbar">
+    <div id="nav">
+      <button onclick="goBack()">←</button>
+      <button onclick="goForward()">→</button>
+    </div>
+    <input id="address" placeholder="Enter URL or search…" />
+  </div>
 
-    function navigate() {
-      let value = input.value.trim();
-      if (!value) return;
+  <!-- Browsers -->
+  <div id="content"></div>
+</div>
 
-      if (!value.startsWith("http")) {
-        value = "https://www.startpage.com/search?q=" + encodeURIComponent(value);
-      }
+<script>
+let tabCount = 0;
+let activeTab = null;
+const tabs = document.getElementById("tabs");
+const content = document.getElementById("content");
+const address = document.getElementById("address");
 
-      iframe.src = __uv$config.prefix + __uv$config.encodeUrl(value);
+/* ===== CREATE TAB ===== */
+function createTab(url = "") {
+  tabCount++;
+  const id = "tab" + tabCount;
+
+  const tab = document.createElement("div");
+  tab.className = "tab";
+  tab.textContent = "New Tab";
+  tab.onclick = () => activateTab(id);
+  tab.dataset.id = id;
+
+  const iframe = document.createElement("iframe");
+  iframe.id = id;
+
+  iframe.addEventListener("load", () => {
+    if (iframe === activeTab) {
+      try {
+        address.value = decodeURIComponent(
+          iframe.src.replace(__uv$config.prefix, "")
+        );
+      } catch {}
     }
+  });
 
-    button.addEventListener("click", navigate);
-    input.addEventListener("keydown", e => {
-      if (e.key === "Enter") navigate();
-    });
-  </script>
+  tabs.insertBefore(tab, document.getElementById("newTab"));
+  content.appendChild(iframe);
+
+  activateTab(id);
+
+  if (url) navigate(url);
+}
+
+/* ===== ACTIVATE TAB ===== */
+function activateTab(id) {
+  document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+  document.querySelectorAll("iframe").forEach(f => f.classList.remove("active"));
+
+  const tab = [...document.querySelectorAll(".tab")].find(t => t.dataset.id === id);
+  const iframe = document.getElementById(id);
+
+  tab.classList.add("active");
+  iframe.classList.add("active");
+
+  activeTab = iframe;
+  address.value = iframe.src
+    ? decodeURIComponent(iframe.src.replace(__uv$config.prefix, ""))
+    : "";
+}
+
+/* ===== NAVIGATION ===== */
+function navigate(value) {
+  if (!value) return;
+
+  if (!value.startsWith("http")) {
+    value = "https://www.google.com/search?q=" + encodeURIComponent(value);
+  }
+
+  activeTab.src = __uv$config.prefix + __uv$config.encodeUrl(value);
+}
+
+function goBack() {
+  activeTab?.contentWindow.history.back();
+}
+
+function goForward() {
+  activeTab?.contentWindow.history.forward();
+}
+
+/* ===== EVENTS ===== */
+address.addEventListener("keydown", e => {
+  if (e.key === "Enter") navigate(address.value);
+});
+
+document.getElementById("newTab").onclick = () => createTab();
+
+/* ===== START ===== */
+createTab("https://example.com");
+</script>
 </body>
 </html>
