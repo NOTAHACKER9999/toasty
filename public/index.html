@@ -6,12 +6,12 @@
     <title>Cool Browser GUI</title>
 
     <!-- UV Proxy Scripts -->
-    <script src="uv.bundle.js"></script>
-    <script src="uv.config.js"></script>
+    <script src="/uv/uv.bundle.js"></script>
+    <script src="/uv/uv.config.js"></script>
     <script>
         if ("serviceWorker" in navigator) {
             window.addEventListener("load", () => {
-                navigator.serviceWorker.register("uv/sw.js", {
+                navigator.serviceWorker.register("/uv/sw.js", {
                     scope: __uv$config.prefix,
                 });
             });
