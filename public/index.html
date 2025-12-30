@@ -1,26 +1,206 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <script src="/uv/uv.bundle.js"></script>
-        <script src="/uv/uv.config.js"></script>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Embedded Browser</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-        <script>
-        if ("serviceWorker" in navigator) {
-            window.addEventListener("load", () => {
-                navigator.serviceWorker.register("/uv/sw.js", {
-                    scope: __uv$config.prefix,
-                });
-            });
-        }
-        </script>
+  <!-- Ultraviolet -->
+  <script src="/uv/uv.bundle.js"></script>
+  <script src="/uv/uv.config.js"></script>
 
-        <link rel="stylesheet" href="example.css">
-    </head>
-    <body>
-        <input type="text" id="urlInput" placeholder="Enter URL here">
-        <button id="searchButton">Search Text</button>
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/uv/sw.js", {
+          scope: __uv$config.prefix,
+        });
+      });
+    }
+  </script>
 
-        <iframe id="iframeWindow" class="iframeWindow"></iframe>
-    </body>
-    <script src="example.js"></script>
+  <style>
+    :root {
+      --bg: #0b0b0b;
+      --frame: #141414;
+      --bar: #1c1c1c;
+      --border: #2a2a2a;
+      --text: #e6e6e6;
+      --muted: #9a9a9a;
+      --accent: #ff2a2a;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    /* Browser frame */
+    .browser {
+      width: 95%;
+      height: 95%;
+      max-width: 1400px;
+      background: var(--frame);
+      border-radius: 14px;
+      box-shadow: 0 25px 80px rgba(0,0,0,0.7);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Top bar */
+    .topbar {
+      height: 44px;
+      background: var(--bar);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      gap: 12px;
+    }
+
+    .window-controls {
+      display: flex;
+      gap: 8px;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .red { background: #ff5f56; }
+    .yellow { background: #ffbd2e; }
+    .green { background: #27c93f; }
+
+    .nav {
+      display: flex;
+      gap: 8px;
+      margin-left: 8px;
+    }
+
+    .nav button {
+      background: #222;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      width: 32px;
+      height: 28px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .nav button:hover {
+      color: var(--text);
+    }
+
+    .address-bar {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      margin-left: 12px;
+      background: #101010;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0 10px;
+      height: 30px;
+      gap: 8px;
+    }
+
+    .address-bar input {
+      flex: 1;
+      background: none;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    .address-bar input::placeholder {
+      color: #666;
+    }
+
+    .go {
+      background: var(--accent);
+      border: none;
+      color: #fff;
+      height: 22px;
+      padding: 0 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    /* Content */
+    .content {
+      flex: 1;
+      background: black;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: black;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="browser">
+    <div class="topbar">
+      <div class="window-controls">
+        <div class="dot red"></div>
+        <div class="dot yellow"></div>
+        <div class="dot green"></div>
+      </div>
+
+      <div class="nav">
+        <button onclick="iframeWindow.contentWindow.history.back()">←</button>
+        <button onclick="iframeWindow.contentWindow.history.forward()">→</button>
+      </div>
+
+      <div class="address-bar">
+        <input id="urlInput" type="text" placeholder="Enter URL or search…" />
+        <button class="go" id="searchButton">Go</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <iframe id="iframeWindow"></iframe>
+    </div>
+  </div>
+
+  <script>
+    const input = document.getElementById("urlInput");
+    const button = document.getElementById("searchButton");
+    const iframe = document.getElementById("iframeWindow");
+
+    function navigate() {
+      let value = input.value.trim();
+      if (!value) return;
+
+      if (!value.startsWith("http")) {
+        value = "https://www.google.com/search?q=" + encodeURIComponent(value);
+      }
+
+      iframe.src = __uv$config.prefix + __uv$config.encodeUrl(value);
+    }
+
+    button.addEventListener("click", navigate);
+    input.addEventListener("keydown", e => {
+      if (e.key === "Enter") navigate();
+    });
+  </script>
+</body>
 </html>
