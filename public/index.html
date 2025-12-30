@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Red & Black Browser</title>
+<title>Red & Black Browser with Auto URL</title>
 
-<!-- UV Proxy Scripts -->
+<!-- UV Proxy -->
 <script src="/uv/uv.bundle.js"></script>
 <script src="/uv/uv.config.js"></script>
 <script>
@@ -18,122 +18,26 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 
+<!-- Eruda DevTools -->
+<script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+<script>eruda.init();</script>
+
 <style>
-/* ===== General Body ===== */
-body {
-    margin: 0;
-    font-family: sans-serif;
-    background-color: #141414;
-    color: #fff;
-    overflow: hidden;
-}
-
-/* ===== Browser Bar ===== */
-#browser-bar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 10vh;
-    display: flex;
-    align-items: center;
-    padding: 0 0.5em;
-    background-color: #1f1f1f;
-    box-sizing: border-box;
-}
-
-#urlInput {
-    flex: 1;
-    height: 70%;
-    font-size: 4vh;
-    padding-left: 0.5em;
-    border: none;
-    outline: none;
-    background-color: #25252a;
-    color: #ff5555;
-    border-radius: 4px;
-}
-
-#goButton {
-    margin-left: 0.5em;
-    height: 70%;
-    padding: 0 1em;
-    font-size: 4vh;
-    border: none;
-    border-radius: 4px;
-    background-color: #ff5555;
-    color: #141414;
-    cursor: pointer;
-}
-
-/* ===== Panels ===== */
-.panel {
-    position: absolute;
-    top: 10vh;
-    width: 20vw;
-    height: 90vh;
-    background-color: #1f1f1f;
-    border-right: 1px solid #ff5555;
-    padding: 1em;
-    box-sizing: border-box;
-    overflow-y: auto;
-    display: none;
-}
-
-.panel h2 {
-    margin-top: 0;
-    color: #ff5555;
-}
-
-/* ===== Buttons ===== */
-.panel button {
-    width: 100%;
-    margin: 0.5em 0;
-    padding: 0.5em;
-    font-size: 1em;
-    background-color: #ff5555;
-    color: #141414;
-    border: none;
-    cursor: pointer;
-    border-radius: 4px;
-}
-
-#iframeWindow {
-    position: absolute;
-    top: 10vh;
-    left: 0;
-    width: 100%;
-    height: 90vh;
-    border: none;
-}
-
-/* ===== Toolbar Buttons ===== */
-#toolbar {
-    position: absolute;
-    top: 0;
-    right: 0;
-    height: 10vh;
-    display: flex;
-    align-items: center;
-    gap: 0.5em;
-    padding-right: 1em;
-}
-
-.toolbar-button {
-    background-color: #ff5555;
-    color: #141414;
-    border: none;
-    padding: 0.5em 1em;
-    font-size: 3vh;
-    cursor: pointer;
-    border-radius: 4px;
-}
+body { margin:0; font-family:sans-serif; background:#141414; color:#fff; overflow:hidden; }
+#browser-bar { position:absolute; top:0; left:0; width:100%; height:10vh; display:flex; align-items:center; padding:0 1em; background:#1f1f1f; border-bottom:2px solid #ff5555; box-sizing:border-box; }
+#urlInput { flex:1; height:70%; font-size:4vh; padding-left:0.5em; border:none; outline:none; background:#25252a; color:#ff5555; border-radius:5px; }
+#goButton { margin-left:0.5em; height:70%; padding:0 1em; font-size:4vh; border:none; border-radius:5px; background:#ff5555; color:#141414; cursor:pointer; }
+#toolbar { display:flex; gap:0.5em; margin-left:1em; }
+.toolbar-button { background:#ff5555; color:#141414; border:none; padding:0.5em 1em; font-size:3vh; cursor:pointer; border-radius:5px; }
+.panel { position:absolute; top:10vh; left:0; width:20vw; height:90vh; background:#1f1f1f; border-right:1px solid #ff5555; padding:1em; box-sizing:border-box; overflow-y:auto; display:none; }
+.panel h2 { margin-top:0; color:#ff5555; }
+.panel button { width:100%; margin:0.5em 0; padding:0.5em; font-size:1em; background:#ff5555; color:#141414; border:none; cursor:pointer; border-radius:5px; }
+#iframeWindow { position:absolute; top:10vh; left:0; width:100%; height:90vh; border:none; background:#fff; }
 </style>
 </head>
 
 <body>
 
-<!-- Browser bar -->
 <div id="browser-bar">
     <input type="text" id="urlInput" placeholder="Enter URL here">
     <button id="goButton">Go</button>
@@ -141,10 +45,10 @@ body {
         <button class="toolbar-button" onclick="togglePanel('bookmarksPanel')">Bookmarks</button>
         <button class="toolbar-button" onclick="togglePanel('historyPanel')">History</button>
         <button class="toolbar-button" onclick="togglePanel('settingsPanel')">Settings</button>
+        <button class="toolbar-button" onclick="eruda.toggle()">DevTools</button>
     </div>
 </div>
 
-<!-- Panels -->
 <div id="bookmarksPanel" class="panel">
     <h2>Bookmarks</h2>
     <div id="bookmarksList"></div>
@@ -166,7 +70,6 @@ body {
     </select>
 </div>
 
-<!-- Browser iframe -->
 <iframe id="iframeWindow"></iframe>
 
 <script>
@@ -180,82 +83,60 @@ const historyList = document.getElementById("historyList");
 let bookmarks = [];
 let history = [];
 let defaultSearch = document.getElementById("defaultSearchEngine").value;
+let currentUnproxiedURL = "";
 
 // Toggle panels
 function togglePanel(id) {
     const panel = document.getElementById(id);
-    panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+    panel.style.display = panel.style.display==='block' ? 'none':'block';
 }
 
-// Update default search engine
+// Default search engine change
 document.getElementById("defaultSearchEngine").addEventListener("change", (e)=>{
     defaultSearch = e.target.value;
 });
 
-// Load URL in iframe
+// Load URL function
 function loadURL(url) {
     let finalURL = url;
+    if (!url.includes(".")) finalURL = defaultSearch + encodeURIComponent(url);
+    else if (!url.startsWith("http://") && !url.startsWith("https://")) finalURL = "https://" + url;
 
-    if (!url.includes(".")) {
-        finalURL = defaultSearch + encodeURIComponent(url);
-    } else if (!url.startsWith("http://") && !url.startsWith("https://")) {
-        finalURL = "https://" + url;
-    }
-
+    currentUnproxiedURL = finalURL; // store unproxied URL
     iframe.src = __uv$config.prefix + __uv$config.encodeUrl(finalURL);
 
-    // Add to history
     history.push(finalURL);
     renderHistory();
-
-    // Show unproxied URL
-    urlInput.value = finalURL;
+    urlInput.value = currentUnproxiedURL;
 }
 
-// Button click
-goButton.onclick = () => loadURL(urlInput.value);
+// Button and Enter key
+goButton.onclick = ()=> loadURL(urlInput.value);
+urlInput.addEventListener("keydown", e=> { if(e.key==='Enter') loadURL(urlInput.value); });
 
-// Enter key
-urlInput.addEventListener("keydown", e => {
-    if(e.key === "Enter") loadURL(urlInput.value);
-});
+// Bookmarks
+function addBookmark() { if(!bookmarks.includes(currentUnproxiedURL)) bookmarks.push(currentUnproxiedURL); renderBookmarks(); }
+function renderBookmarks() { bookmarksList.innerHTML=""; bookmarks.forEach(url=>{ const btn=document.createElement("button"); btn.textContent=url; btn.onclick=()=> loadURL(url); bookmarksList.appendChild(btn); }); }
 
-// Add bookmark
-function addBookmark() {
-    const url = urlInput.value;
-    if(!bookmarks.includes(url)) bookmarks.push(url);
-    renderBookmarks();
-}
+// History
+function renderHistory() { historyList.innerHTML=""; history.forEach(url=>{ const btn=document.createElement("button"); btn.textContent=url; btn.onclick=()=> loadURL(url); historyList.appendChild(btn); }); }
 
-// Render bookmarks
-function renderBookmarks() {
-    bookmarksList.innerHTML = "";
-    bookmarks.forEach(url=>{
-        const btn = document.createElement("button");
-        btn.textContent = url;
-        btn.onclick = ()=> loadURL(url);
-        bookmarksList.appendChild(btn);
-    });
-}
-
-// Render history
-function renderHistory() {
-    historyList.innerHTML = "";
-    history.forEach(url=>{
-        const btn = document.createElement("button");
-        btn.textContent = url;
-        btn.onclick = ()=> loadURL(url);
-        historyList.appendChild(btn);
-    });
-}
-
-// Update URL bar when iframe changes
+// Auto-update URL bar
 iframe.addEventListener("load", ()=>{
     try{
-        const currentURL = iframe.contentWindow.location.href;
-        if(currentURL) urlInput.value = currentURL;
+        const current = iframe.contentWindow.location.href;
+        if(current.startsWith(__uv$config.prefix)){
+            // Decode UV proxy URL to get original
+            const decoded = __uv$config.decodeUrl(current);
+            currentUnproxiedURL = decoded;
+            urlInput.value = currentUnproxiedURL;
+        } else {
+            // Fallback
+            urlInput.value = currentUnproxiedURL;
+        }
     }catch(e){
-        // Cross-origin, keep original URL
+        // Cross-origin fallback
+        urlInput.value = currentUnproxiedURL;
     }
 });
 </script>
