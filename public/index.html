@@ -1,130 +1,264 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cool Browser GUI</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Red & Black Browser</title>
 
-    <!-- UV Proxy Scripts -->
-    <script src="/uv/uv.bundle.js"></script>
-    <script src="/uv/uv.config.js"></script>
-    <script>
-        if ("serviceWorker" in navigator) {
-            window.addEventListener("load", () => {
-                navigator.serviceWorker.register("/uv/sw.js", {
-                    scope: __uv$config.prefix,
-                });
-            });
-        }
-    </script>
+<!-- UV Proxy Scripts -->
+<script src="/uv/uv.bundle.js"></script>
+<script src="/uv/uv.config.js"></script>
+<script>
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/uv/sw.js", {
+            scope: __uv$config.prefix,
+        });
+    });
+}
+</script>
 
-    <style>
-        /* Full-screen body */
-        body {
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            background-color: #141414;
-            font-family: sans-serif;
-        }
+<style>
+/* ===== General Body ===== */
+body {
+    margin: 0;
+    font-family: sans-serif;
+    background-color: #141414;
+    color: #fff;
+    overflow: hidden;
+}
 
-        /* URL input */
-        #urlInput {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 80vw;
-            height: 10vh;
-            padding-left: 0.5em;
-            font-size: 5vh;
-            border: 0;
-            outline: 0;
-            color: aliceblue;
-            background-color: #25252a;
-            box-sizing: border-box;
-        }
+/* ===== Browser Bar ===== */
+#browser-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 10vh;
+    display: flex;
+    align-items: center;
+    padding: 0 0.5em;
+    background-color: #1f1f1f;
+    box-sizing: border-box;
+}
 
-        /* Search button */
-        #searchButton {
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 20vw;
-            height: 10vh;
-            font-size: 5vh;
-            border: 0;
-            outline: 0;
-            background-color: aliceblue;
-            color: #141414;
-            cursor: pointer;
-        }
+#urlInput {
+    flex: 1;
+    height: 70%;
+    font-size: 4vh;
+    padding-left: 0.5em;
+    border: none;
+    outline: none;
+    background-color: #25252a;
+    color: #ff5555;
+    border-radius: 4px;
+}
 
-        /* Iframe full-screen */
-        #iframeWindow {
-            position: absolute;
-            top: 10vh;
-            left: 0;
-            width: 100vw;
-            height: 90vh;
-            border: 0;
-            background-color: #fff;
-        }
-    </style>
+#goButton {
+    margin-left: 0.5em;
+    height: 70%;
+    padding: 0 1em;
+    font-size: 4vh;
+    border: none;
+    border-radius: 4px;
+    background-color: #ff5555;
+    color: #141414;
+    cursor: pointer;
+}
+
+/* ===== Panels ===== */
+.panel {
+    position: absolute;
+    top: 10vh;
+    width: 20vw;
+    height: 90vh;
+    background-color: #1f1f1f;
+    border-right: 1px solid #ff5555;
+    padding: 1em;
+    box-sizing: border-box;
+    overflow-y: auto;
+    display: none;
+}
+
+.panel h2 {
+    margin-top: 0;
+    color: #ff5555;
+}
+
+/* ===== Buttons ===== */
+.panel button {
+    width: 100%;
+    margin: 0.5em 0;
+    padding: 0.5em;
+    font-size: 1em;
+    background-color: #ff5555;
+    color: #141414;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+#iframeWindow {
+    position: absolute;
+    top: 10vh;
+    left: 0;
+    width: 100%;
+    height: 90vh;
+    border: none;
+}
+
+/* ===== Toolbar Buttons ===== */
+#toolbar {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 10vh;
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    padding-right: 1em;
+}
+
+.toolbar-button {
+    background-color: #ff5555;
+    color: #141414;
+    border: none;
+    padding: 0.5em 1em;
+    font-size: 3vh;
+    cursor: pointer;
+    border-radius: 4px;
+}
+</style>
 </head>
+
 <body>
 
-    <!-- URL Bar -->
+<!-- Browser bar -->
+<div id="browser-bar">
     <input type="text" id="urlInput" placeholder="Enter URL here">
-    <button id="searchButton">Go</button>
+    <button id="goButton">Go</button>
+    <div id="toolbar">
+        <button class="toolbar-button" onclick="togglePanel('bookmarksPanel')">Bookmarks</button>
+        <button class="toolbar-button" onclick="togglePanel('historyPanel')">History</button>
+        <button class="toolbar-button" onclick="togglePanel('settingsPanel')">Settings</button>
+    </div>
+</div>
 
-    <!-- Browser iframe -->
-    <iframe id="iframeWindow"></iframe>
+<!-- Panels -->
+<div id="bookmarksPanel" class="panel">
+    <h2>Bookmarks</h2>
+    <div id="bookmarksList"></div>
+    <button onclick="addBookmark()">Add Current Page</button>
+</div>
 
-    <script>
-        const urlInput = document.getElementById("urlInput");
-        const searchButton = document.getElementById("searchButton");
-        const iframeWindow = document.getElementById("iframeWindow");
+<div id="historyPanel" class="panel">
+    <h2>History</h2>
+    <div id="historyList"></div>
+</div>
 
-        // Press Enter to search
-        urlInput.addEventListener("keydown", function(event) {
-            if (event.key === "Enter") {
-                event.preventDefault();
-                searchButton.click();
-            }
-        });
+<div id="settingsPanel" class="panel">
+    <h2>Settings</h2>
+    <label style="color:#ff5555">Default Search Engine:</label>
+    <select id="defaultSearchEngine">
+        <option value="https://www.google.com/search?q=">Google</option>
+        <option value="https://duckduckgo.com/?q=">DuckDuckGo</option>
+        <option value="https://www.bing.com/search?q=">Bing</option>
+    </select>
+</div>
 
-        function loadURL(url) {
-            let finalURL = url;
+<!-- Browser iframe -->
+<iframe id="iframeWindow"></iframe>
 
-            // Google search if no period
-            if (!url.includes(".")) {
-                finalURL = "https://www.google.com/search?q=" + encodeURIComponent(url);
-            } else if (!url.startsWith("http://") && !url.startsWith("https://")) {
-                finalURL = "https://" + url;
-            }
+<script>
+const iframe = document.getElementById("iframeWindow");
+const urlInput = document.getElementById("urlInput");
+const goButton = document.getElementById("goButton");
 
-            iframeWindow.src = __uv$config.prefix + __uv$config.encodeUrl(finalURL);
+const bookmarksList = document.getElementById("bookmarksList");
+const historyList = document.getElementById("historyList");
 
-            // Update input to show unproxied URL
-            urlInput.value = finalURL;
-        }
+let bookmarks = [];
+let history = [];
+let defaultSearch = document.getElementById("defaultSearchEngine").value;
 
-        searchButton.onclick = function(event) {
-            event.preventDefault();
-            loadURL(urlInput.value);
-        };
+// Toggle panels
+function togglePanel(id) {
+    const panel = document.getElementById(id);
+    panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+}
 
-        // Update the URL bar when iframe changes
-        iframeWindow.addEventListener("load", () => {
-            try {
-                const currentURL = iframeWindow.contentWindow.location.href;
-                // Only update if same-origin, otherwise keep unproxied URL
-                if (currentURL) urlInput.value = currentURL;
-            } catch (e) {
-                // Cross-origin: can't access, leave original URL
-            }
-        });
-    </script>
+// Update default search engine
+document.getElementById("defaultSearchEngine").addEventListener("change", (e)=>{
+    defaultSearch = e.target.value;
+});
+
+// Load URL in iframe
+function loadURL(url) {
+    let finalURL = url;
+
+    if (!url.includes(".")) {
+        finalURL = defaultSearch + encodeURIComponent(url);
+    } else if (!url.startsWith("http://") && !url.startsWith("https://")) {
+        finalURL = "https://" + url;
+    }
+
+    iframe.src = __uv$config.prefix + __uv$config.encodeUrl(finalURL);
+
+    // Add to history
+    history.push(finalURL);
+    renderHistory();
+
+    // Show unproxied URL
+    urlInput.value = finalURL;
+}
+
+// Button click
+goButton.onclick = () => loadURL(urlInput.value);
+
+// Enter key
+urlInput.addEventListener("keydown", e => {
+    if(e.key === "Enter") loadURL(urlInput.value);
+});
+
+// Add bookmark
+function addBookmark() {
+    const url = urlInput.value;
+    if(!bookmarks.includes(url)) bookmarks.push(url);
+    renderBookmarks();
+}
+
+// Render bookmarks
+function renderBookmarks() {
+    bookmarksList.innerHTML = "";
+    bookmarks.forEach(url=>{
+        const btn = document.createElement("button");
+        btn.textContent = url;
+        btn.onclick = ()=> loadURL(url);
+        bookmarksList.appendChild(btn);
+    });
+}
+
+// Render history
+function renderHistory() {
+    historyList.innerHTML = "";
+    history.forEach(url=>{
+        const btn = document.createElement("button");
+        btn.textContent = url;
+        btn.onclick = ()=> loadURL(url);
+        historyList.appendChild(btn);
+    });
+}
+
+// Update URL bar when iframe changes
+iframe.addEventListener("load", ()=>{
+    try{
+        const currentURL = iframe.contentWindow.location.href;
+        if(currentURL) urlInput.value = currentURL;
+    }catch(e){
+        // Cross-origin, keep original URL
+    }
+});
+</script>
 
 </body>
 </html>
