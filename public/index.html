@@ -16,6 +16,16 @@ if ("serviceWorker" in navigator) {
     });
   });
 }
+
+// --- PATCH: store original URL when encoding ---
+(function(){
+  const originalEncodeUrl = __uv$config.encodeUrl;
+  __uv$config.encodeUrl = function(url){
+    // Save the original URL for reference
+    __uv.lastOriginalURL = url;
+    return originalEncodeUrl.call(this, url);
+  };
+})();
 </script>
 
 <style>
@@ -235,22 +245,38 @@ function loadProxy(url){
 
   overlay.style.display = "flex";
   frame.src = __uv$config.prefix + __uv$config.encodeUrl(target);
-  urlInput.value = target; // show unproxied URL immediately
+
+  // Save original URL
+  __uv.lastOriginalURL = target;
+  urlInput.value = target;
 }
 
-// Auto-update proxy URL with original unproxied link
+// --- Hook UV navigation to update the browser bar ---
+if(__uv && __uv.$setLocation){
+  const originalSetLocation = __uv.$setLocation;
+  __uv.$setLocation = function(url, opts){
+    // Always set the unproxied URL in the bar
+    urlInput.value = url;
+    return originalSetLocation.call(this, url, opts);
+  };
+}
+
+// Also handle iframe load fallback
 frame.addEventListener("load", () => {
   try {
-    const currentSrc = frame.src;
-
-    if (currentSrc.startsWith(__uv$config.prefix)) {
-      const encodedPart = currentSrc.replace(__uv$config.prefix, "");
-      const decoded = __uv$config.decodeUrl(encodedPart);
-      urlInput.value = decoded;
+    if(__uv.lastOriginalURL){
+      urlInput.value = __uv.lastOriginalURL;
     } else {
-      urlInput.value = currentSrc;
+      const currentSrc = frame.src;
+      if(currentSrc.startsWith(__uv$config.prefix)){
+        const encodedPart = currentSrc.replace(__uv$config.prefix, "");
+        const decoded = __uv$config.decodeUrl(encodedPart);
+        urlInput.value = decoded;
+      } else {
+        urlInput.value = currentSrc;
+      }
     }
-  } catch (e) {
+  } catch(e){
     urlInput.value = frame.src;
   }
 });
