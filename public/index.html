@@ -19,96 +19,184 @@ if ("serviceWorker" in navigator) {
 </script>
 
 <style>
-:root{
+:root {
   --bg:#050505;
   --accent:#ff2d2d;
   --panel:rgba(20,20,20,0.96);
   --text:#e0e0e0;
   --border:#2f2f2f;
+  --hover:#2a2a2a;
+  --transition:all .3s ease;
 }
 
 *{box-sizing:border-box;margin:0;padding:0}
 
 body{
+  font-family:'Segoe UI',Arial,sans-serif;
   background:var(--bg);
   color:var(--text);
-  font-family:Segoe UI,Arial,sans-serif;
-  height:100vh;
-  overflow:hidden;
-}
-
-/* ===== FULLSCREEN PROXY ===== */
-#proxyOverlay{
-  position:fixed;
-  inset:0;
-  background:#000;
+  min-height:100vh;
   display:flex;
-  z-index:9999;
+  flex-direction:column;
 }
 
-#proxyFrame{
-  width:100%;
-  height:100%;
-  border:none;
-  background:#fff;
+/* ===== Header ===== */
+header{
+  background:var(--panel);
+  padding:16px 32px;
+  text-align:center;
+  font-size:2rem;
+  font-weight:700;
+  border-bottom:1px solid var(--border);
 }
 
-/* ===== OPTIONAL SEARCH (HIDDEN UI TRIGGER) ===== */
+/* ===== Top Buttons ===== */
+nav{
+  display:flex;
+  justify-content:center;
+  gap:20px;
+  background:var(--panel);
+  padding:10px;
+  border-bottom:1px solid var(--border);
+}
+
+nav .section-button{
+  background:var(--panel);
+  border:1px solid var(--border);
+  padding:12px 20px;
+  border-radius:12px;
+  font-size:1rem;
+  font-weight:600;
+  cursor:pointer;
+  transition:var(--transition);
+}
+
+nav .section-button:hover{
+  background:var(--hover);
+  box-shadow:0 0 15px var(--accent);
+}
+
+/* ===== Main ===== */
+main{
+  flex:1;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:40px;
+}
+
 #searchForm{
-  position:fixed;
-  bottom:20px;
-  left:50%;
-  transform:translateX(-50%);
   display:flex;
   gap:10px;
-  z-index:10000;
+  width:100%;
+  max-width:600px;
 }
 
 #searchInput{
-  padding:10px 14px;
-  font-size:1rem;
-  border-radius:8px;
+  flex:1;
+  padding:12px 16px;
+  font-size:1.2rem;
+  border-radius:10px;
   border:1px solid var(--border);
   background:#111;
   color:var(--text);
 }
 
 #searchButton{
-  padding:10px 16px;
+  padding:12px 20px;
+  font-size:1.2rem;
+  font-weight:600;
+  border:none;
+  border-radius:10px;
+  background:var(--accent);
+  color:#000;
+  cursor:pointer;
+  transition:var(--transition);
+}
+
+#searchButton:hover{
+  background:#ff5050;
+}
+
+/* ===== Footer ===== */
+footer{
+  text-align:center;
+  padding:12px;
+  background:var(--panel);
+  border-top:1px solid var(--border);
+  font-size:.85rem;
+  color:#aaa;
+}
+
+/* ===== PROXY OVERLAY ===== */
+#proxyOverlay{
+  position:fixed;
+  inset:0;
+  background:#000;
+  display:none;
+  z-index:9999;
+}
+
+#proxyClose{
+  position:absolute;
+  top:15px;
+  right:20px;
+  z-index:10000;
+  padding:10px 14px;
   border:none;
   border-radius:8px;
   background:var(--accent);
   color:#000;
-  font-weight:700;
+  font-weight:800;
   cursor:pointer;
+  box-shadow:0 0 15px var(--accent);
+}
+
+/* iframe */
+#proxyFrame{
+  width:100%;
+  height:100%;
+  border:none;
+  background:#fff;
 }
 </style>
 </head>
 
 <body>
 
-<!-- ===== FULLSCREEN PROXY ===== -->
+<header>Glitch Hub</header>
+
+<nav>
+  <div class="section-button" onclick="location.href='../games/app.html'">Games</div>
+  <div class="section-button" onclick="location.href='../movies/index.html'">Movies</div>
+  <div class="section-button" onclick="location.href='../ai/index.html'">AI</div>
+  <div class="section-button" onclick="location.href='../tools/index.html'">Tools</div>
+</nav>
+
+<main>
+  <form id="searchForm">
+    <input id="searchInput" placeholder="Search or enter URL..." />
+    <button id="searchButton" type="submit">Search</button>
+  </form>
+</main>
+
+<footer>© 2025 Glitch Override. All rights reserved.</footer>
+
+<!-- ================= PROXY OVERLAY ================= -->
 <div id="proxyOverlay">
+  <button id="proxyClose">✕</button>
   <iframe id="proxyFrame"></iframe>
 </div>
 
-<!-- Optional search (remove if you want ZERO UI) -->
-<form id="searchForm">
-  <input id="searchInput" placeholder="Search or enter URL..." />
-  <button id="searchButton" type="submit">Go</button>
-</form>
-
 <script>
+const overlay = document.getElementById("proxyOverlay");
 const frame = document.getElementById("proxyFrame");
 const searchForm = document.getElementById("searchForm");
 const searchInput = document.getElementById("searchInput");
 
-/* ===== DEFAULT SITE TO LOAD ON START ===== */
-const START_URL = "https://www.startpage.com";
-
 /* ===== LOAD PROXY ===== */
-function loadProxy(url){
-  let target = url.trim();
+function loadProxy(input){
+  let target = input.trim();
   if(!target) return;
 
   if(!target.includes(".")){
@@ -117,21 +205,23 @@ function loadProxy(url){
     target = "https://" + target;
   }
 
+  overlay.style.display = "block";
   frame.src = __uv$config.prefix + __uv$config.encodeUrl(target);
 }
 
-/* ===== AUTO LOAD ON PAGE OPEN ===== */
-window.addEventListener("load", () => {
-  loadProxy(START_URL);
-});
-
-/* ===== SEARCH HANDLER ===== */
+/* ===== SEARCH SUBMIT ===== */
 searchForm.addEventListener("submit",(e)=>{
   e.preventDefault();
   loadProxy(searchInput.value);
-  searchInput.value="";
 });
+
+/* ===== CLOSE ===== */
+document.getElementById("proxyClose").onclick = ()=>{
+  frame.src = "about:blank";
+  overlay.style.display = "none";
+};
 </script>
 
 </body>
 </html>
+
