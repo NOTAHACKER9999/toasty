@@ -15,7 +15,7 @@
   ],
 
   "routes": [
-    { "src": "^/$", "dest": "/index.html" },
+    { "src": "^/$", "dest": "/public/index.html" },
 
     { "src": "^/games/?$", "dest": "/games/app.html" },
     { "src": "^/games/(.*)", "dest": "/games/app.html" },
