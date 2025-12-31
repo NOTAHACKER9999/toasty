@@ -221,7 +221,6 @@ const frame = document.getElementById("proxyFrame");
 const urlInput = document.getElementById("proxyUrl");
 const searchForm = document.getElementById("searchForm");
 const searchInput = document.getElementById("searchInput");
-const searchButton = document.getElementById("searchButton");
 
 // Load URL in proxy
 function loadProxy(url){
@@ -235,26 +234,24 @@ function loadProxy(url){
   }
 
   overlay.style.display = "flex";
-  urlInput.value = target;
   frame.src = __uv$config.prefix + __uv$config.encodeUrl(target);
+  urlInput.value = target; // show unproxied URL immediately
 }
 
-// Auto-update proxy URL
-function updateProxyUrl(newUrl){
-  urlInput.value = newUrl;
-}
-
-// Hook into UV proxy's iframe navigation
-frame.addEventListener("load",()=>{
+// Auto-update proxy URL with original unproxied link
+frame.addEventListener("load", () => {
   try {
-    const currentUrl = frame.contentWindow.location.href;
-    updateProxyUrl(currentUrl);
-  } catch(e){
-    // Cross-origin: fallback to proxy internal API
-    if(__uv && __uv.$get){
-      const path = __uv.$get(frame.contentWindow.location).pathname;
-      updateProxyUrl(__uv$config.decodeUrl(path));
+    const currentSrc = frame.src;
+
+    if (currentSrc.startsWith(__uv$config.prefix)) {
+      const encodedPart = currentSrc.replace(__uv$config.prefix, "");
+      const decoded = __uv$config.decodeUrl(encodedPart);
+      urlInput.value = decoded;
+    } else {
+      urlInput.value = currentSrc;
     }
+  } catch (e) {
+    urlInput.value = frame.src;
   }
 });
 
