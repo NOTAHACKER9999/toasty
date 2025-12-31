@@ -16,6 +16,15 @@ if ("serviceWorker" in navigator) {
     });
   });
 }
+
+// Patch: store original URL when encoding
+(function(){
+  const originalEncodeUrl = __uv$config.encodeUrl;
+  __uv$config.encodeUrl = function(url){
+    __uv.lastOriginalURL = url; // store unproxied URL
+    return originalEncodeUrl.call(this, url);
+  };
+})();
 </script>
 
 <style>
@@ -40,6 +49,7 @@ body{
   flex-direction:column;
 }
 
+/* ===== Header ===== */
 header{
   background:var(--panel);
   padding:16px 32px;
@@ -49,6 +59,7 @@ header{
   border-bottom:1px solid var(--border);
 }
 
+/* ===== Top Buttons ===== */
 nav{
   display:flex;
   justify-content:center;
@@ -74,6 +85,7 @@ nav .section-button:hover{
   box-shadow:0 0 15px var(--accent);
 }
 
+/* ===== Main ===== */
 main{
   flex:1;
   display:flex;
@@ -117,6 +129,7 @@ main{
   background:#ff5050;
 }
 
+/* ===== Footer ===== */
 footer{
   text-align:center;
   padding:12px;
@@ -126,6 +139,7 @@ footer{
   color:#aaa;
 }
 
+/* ===== PROXY OVERLAY ===== */
 #proxyOverlay{
   position:fixed;
   inset:0;
@@ -135,6 +149,7 @@ footer{
   z-index:9999;
 }
 
+/* Top bar */
 #proxyBar{
   height:60px;
   background:var(--panel);
@@ -169,6 +184,7 @@ footer{
   cursor:pointer;
 }
 
+/* iframe */
 #proxyFrame{
   flex:1;
   width:100%;
@@ -198,6 +214,7 @@ footer{
 
 <footer>© 2025 Glitch Override. All rights reserved.</footer>
 
+<!-- ================= PROXY OVERLAY ================= -->
 <div id="proxyOverlay">
   <div id="proxyBar">
     <input id="proxyUrl" placeholder="Enter URL or search..." />
@@ -214,79 +231,46 @@ const urlInput = document.getElementById("proxyUrl");
 const searchForm = document.getElementById("searchForm");
 const searchInput = document.getElementById("searchInput");
 
-let lastUnproxied = "";
-
-// Detect the prefix and decode accordingly
-function decodeProxyUrl(encodedUrl){
-    if(!encodedUrl) return '';
-    try {
-        if(encodedUrl.startsWith("/b/") || encodedUrl.includes("/b/")){
-            const path = encodedUrl.split("/b/")[1];
-            return decodeURIComponent(path);
-        } else if(encodedUrl.startsWith("/uv/") || encodedUrl.includes("/uv/")){
-            const path = encodedUrl.split("/uv/")[1];
-            return __uv$config.decodeUrl(path);
-        } 
-        return encodedUrl;
-    } catch(e){
-        return encodedUrl;
-    }
-}
-
-function normalizeUrl(urlStr){
-    if(!urlStr || urlStr==='about:blank') return urlStr;
-    try{
-        const url = new URL(urlStr);
-        url.searchParams.delete('ia'); // optional cleanup
-        return url.toString();
-    }catch{
-        return urlStr;
-    }
-}
-
+// Load URL in proxy
 function loadProxy(url){
-    let target = url.trim();
-    if(!target) return;
+  let target = url.trim();
+  if(!target) return;
 
-    if(!target.includes(".")){
-        target = "https://www.startpage.com/sp/search?q="+encodeURIComponent(target);
-    } else if(!target.startsWith("http")){
-        target = "https://"+target;
-    }
+  if(!target.includes(".")){
+    target = "https://www.startpage.com/sp/search?q=" + encodeURIComponent(target);
+  } else if(!target.startsWith("http")){
+    target = "https://" + target;
+  }
 
-    lastUnproxied = target;
-    overlay.style.display="flex";
+  overlay.style.display = "flex";
+  frame.src = __uv$config.prefix + __uv$config.encodeUrl(target);
 
-    if(target.startsWith("/uv/")){
-        frame.src = "/uv/"+__uv$config.encodeUrl(target);
-    } else {
-        frame.src = "/b/"+encodeURIComponent(target);
-    }
-
-    urlInput.value = target;
+  // Immediately show the unproxied URL in the bar
+  urlInput.value = target;
 }
 
-// Auto update bar
-frame.addEventListener("load", ()=>{
-    try {
-        const decoded = decodeProxyUrl(frame.src);
-        const normalized = normalizeUrl(decoded);
-        urlInput.value = normalized;
-        lastUnproxied = normalized;
-    } catch{
-        urlInput.value = lastUnproxied;
+// Auto-update proxy URL with **unproxied** link
+frame.addEventListener("load", () => {
+  try {
+    if (__uv.lastOriginalURL) {
+      urlInput.value = __uv.lastOriginalURL; // always show unproxied URL
     }
+  } catch (e) {
+    urlInput.value = frame.src;
+  }
 });
 
-searchForm.addEventListener("submit", e=>{
-    e.preventDefault();
-    loadProxy(searchInput.value);
+// Search form submit
+searchForm.addEventListener("submit",(e)=>{
+  e.preventDefault();
+  loadProxy(searchInput.value);
 });
 
+// Proxy buttons
 document.getElementById("proxyGo").onclick = ()=>loadProxy(urlInput.value);
 document.getElementById("proxyClose").onclick = ()=>{
-    frame.src="about:blank";
-    overlay.style.display="none";
+  frame.src="about:blank";
+  overlay.style.display="none";
 };
 </script>
 
