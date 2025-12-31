@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Glitch Hub</title>
 
-<!-- ================= UV PROXY ================= -->
+<!-- UV Proxy -->
 <script src="/uv/uv.bundle.js"></script>
 <script src="/uv/uv.config.js"></script>
 <script>
@@ -80,8 +80,6 @@ main{
   justify-content:center;
   align-items:center;
   padding:40px;
-  gap:40px;
-  flex-wrap:wrap;
 }
 
 #searchForm{
@@ -214,82 +212,61 @@ const urlInput = document.getElementById("proxyUrl");
 const searchForm = document.getElementById("searchForm");
 const searchInput = document.getElementById("searchInput");
 
-let lastUnproxied = "";
-
-// Detect the prefix and decode accordingly
-function decodeProxyUrl(encodedUrl){
-    if(!encodedUrl) return '';
-    try {
-        if(encodedUrl.startsWith("/b/") || encodedUrl.includes("/b/")){
-            const path = encodedUrl.split("/b/")[1];
-            return decodeURIComponent(path);
-        } else if(encodedUrl.startsWith("/uv/") || encodedUrl.includes("/uv/")){
-            const path = encodedUrl.split("/uv/")[1];
-            return __uv$config.decodeUrl(path);
-        } 
-        return encodedUrl;
-    } catch(e){
-        return encodedUrl;
-    }
-}
-
-function normalizeUrl(urlStr){
-    if(!urlStr || urlStr==='about:blank') return urlStr;
-    try{
-        const url = new URL(urlStr);
-        url.searchParams.delete('ia'); // optional cleanup
-        return url.toString();
-    }catch{
-        return urlStr;
-    }
-}
-
-function loadProxy(url){
-    let target = url.trim();
-    if(!target) return;
-
-    if(!target.includes(".")){
-        target = "https://www.startpage.com/sp/search?q="+encodeURIComponent(target);
-    } else if(!target.startsWith("http")){
-        target = "https://"+target;
-    }
-
-    lastUnproxied = target;
-    overlay.style.display="flex";
-
-    if(target.startsWith("/uv/")){
-        frame.src = "/uv/"+__uv$config.encodeUrl(target);
+// Decode /b/ or /uv/ URL for display only
+function decodeForBar(url){
+  try{
+    if(url.includes("/b/")){
+      const encoded = url.split("/b/")[1];
+      return decodeURIComponent(encoded);
+    } else if(url.includes("/uv/")){
+      const encoded = url.split("/uv/")[1];
+      return __uv$config.decodeUrl(encoded);
     } else {
-        frame.src = "/b/"+encodeURIComponent(target);
+      return url;
     }
-
-    urlInput.value = target;
+  } catch(e){ return url; }
 }
 
-// Auto update bar
+// Load proxy (keep server routes intact!)
+function loadProxy(target){
+  target = target.trim();
+  if(!target) return;
+
+  if(!target.includes(".")){
+    target = "https://www.startpage.com/sp/search?q="+encodeURIComponent(target);
+  } else if(!target.startsWith("http")){
+    target = "https://"+target;
+  }
+
+  overlay.style.display="flex";
+
+  // Use /b/ for Bare server
+  frame.src = "/b/"+encodeURIComponent(target);
+
+  // Show unproxied in bar
+  urlInput.value = target;
+}
+
+// Auto-update bar
 frame.addEventListener("load", ()=>{
-    try {
-        const decoded = decodeProxyUrl(frame.src);
-        const normalized = normalizeUrl(decoded);
-        urlInput.value = normalized;
-        lastUnproxied = normalized;
-    } catch{
-        urlInput.value = lastUnproxied;
-    }
+  try{
+    urlInput.value = decodeForBar(frame.src);
+  } catch(e){
+    // fallback to last value
+  }
 });
 
 searchForm.addEventListener("submit", e=>{
-    e.preventDefault();
-    loadProxy(searchInput.value);
+  e.preventDefault();
+  loadProxy(searchInput.value);
 });
 
 document.getElementById("proxyGo").onclick = ()=>loadProxy(urlInput.value);
 document.getElementById("proxyClose").onclick = ()=>{
-    frame.src="about:blank";
-    overlay.style.display="none";
+  frame.src="about:blank";
+  overlay.style.display="none";
 };
 </script>
 
 </body>
 </html>
-
