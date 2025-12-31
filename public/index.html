@@ -40,46 +40,79 @@ body{
   flex-direction:column;
 }
 
-/* ===== Header ===== */
+/* ===== TOP BAR ===== */
 header{
   background:var(--panel);
-  padding:16px 32px;
-  text-align:center;
-  font-size:2rem;
-  font-weight:700;
   border-bottom:1px solid var(--border);
-}
-
-/* ===== Main ===== */
-main{
-  flex:1;
+  padding:14px 28px;
   display:flex;
-  justify-content:center;
   align-items:center;
-  padding:40px;
-  gap:40px;
-  flex-wrap:wrap;
+  justify-content:space-between;
 }
 
-.section-button{
-  background:var(--panel);
+header .title{
+  font-size:1.8rem;
+  font-weight:700;
+}
+
+nav{
+  display:flex;
+  gap:14px;
+}
+
+nav button{
+  background:#111;
   border:1px solid var(--border);
-  padding:24px 40px;
-  border-radius:14px;
-  font-size:1.5rem;
+  color:var(--text);
+  padding:10px 18px;
+  border-radius:10px;
   font-weight:600;
   cursor:pointer;
   transition:var(--transition);
-  min-width:220px;
-  text-align:center;
 }
 
-.section-button:hover{
+nav button:hover{
   background:var(--hover);
-  box-shadow:0 0 20px var(--accent);
+  box-shadow:0 0 12px var(--accent);
 }
 
-/* ===== Footer ===== */
+/* ===== MAIN SEARCH ===== */
+main{
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.search-box{
+  width:100%;
+  max-width:720px;
+  padding:0 20px;
+}
+
+.search-box input{
+  width:100%;
+  height:64px;
+  font-size:1.4rem;
+  background:#0b0b0b;
+  border:2px solid var(--border);
+  border-radius:16px;
+  padding:0 22px;
+  color:var(--accent);
+  outline:none;
+  transition:var(--transition);
+}
+
+.search-box input::placeholder{
+  color:#777;
+}
+
+.search-box input:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 22px rgba(255,45,45,.4);
+}
+
+/* ===== FOOTER ===== */
 footer{
   text-align:center;
   padding:12px;
@@ -99,7 +132,6 @@ footer{
   z-index:9999;
 }
 
-/* Top bar */
 #proxyBar{
   height:60px;
   background:var(--panel);
@@ -122,7 +154,6 @@ footer{
   border-radius:6px;
 }
 
-#proxyGo,
 #proxyClose{
   height:40px;
   padding:0 16px;
@@ -134,7 +165,6 @@ footer{
   cursor:pointer;
 }
 
-/* iframe */
 #proxyFrame{
   flex:1;
   width:100%;
@@ -146,14 +176,24 @@ footer{
 
 <body>
 
-<header>Glitch Hub</header>
+<header>
+  <div class="title">Glitch Hub</div>
+  <nav>
+    <button onclick="location.href='../games/app.html'">Games</button>
+    <button onclick="location.href='../movies/index.html'">Movies</button>
+    <button onclick="location.href='../ai/index.html'">AI</button>
+    <button onclick="location.href='../tools/index.html'">Tools</button>
+  </nav>
+</header>
 
 <main>
-  <div class="section-button" onclick="location.href='../games/app.html'">Games</div>
-  <div class="section-button" onclick="location.href='../movies/index.html'">Movies</div>
-  <div class="section-button" onclick="location.href='../ai/index.html'">AI</div>
-  <div class="section-button" onclick="location.href='../tools/index.html'">Tools</div>
-  <div class="section-button" onclick="openProxy()">Open Proxy</div>
+  <div class="search-box">
+    <input
+      id="mainSearch"
+      placeholder="Search or enter a URL…"
+      autocomplete="off"
+    />
+  </div>
 </main>
 
 <footer>© 2025 Glitch Override. All rights reserved.</footer>
@@ -161,8 +201,7 @@ footer{
 <!-- ================= PROXY OVERLAY ================= -->
 <div id="proxyOverlay">
   <div id="proxyBar">
-    <input id="proxyUrl" placeholder="Enter URL or search..." />
-    <button id="proxyGo">Go</button>
+    <input id="proxyUrl" />
     <button id="proxyClose">Close</button>
   </div>
   <iframe id="proxyFrame"></iframe>
@@ -171,38 +210,36 @@ footer{
 <script>
 const overlay = document.getElementById("proxyOverlay");
 const frame = document.getElementById("proxyFrame");
-const urlInput = document.getElementById("proxyUrl");
+const mainSearch = document.getElementById("mainSearch");
+const proxyUrl = document.getElementById("proxyUrl");
 
-function openProxy(){
-  overlay.style.display="flex";
-  urlInput.focus();
-}
-
-document.getElementById("proxyClose").onclick = ()=>{
-  frame.src="about:blank";
-  overlay.style.display="none";
-};
-
-function loadProxy(url){
-  let target=url.trim();
+function loadProxy(value){
+  let target = value.trim();
   if(!target) return;
 
   if(!target.includes(".")){
-    target="https://duckduckgo.com/?q="+encodeURIComponent(target);
+    target =
+      "https://www.startpage.com/sp/search?query=" +
+      encodeURIComponent(target);
   } else if(!target.startsWith("http")){
-    target="https://"+target;
+    target = "https://" + target;
   }
 
+  proxyUrl.value = target;
+  overlay.style.display = "flex";
   frame.src = __uv$config.prefix + __uv$config.encodeUrl(target);
 }
 
-document.getElementById("proxyGo").onclick = ()=>{
-  loadProxy(urlInput.value);
-};
-
-urlInput.addEventListener("keydown",e=>{
-  if(e.key==="Enter") loadProxy(urlInput.value);
+mainSearch.addEventListener("keydown", e => {
+  if(e.key === "Enter"){
+    loadProxy(mainSearch.value);
+  }
 });
+
+document.getElementById("proxyClose").onclick = () => {
+  frame.src = "about:blank";
+  overlay.style.display = "none";
+};
 </script>
 
 </body>
