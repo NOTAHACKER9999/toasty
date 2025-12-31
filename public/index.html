@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Glitch Hub</title>
 
-<!-- ================= UV PROXY ================= -->
+<!-- UV PROXY -->
 <script src="/uv/uv.bundle.js"></script>
 <script src="/uv/uv.config.js"></script>
 <script>
@@ -17,11 +17,10 @@ if ("serviceWorker" in navigator) {
   });
 }
 
-// --- PATCH: store original URL when encoding ---
+// Store original URL for unproxying
 (function(){
   const originalEncodeUrl = __uv$config.encodeUrl;
   __uv$config.encodeUrl = function(url){
-    // Save the original URL for reference
     __uv.lastOriginalURL = url;
     return originalEncodeUrl.call(this, url);
   };
@@ -40,158 +39,32 @@ if ("serviceWorker" in navigator) {
 }
 
 *{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
 
-body{
-  font-family:'Segoe UI',Arial,sans-serif;
-  background:var(--bg);
-  color:var(--text);
-  min-height:100vh;
-  display:flex;
-  flex-direction:column;
-}
+/* Header */
+header{background:var(--panel);padding:16px 32px;text-align:center;font-size:2rem;font-weight:700;border-bottom:1px solid var(--border);}
 
-/* ===== Header ===== */
-header{
-  background:var(--panel);
-  padding:16px 32px;
-  text-align:center;
-  font-size:2rem;
-  font-weight:700;
-  border-bottom:1px solid var(--border);
-}
+/* Top Buttons */
+nav{display:flex;justify-content:center;gap:20px;background:var(--panel);padding:10px;border-bottom:1px solid var(--border);}
+nav .section-button{background:var(--panel);border:1px solid var(--border);padding:12px 20px;border-radius:12px;font-size:1rem;font-weight:600;cursor:pointer;transition:var(--transition);}
+nav .section-button:hover{background:var(--hover);box-shadow:0 0 15px var(--accent);}
 
-/* ===== Top Buttons ===== */
-nav{
-  display:flex;
-  justify-content:center;
-  gap:20px;
-  background:var(--panel);
-  padding:10px;
-  border-bottom:1px solid var(--border);
-}
+/* Main */
+main{flex:1;display:flex;justify-content:center;align-items:center;padding:40px;gap:40px;flex-wrap:wrap;}
+#searchForm{display:flex;gap:10px;width:100%;max-width:600px;}
+#searchInput{flex:1;padding:12px 16px;font-size:1.2rem;border-radius:10px;border:1px solid var(--border);background:#111;color:var(--text);}
+#searchButton{padding:12px 20px;font-size:1.2rem;font-weight:600;border:none;border-radius:10px;background:var(--accent);color:#000;cursor:pointer;transition:var(--transition);}
+#searchButton:hover{background:#ff5050;}
 
-nav .section-button{
-  background:var(--panel);
-  border:1px solid var(--border);
-  padding:12px 20px;
-  border-radius:12px;
-  font-size:1rem;
-  font-weight:600;
-  cursor:pointer;
-  transition:var(--transition);
-}
+/* Footer */
+footer{text-align:center;padding:12px;background:var(--panel);border-top:1px solid var(--border);font-size:.85rem;color:#aaa;}
 
-nav .section-button:hover{
-  background:var(--hover);
-  box-shadow:0 0 15px var(--accent);
-}
-
-/* ===== Main ===== */
-main{
-  flex:1;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  padding:40px;
-  gap:40px;
-  flex-wrap:wrap;
-}
-
-#searchForm{
-  display:flex;
-  gap:10px;
-  width:100%;
-  max-width:600px;
-}
-
-#searchInput{
-  flex:1;
-  padding:12px 16px;
-  font-size:1.2rem;
-  border-radius:10px;
-  border:1px solid var(--border);
-  background:#111;
-  color:var(--text);
-}
-
-#searchButton{
-  padding:12px 20px;
-  font-size:1.2rem;
-  font-weight:600;
-  border:none;
-  border-radius:10px;
-  background:var(--accent);
-  color:#000;
-  cursor:pointer;
-  transition:var(--transition);
-}
-
-#searchButton:hover{
-  background:#ff5050;
-}
-
-/* ===== Footer ===== */
-footer{
-  text-align:center;
-  padding:12px;
-  background:var(--panel);
-  border-top:1px solid var(--border);
-  font-size:.85rem;
-  color:#aaa;
-}
-
-/* ===== PROXY OVERLAY ===== */
-#proxyOverlay{
-  position:fixed;
-  inset:0;
-  background:#000;
-  display:none;
-  flex-direction:column;
-  z-index:9999;
-}
-
-/* Top bar */
-#proxyBar{
-  height:60px;
-  background:var(--panel);
-  display:flex;
-  align-items:center;
-  gap:10px;
-  padding:10px;
-  border-bottom:2px solid var(--accent);
-}
-
-#proxyUrl{
-  flex:1;
-  height:40px;
-  background:#111;
-  border:none;
-  outline:none;
-  color:var(--accent);
-  padding:0 10px;
-  font-size:16px;
-  border-radius:6px;
-}
-
-#proxyGo,
-#proxyClose{
-  height:40px;
-  padding:0 16px;
-  border:none;
-  border-radius:6px;
-  background:var(--accent);
-  color:#000;
-  font-weight:700;
-  cursor:pointer;
-}
-
-/* iframe */
-#proxyFrame{
-  flex:1;
-  width:100%;
-  border:none;
-  background:#fff;
-}
+/* Proxy Overlay */
+#proxyOverlay{position:fixed;inset:0;background:#000;display:none;flex-direction:column;z-index:9999;}
+#proxyBar{height:60px;background:var(--panel);display:flex;align-items:center;gap:10px;padding:10px;border-bottom:2px solid var(--accent);}
+#proxyUrl{flex:1;height:40px;background:#111;border:none;outline:none;color:var(--accent);padding:0 10px;font-size:16px;border-radius:6px;}
+#proxyGo,#proxyClose{height:40px;padding:0 16px;border:none;border-radius:6px;background:var(--accent);color:#000;font-weight:700;cursor:pointer;}
+#proxyFrame{flex:1;width:100%;border:none;background:#fff;}
 </style>
 </head>
 
@@ -200,25 +73,25 @@ footer{
 <header>Glitch Hub</header>
 
 <nav>
-  <div class="section-button" onclick="location.href='../games/app.html'">Games</div>
-  <div class="section-button" onclick="location.href='../movies/index.html'">Movies</div>
-  <div class="section-button" onclick="location.href='../ai/index.html'">AI</div>
-  <div class="section-button" onclick="location.href='../tools/index.html'">Tools</div>
+  <div class="section-button" onclick="loadProxy('../games/app.html')">Games</div>
+  <div class="section-button" onclick="loadProxy('../movies/index.html')">Movies</div>
+  <div class="section-button" onclick="loadProxy('../ai/index.html')">AI</div>
+  <div class="section-button" onclick="loadProxy('../tools/index.html')">Tools</div>
 </nav>
 
 <main>
   <form id="searchForm">
-    <input id="searchInput" placeholder="Search with Startpage..." />
+    <input id="searchInput" placeholder="Search with Startpage...">
     <button id="searchButton" type="submit">Search</button>
   </form>
 </main>
 
 <footer>© 2025 Glitch Override. All rights reserved.</footer>
 
-<!-- ================= PROXY OVERLAY ================= -->
+<!-- Proxy Overlay -->
 <div id="proxyOverlay">
   <div id="proxyBar">
-    <input id="proxyUrl" placeholder="Enter URL or search..." />
+    <input id="proxyUrl" placeholder="Enter URL or search...">
     <button id="proxyGo">Go</button>
     <button id="proxyClose">Close</button>
   </div>
@@ -232,7 +105,7 @@ const urlInput = document.getElementById("proxyUrl");
 const searchForm = document.getElementById("searchForm");
 const searchInput = document.getElementById("searchInput");
 
-// Load URL in proxy
+// Load URL in proxy overlay
 function loadProxy(url){
   let target = url.trim();
   if(!target) return;
@@ -245,23 +118,20 @@ function loadProxy(url){
 
   overlay.style.display = "flex";
   frame.src = __uv$config.prefix + __uv$config.encodeUrl(target);
-
-  // Save original URL
   __uv.lastOriginalURL = target;
   urlInput.value = target;
 }
 
-// --- Hook UV navigation to update the browser bar ---
+// Hook UV navigation to update the bar with unproxied URL
 if(__uv && __uv.$setLocation){
   const originalSetLocation = __uv.$setLocation;
   __uv.$setLocation = function(url, opts){
-    // Always set the unproxied URL in the bar
     urlInput.value = url;
     return originalSetLocation.call(this, url, opts);
   };
 }
 
-// Also handle iframe load fallback
+// Fallback: update on iframe load
 frame.addEventListener("load", () => {
   try {
     if(__uv.lastOriginalURL){
@@ -269,8 +139,7 @@ frame.addEventListener("load", () => {
     } else {
       const currentSrc = frame.src;
       if(currentSrc.startsWith(__uv$config.prefix)){
-        const encodedPart = currentSrc.replace(__uv$config.prefix, "");
-        const decoded = __uv$config.decodeUrl(encodedPart);
+        const decoded = __uv$config.decodeUrl(currentSrc.replace(__uv$config.prefix, ""));
         urlInput.value = decoded;
       } else {
         urlInput.value = currentSrc;
@@ -281,7 +150,7 @@ frame.addEventListener("load", () => {
   }
 });
 
-// Search form submit
+// Search form
 searchForm.addEventListener("submit",(e)=>{
   e.preventDefault();
   loadProxy(searchInput.value);
