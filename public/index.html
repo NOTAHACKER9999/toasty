@@ -1,218 +1,209 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Red & Black Browser</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Glitch Hub</title>
 
-<!-- UV Proxy -->
+<!-- ================= UV PROXY ================= -->
 <script src="/uv/uv.bundle.js"></script>
 <script src="/uv/uv.config.js"></script>
 <script>
 if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-        navigator.serviceWorker.register("/uv/sw.js", {
-            scope: __uv$config.prefix,
-        });
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/uv/sw.js", {
+      scope: __uv$config.prefix,
     });
+  });
 }
-</script>
-
-<!-- Eruda Loader (classic snippet) -->
-<script>
-(function () {
-  var src = '//cdn.jsdelivr.net/npm/eruda';
-  if (!/eruda=true/.test(window.location) && localStorage.getItem('active-eruda') != 'true') return;
-  document.write('<scr' + 'ipt src="' + src + '"></scr' + 'ipt>');
-  document.write('<scr' + 'ipt>eruda.init();</scr' + 'ipt>');
-})();
 </script>
 
 <style>
-/* ===== Body ===== */
-body { margin:0; padding:0; font-family:sans-serif; background:#141414; color:#fff; overflow:hidden; }
-
-/* ===== Browser Bar ===== */
-#browser-bar {
-    position:absolute;
-    top:0; left:0; width:100%; height:10vh;
-    display:flex; align-items:center;
-    padding:0 1em;
-    background:#1f1f1f;
-    border-bottom:2px solid #ff5555;
-    box-sizing:border-box;
-    z-index:10;
-}
-#urlInput {
-    flex:1; height:70%; font-size:4vh; padding-left:0.5em;
-    border:none; outline:none;
-    background:#25252a; color:#ff5555; border-radius:5px;
-}
-#goButton {
-    margin-left:0.5em; height:70%; padding:0 1em; font-size:4vh;
-    border:none; border-radius:5px; background:#ff5555; color:#141414; cursor:pointer;
-}
-#toolbar { display:flex; gap:0.5em; margin-left:1em; }
-.toolbar-button {
-    background:#ff5555; color:#141414; border:none; padding:0.5em 1em;
-    font-size:3vh; cursor:pointer; border-radius:5px;
+:root {
+  --bg:#050505;
+  --accent:#ff2d2d;
+  --panel:rgba(20,20,20,0.96);
+  --text:#e0e0e0;
+  --border:#2f2f2f;
+  --hover:#2a2a2a;
+  --transition:all .3s ease;
 }
 
-/* ===== Panels ===== */
-.panel {
-    position:absolute; top:10vh; left:0; width:20vw; height:90vh;
-    background:#1f1f1f; border-right:1px solid #ff5555;
-    padding:1em; box-sizing:border-box; overflow-y:auto;
-    display:none; z-index:15;
-}
-.panel h2 { margin-top:0; color:#ff5555; }
-.panel button {
-    width:100%; margin:0.5em 0; padding:0.5em; font-size:1em;
-    background:#ff5555; color:#141414; border:none; cursor:pointer; border-radius:5px;
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{
+  font-family:'Segoe UI',Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
 }
 
-/* ===== Iframe ===== */
-#iframeWindow {
-    position:absolute; top:10vh; left:0; width:100%; height:90vh; border:none; background:#fff; z-index:5;
+/* ===== Header ===== */
+header{
+  background:var(--panel);
+  padding:16px 32px;
+  text-align:center;
+  font-size:2rem;
+  font-weight:700;
+  border-bottom:1px solid var(--border);
+}
+
+/* ===== Main ===== */
+main{
+  flex:1;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:40px;
+  gap:40px;
+  flex-wrap:wrap;
+}
+
+.section-button{
+  background:var(--panel);
+  border:1px solid var(--border);
+  padding:24px 40px;
+  border-radius:14px;
+  font-size:1.5rem;
+  font-weight:600;
+  cursor:pointer;
+  transition:var(--transition);
+  min-width:220px;
+  text-align:center;
+}
+
+.section-button:hover{
+  background:var(--hover);
+  box-shadow:0 0 20px var(--accent);
+}
+
+/* ===== Footer ===== */
+footer{
+  text-align:center;
+  padding:12px;
+  background:var(--panel);
+  border-top:1px solid var(--border);
+  font-size:.85rem;
+  color:#aaa;
+}
+
+/* ===== PROXY OVERLAY ===== */
+#proxyOverlay{
+  position:fixed;
+  inset:0;
+  background:#000;
+  display:none;
+  flex-direction:column;
+  z-index:9999;
+}
+
+/* Top bar */
+#proxyBar{
+  height:60px;
+  background:var(--panel);
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px;
+  border-bottom:2px solid var(--accent);
+}
+
+#proxyUrl{
+  flex:1;
+  height:40px;
+  background:#111;
+  border:none;
+  outline:none;
+  color:var(--accent);
+  padding:0 10px;
+  font-size:16px;
+  border-radius:6px;
+}
+
+#proxyGo,
+#proxyClose{
+  height:40px;
+  padding:0 16px;
+  border:none;
+  border-radius:6px;
+  background:var(--accent);
+  color:#000;
+  font-weight:700;
+  cursor:pointer;
+}
+
+/* iframe */
+#proxyFrame{
+  flex:1;
+  width:100%;
+  border:none;
+  background:#fff;
 }
 </style>
 </head>
+
 <body>
 
-<!-- Browser Bar -->
-<div id="browser-bar">
-    <input type="text" id="urlInput" placeholder="Enter URL here">
-    <button id="goButton">Go</button>
-    <div id="toolbar">
-        <button class="toolbar-button" onclick="togglePanel('bookmarksPanel')">Bookmarks</button>
-        <button class="toolbar-button" onclick="togglePanel('historyPanel')">History</button>
-        <button class="toolbar-button" onclick="togglePanel('settingsPanel')">Settings</button>
-        <button class="toolbar-button" id="devToolsBtn">DevTools</button>
-    </div>
-</div>
+<header>Glitch Hub</header>
 
-<!-- Panels -->
-<div id="bookmarksPanel" class="panel">
-    <h2>Bookmarks</h2>
-    <div id="bookmarksList"></div>
-    <button onclick="addBookmark()">Add Current Page</button>
-</div>
+<main>
+  <div class="section-button" onclick="location.href='../games/app.html'">Games</div>
+  <div class="section-button" onclick="location.href='../movies/index.html'">Movies</div>
+  <div class="section-button" onclick="location.href='../ai/index.html'">AI</div>
+  <div class="section-button" onclick="location.href='../tools/index.html'">Tools</div>
+  <div class="section-button" onclick="openProxy()">Open Proxy</div>
+</main>
 
-<div id="historyPanel" class="panel">
-    <h2>History</h2>
-    <div id="historyList"></div>
-</div>
+<footer>© 2025 Glitch Override. All rights reserved.</footer>
 
-<div id="settingsPanel" class="panel">
-    <h2>Settings</h2>
-    <label style="color:#ff5555">Default Search Engine:</label>
-    <select id="defaultSearchEngine">
-        <option value="https://www.google.com/search?q=">Google</option>
-        <option value="https://duckduckgo.com/?q=">DuckDuckGo</option>
-        <option value="https://www.bing.com/search?q=">Bing</option>
-    </select>
+<!-- ================= PROXY OVERLAY ================= -->
+<div id="proxyOverlay">
+  <div id="proxyBar">
+    <input id="proxyUrl" placeholder="Enter URL or search..." />
+    <button id="proxyGo">Go</button>
+    <button id="proxyClose">Close</button>
+  </div>
+  <iframe id="proxyFrame"></iframe>
 </div>
-
-<!-- Browser Iframe -->
-<iframe id="iframeWindow"></iframe>
 
 <script>
-const iframe = document.getElementById("iframeWindow");
-const urlInput = document.getElementById("urlInput");
-const goButton = document.getElementById("goButton");
-const devToolsBtn = document.getElementById("devToolsBtn");
+const overlay = document.getElementById("proxyOverlay");
+const frame = document.getElementById("proxyFrame");
+const urlInput = document.getElementById("proxyUrl");
 
-const bookmarksList = document.getElementById("bookmarksList");
-const historyList = document.getElementById("historyList");
-
-let bookmarks = [];
-let history = [];
-let defaultSearch = document.getElementById("defaultSearchEngine").value;
-let currentUnproxiedURL = "";
-
-// Toggle panel visibility
-function togglePanel(id) {
-    const panel = document.getElementById(id);
-    panel.style.display = (panel.style.display === 'block') ? 'none' : 'block';
+function openProxy(){
+  overlay.style.display="flex";
+  urlInput.focus();
 }
 
-// Change default search engine
-document.getElementById("defaultSearchEngine").addEventListener("change", (e) => {
-    defaultSearch = e.target.value;
-});
+document.getElementById("proxyClose").onclick = ()=>{
+  frame.src="about:blank";
+  overlay.style.display="none";
+};
 
-// Load URL function
-function loadURL(url) {
-    let finalURL = url;
-    if (!url.includes(".")) finalURL = defaultSearch + encodeURIComponent(url);
-    else if (!url.startsWith("http://") && !url.startsWith("https://")) finalURL = "https://" + url;
+function loadProxy(url){
+  let target=url.trim();
+  if(!target) return;
 
-    currentUnproxiedURL = finalURL;
-    iframe.src = __uv$config.prefix + __uv$config.encodeUrl(finalURL);
+  if(!target.includes(".")){
+    target="https://duckduckgo.com/?q="+encodeURIComponent(target);
+  } else if(!target.startsWith("http")){
+    target="https://"+target;
+  }
 
-    history.push(finalURL);
-    renderHistory();
-    urlInput.value = currentUnproxiedURL;
+  frame.src = __uv$config.prefix + __uv$config.encodeUrl(target);
 }
 
-// Go button and Enter key
-goButton.onclick = () => loadURL(urlInput.value);
-urlInput.addEventListener("keydown", e => { if(e.key === "Enter") loadURL(urlInput.value); });
+document.getElementById("proxyGo").onclick = ()=>{
+  loadProxy(urlInput.value);
+};
 
-// Bookmarks
-function addBookmark() {
-    if(!bookmarks.includes(currentUnproxiedURL)) bookmarks.push(currentUnproxiedURL);
-    renderBookmarks();
-}
-function renderBookmarks() {
-    bookmarksList.innerHTML = "";
-    bookmarks.forEach(url => {
-        const btn = document.createElement("button");
-        btn.textContent = url;
-        btn.onclick = () => loadURL(url);
-        bookmarksList.appendChild(btn);
-    });
-}
-
-// History
-function renderHistory() {
-    historyList.innerHTML = "";
-    history.forEach(url => {
-        const btn = document.createElement("button");
-        btn.textContent = url;
-        btn.onclick = () => loadURL(url);
-        historyList.appendChild(btn);
-    });
-}
-
-// Auto-update URL bar with unproxied URL
-iframe.addEventListener("load", () => {
-    try {
-        const current = iframe.contentWindow.location.href;
-        if(current.startsWith(__uv$config.prefix)) {
-            const decoded = __uv$config.decodeUrl(current);
-            currentUnproxiedURL = decoded;
-            urlInput.value = currentUnproxiedURL;
-        } else {
-            urlInput.value = currentUnproxiedURL;
-        }
-    } catch(e) {
-        urlInput.value = currentUnproxiedURL;
-    }
-});
-
-// DevTools toggle using classic snippet method
-let erudaVisible = false;
-devToolsBtn.addEventListener("click", () => {
-    if (window.eruda) {
-        erudaVisible ? eruda.hide() : eruda.show();
-        erudaVisible = !erudaVisible;
-    } else {
-        // If Eruda not loaded yet, activate via URL/localStorage
-        localStorage.setItem('active-eruda','true');
-        alert('Reload the page with "?eruda=true" in URL to enable DevTools');
-    }
+urlInput.addEventListener("keydown",e=>{
+  if(e.key==="Enter") loadProxy(urlInput.value);
 });
 </script>
+
 </body>
 </html>
