@@ -16,15 +16,6 @@ if ("serviceWorker" in navigator) {
     });
   });
 }
-
-// Patch: store original URL when encoding
-(function(){
-  const originalEncodeUrl = __uv$config.encodeUrl;
-  __uv$config.encodeUrl = function(url){
-    __uv.lastOriginalURL = url; // store unproxied URL
-    return originalEncodeUrl.call(this, url);
-  };
-})();
 </script>
 
 <style>
@@ -231,7 +222,10 @@ const urlInput = document.getElementById("proxyUrl");
 const searchForm = document.getElementById("searchForm");
 const searchInput = document.getElementById("searchInput");
 
-// Load URL in proxy
+// Store unproxied URL separately
+let lastUnproxiedURL = "";
+
+// Load URL in proxy overlay
 function loadProxy(url){
   let target = url.trim();
   if(!target) return;
@@ -242,26 +236,21 @@ function loadProxy(url){
     target = "https://" + target;
   }
 
+  lastUnproxiedURL = target; // store unproxied
   overlay.style.display = "flex";
   frame.src = __uv$config.prefix + __uv$config.encodeUrl(target);
-
-  // Immediately show the unproxied URL in the bar
-  urlInput.value = target;
+  urlInput.value = target; // show immediately
 }
 
-// Auto-update proxy URL with **unproxied** link
+// Update proxy URL bar without touching UV
 frame.addEventListener("load", () => {
-  try {
-    if (__uv.lastOriginalURL) {
-      urlInput.value = __uv.lastOriginalURL; // always show unproxied URL
-    }
-  } catch (e) {
-    urlInput.value = frame.src;
+  if(lastUnproxiedURL){
+    urlInput.value = lastUnproxiedURL; // always show unproxied URL
   }
 });
 
-// Search form submit
-searchForm.addEventListener("submit",(e)=>{
+// Search form
+searchForm.addEventListener("submit", e=>{
   e.preventDefault();
   loadProxy(searchInput.value);
 });
