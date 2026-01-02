@@ -5,13 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Glitch Hub</title>
 
-<!-- UV -->
+<!-- ============ UV PROXY ============ -->
 <script src="/uv/uv.bundle.js"></script>
 <script src="/uv/uv.config.js"></script>
 <script>
 if ("serviceWorker" in navigator) {
-  addEventListener("load", () => {
-    navigator.serviceWorker.register("/uv/sw.js", { scope: __uv$config.prefix });
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/uv/sw.js", {
+      scope: __uv$config.prefix
+    });
   });
 }
 </script>
@@ -19,43 +21,43 @@ if ("serviceWorker" in navigator) {
 <style>
 :root{
   --bg:#050505;
-  --panel:#0d0d0d;
+  --panel:#0f0f0f;
+  --border:#2a2a2a;
   --accent:#ff2d2d;
   --text:#e0e0e0;
-  --border:#262626;
 }
 
 *{box-sizing:border-box;margin:0;padding:0}
 
 body{
+  font-family:Segoe UI,Arial;
   background:var(--bg);
   color:var(--text);
-  font-family:Segoe UI,Arial,sans-serif;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
 }
 
 /* ===== HEADER ===== */
 header{
-  position:relative;
-  padding:18px;
+  background:var(--panel);
+  padding:16px;
   text-align:center;
   font-size:2rem;
-  font-weight:900;
-  background:var(--panel);
+  font-weight:700;
   border-bottom:1px solid var(--border);
+  position:relative;
 }
 
 #settingsBtn{
   position:absolute;
-  right:18px;
-  top:14px;
-  padding:8px 14px;
-  border-radius:14px;
-  border:1px solid var(--accent);
-  background:#111;
-  color:var(--accent);
-  font-weight:900;
+  top:12px;
+  right:16px;
+  padding:6px 14px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:#141414;
   cursor:pointer;
-  text-shadow:0 0 6px var(--accent);
 }
 
 /* ===== NAV ===== */
@@ -69,38 +71,45 @@ nav{
 }
 
 .nav-btn{
-  padding:10px 20px;
-  border-radius:16px;
-  background:#111;
+  padding:10px 18px;
   border:1px solid var(--border);
+  border-radius:14px;
   cursor:pointer;
-  font-weight:700;
+  background:#141414;
 }
 
-.nav-btn:hover{
-  box-shadow:0 0 14px var(--accent);
-}
-
-/* ===== START PAGE ===== */
+/* ===== MAIN SEARCH ===== */
 main{
+  flex:1;
   display:flex;
   justify-content:center;
   align-items:center;
-  padding:50px;
+  padding:40px;
 }
 
 #searchInput{
   width:100%;
-  max-width:620px;
+  max-width:600px;
   padding:16px 20px;
-  border-radius:20px;
   background:#111;
   border:1px solid var(--border);
   color:var(--text);
-  font-size:1.2rem;
+  border-radius:999px;
+  font-size:1.1rem;
+  outline:none;
 }
 
-/* ===== PROXY ===== */
+/* ===== FOOTER ===== */
+footer{
+  padding:12px;
+  text-align:center;
+  background:var(--panel);
+  border-top:1px solid var(--border);
+  font-size:.85rem;
+  color:#aaa;
+}
+
+/* ===== PROXY OVERLAY ===== */
 #proxyOverlay{
   position:fixed;
   inset:0;
@@ -110,50 +119,12 @@ main{
   z-index:9999;
 }
 
-/* ===== BROWSER BAR (RESTORED STYLE) ===== */
-#browserBar{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  padding:10px;
-  background:#090909;
-  border-bottom:1px solid var(--border);
-}
-
-.browser-btn{
-  min-width:38px;
-  height:36px;
-  border-radius:14px;
-  background:#111;
-  border:1px solid var(--accent);
-  color:var(--accent);
-  font-weight:900;
-  cursor:pointer;
-  text-shadow:0 0 6px var(--accent);
-  box-shadow:inset 0 0 10px rgba(255,45,45,.25);
-}
-
-.browser-btn:hover{
-  transform:scale(1.05);
-}
-
-#urlBar{
-  flex:1;
-  height:36px;
-  padding:0 16px;
-  border-radius:18px;
-  border:1px solid var(--border);
-  background:#111;
-  color:var(--text);
-  font-size:1rem;
-}
-
 /* ===== TABS ===== */
-#tabs{
+#tabsBar{
   display:flex;
-  gap:8px;
-  padding:8px;
-  background:#060606;
+  gap:6px;
+  padding:6px;
+  background:#0b0b0b;
   border-bottom:1px solid var(--border);
   overflow-x:auto;
 }
@@ -162,42 +133,72 @@ main{
   display:flex;
   align-items:center;
   gap:6px;
-  padding:6px 12px;
-  background:#111;
-  border-radius:14px;
-  cursor:pointer;
+  padding:6px 10px;
+  background:#141414;
   border:1px solid var(--border);
+  border-radius:16px;
+  font-size:.8rem;
+  cursor:pointer;
+  white-space:nowrap;
 }
 
 .tab.active{
-  box-shadow:0 0 12px var(--accent);
+  background:var(--accent);
+  color:#000;
+  font-weight:700;
 }
 
-.tab img{
-  width:16px;
-  height:16px;
+.tab img{width:14px;height:14px}
+.tab .close{font-weight:900;cursor:pointer}
+
+/* ===== BROWSER BAR ===== */
+#browserBar{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:8px;
+  background:var(--panel);
+  border-bottom:1px solid var(--border);
 }
 
-.tab span{
-  max-width:120px;
-  overflow:hidden;
-  white-space:nowrap;
-  text-overflow:ellipsis;
+.bubble-btn{
+  padding:8px 14px;
+  border-radius:999px;
+  background:#151515;
+  border:1px solid var(--border);
+  cursor:pointer;
+  box-shadow:
+    inset 0 0 6px rgba(255,45,45,.25),
+    0 0 10px rgba(255,45,45,.35);
 }
 
-.tab .close{
-  margin-left:4px;
-  color:#ff5555;
-  font-weight:900;
-}
-
-/* ===== IFRAME ===== */
-#proxyFrame{
+#urlBar{
   flex:1;
-  width:100%;
-  border:none;
-  background:#fff;
+  padding:8px 16px;
+  background:#0b0b0b;
+  border:1px solid var(--border);
+  border-radius:999px;
+  font-family:monospace;
+  font-size:.85rem;
+  color:#ff5555;
+  outline:none;
 }
+
+/* ===== FRAMES ===== */
+#frames{
+  flex:1;
+  position:relative;
+}
+
+.proxyFrame{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  border:none;
+  display:none;
+}
+.proxyFrame.active{display:block}
 </style>
 </head>
 
@@ -216,105 +217,159 @@ main{
 </nav>
 
 <main>
-  <input id="searchInput" placeholder="Search or enter URL (Enter)">
+  <input id="searchInput" placeholder="Search or enter URL (press Enter)">
 </main>
 
+<footer>© 2025 Glitch Override</footer>
+
+<!-- ===== OVERLAY ===== -->
 <div id="proxyOverlay">
-  <div id="browserBar">
-    <button class="browser-btn" onclick="goBack()">⟲</button>
-    <button class="browser-btn" onclick="goForward()">⟳</button>
-    <button class="browser-btn" onclick="refreshPage()">⟲⟳</button>
-    <input id="urlBar">
-    <button class="browser-btn" onclick="newTab()">＋</button>
-    <button class="browser-btn" id="injectDevtools">&lt;/&gt;</button>
+
+  <div id="tabsBar">
+    <div class="tab" onclick="newTab()">＋</div>
   </div>
 
-  <div id="tabs"></div>
-  <iframe id="proxyFrame"></iframe>
+  <div id="browserBar">
+    <div class="bubble-btn" onclick="goBack()">⟵</div>
+    <div class="bubble-btn" onclick="goForward()">⟶</div>
+    <div class="bubble-btn" onclick="refreshTab()">⟳</div>
+    <input id="urlBar" spellcheck="false">
+    <div class="bubble-btn" id="injectDevtools">&lt;/&gt;</div>
+    <div class="bubble-btn" onclick="closeOverlay()">✕</div>
+  </div>
+
+  <div id="frames"></div>
 </div>
 
 <script>
-const overlay = document.getElementById("proxyOverlay");
-const frame = document.getElementById("proxyFrame");
-const searchInput = document.getElementById("searchInput");
-const urlBar = document.getElementById("urlBar");
-const tabsEl = document.getElementById("tabs");
+const overlay=document.getElementById("proxyOverlay");
+const tabsBar=document.getElementById("tabsBar");
+const frames=document.getElementById("frames");
+const urlBar=document.getElementById("urlBar");
+const searchInput=document.getElementById("searchInput");
 
-let tabs=[], activeTab=null;
+const SEARCH_ENGINE=q=>"https://www.startpage.com/sp/search?q="+encodeURIComponent(q);
 
-function normalize(v){
-  if(!v.includes(".")) return "https://www.startpage.com/sp/search?q="+encodeURIComponent(v);
-  if(!v.startsWith("http")) return "https://"+v;
-  return v;
+let tabs=[],active=null;
+let editingUrl=false;
+
+/* ===== NORMALIZE ===== */
+function normalize(input){
+  if(!input.includes(".")) return SEARCH_ENGINE(input);
+  if(!input.startsWith("http")) return "https://"+input;
+  return input;
 }
 
-function newTab(url="https://startpage.com"){
-  const tab={url,title:url};
-  tabs.push(tab);
-  setTab(tab);
-}
-
-function setTab(tab){
-  activeTab=tab;
-  overlay.style.display="flex";
-  frame.src=__uv$config.prefix+__uv$config.encodeUrl(tab.url);
-  renderTabs();
-}
-
-function renderTabs(){
-  tabsEl.innerHTML="";
-  tabs.forEach(t=>{
-    const el=document.createElement("div");
-    el.className="tab"+(t===activeTab?" active":"");
-    el.innerHTML=`<img src="https://www.google.com/s2/favicons?domain=${t.url}">
-                  <span>${t.title}</span>
-                  <div class="close">×</div>`;
-    el.onclick=()=>setTab(t);
-    el.querySelector(".close").onclick=e=>{
-      e.stopPropagation();
-      tabs=tabs.filter(x=>x!==t);
-      tabs.length?setTab(tabs[0]):overlay.style.display="none";
-    };
-    tabsEl.appendChild(el);
-  });
-}
-
-function goBack(){
-  frame.contentWindow.history.back();
-  setTimeout(()=>frame.contentWindow.location.reload(),150);
-}
-function goForward(){
-  frame.contentWindow.history.forward();
-  setTimeout(()=>frame.contentWindow.location.reload(),150);
-}
-function refreshPage(){
-  frame.contentWindow.location.reload();
-}
-
+/* ===== HOME SEARCH ===== */
 searchInput.addEventListener("keydown",e=>{
-  if(e.key==="Enter") newTab(normalize(searchInput.value));
+  if(e.key==="Enter") newTab(normalize(searchInput.value.trim()));
 });
 
+/* ===== ADDRESS BAR ===== */
+urlBar.addEventListener("focus",()=>editingUrl=true);
+urlBar.addEventListener("blur",()=>editingUrl=false);
+
 urlBar.addEventListener("keydown",e=>{
-  if(e.key==="Enter"){
-    activeTab.url=normalize(urlBar.value);
-    setTab(activeTab);
+  if(e.key==="Enter" && active){
+    editingUrl=false;
+    active.iframe.src=
+      __uv$config.prefix+
+      __uv$config.encodeUrl(normalize(urlBar.value.trim()));
   }
 });
 
-frame.addEventListener("load",()=>{
-  try{
-    const p=frame.contentWindow.location.href.split(__uv$config.prefix)[1];
-    const real=__uv$config.decodeUrl(p.slice(1));
-    urlBar.value=real;
-    activeTab.title=frame.contentWindow.document.title||real;
-    renderTabs();
-  }catch{}
-});
+/* ===== TABS ===== */
+function newTab(url=SEARCH_ENGINE("")){
+  const iframe=document.createElement("iframe");
+  iframe.className="proxyFrame";
 
+  const tab=document.createElement("div");
+  tab.className="tab";
+
+  const icon=document.createElement("img");
+  const title=document.createElement("span");
+  title.textContent="New Tab";
+
+  const close=document.createElement("span");
+  close.textContent="✕";
+  close.className="close";
+  close.onclick=e=>{e.stopPropagation();closeTab(tabObj)};
+
+  tab.append(icon,title,close);
+  tab.onclick=()=>activate(tabObj);
+
+  const tabObj={iframe,tab,icon,title};
+  tabs.splice(tabs.length-1,0,tabObj);
+  tabsBar.insertBefore(tab,tabsBar.lastElementChild);
+  frames.appendChild(iframe);
+
+  activate(tabObj);
+  iframe.src=__uv$config.prefix+__uv$config.encodeUrl(url);
+  overlay.style.display="flex";
+}
+
+function activate(t){
+  tabs.forEach(x=>{
+    x.iframe.classList.remove("active");
+    x.tab.classList.remove("active");
+  });
+  active=t;
+  t.iframe.classList.add("active");
+  t.tab.classList.add("active");
+}
+
+/* ===== CLOSE TAB ===== */
+function closeTab(t){
+  const i=tabs.indexOf(t);
+  if(i>-1){
+    t.iframe.remove();
+    t.tab.remove();
+    tabs.splice(i,1);
+    activate(tabs[i-1]||tabs[0]);
+  }
+}
+
+/* ===== NAV CONTROLS (WITH UV RELOAD FIX) ===== */
+function goBack(){
+  active?.iframe.contentWindow.history.back();
+  setTimeout(()=>active?.iframe.contentWindow.location.reload(),150);
+}
+function goForward(){
+  active?.iframe.contentWindow.history.forward();
+  setTimeout(()=>active?.iframe.contentWindow.location.reload(),150);
+}
+function refreshTab(){
+  active?.iframe.contentWindow.location.reload();
+}
+function closeOverlay(){
+  overlay.style.display="none";
+  tabs=[];
+  frames.innerHTML="";
+  tabsBar.innerHTML='<div class="tab" onclick="newTab()">＋</div>';
+}
+
+/* ===== LIVE URL / TITLE / ICON ===== */
+setInterval(()=>{
+  if(!active || editingUrl) return;
+  try{
+    const w=active.iframe.contentWindow;
+    const d=active.iframe.contentDocument;
+    const href=w.location.href;
+    if(href.includes(__uv$config.prefix)){
+      const encoded=href.split(__uv$config.prefix)[1];
+      urlBar.value=__uv$config.decodeUrl(encoded.replace(/^\/+/,''));
+    }
+    if(d?.title) active.title.textContent=d.title.slice(0,22);
+    const fav=d?.querySelector("link[rel~='icon']");
+    if(fav?.href) active.icon.src=fav.href;
+  }catch{}
+},500);
+
+/* ===== ERUDA INJECT ===== */
 document.getElementById("injectDevtools").onclick=()=>{
   try{
-    const w=frame.contentWindow;
+    const w=active?.iframe.contentWindow;
+    if(!w) return;
     if(w.eruda){w.eruda.show();return;}
     const s=w.document.createElement("script");
     s.src="//cdn.jsdelivr.net/npm/eruda";
@@ -326,3 +381,4 @@ document.getElementById("injectDevtools").onclick=()=>{
 
 </body>
 </html>
+
