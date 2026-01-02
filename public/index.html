@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Glitch Hub</title>
+<title>Glitch Hub Proxy Browser</title>
 
-<!-- ============ UV PROXY ============ -->
+<!-- UV Proxy Scripts -->
 <script src="/uv/uv.bundle.js"></script>
 <script src="/uv/uv.config.js"></script>
 <script>
@@ -20,48 +20,40 @@ if ("serviceWorker" in navigator) {
 
 <style>
 :root{
-  --bg:#050505; 
-  --panel:#0f0f0f; 
-  --border:#2a2a2a; 
-  --accent:#ff2d2d; 
-  --text:#e0e0e0; 
-  --bubble-bg:#151515;
+  --bg:#0a0a0a;
+  --panel:#121212;
+  --border:#333;
+  --accent:#ffffff;
+  --text:#ffffff;
+  --urlbar-bg:#000;
+  --urlbar-outline:#fff;
+  --btn-bg:#111;
+  --btn-hover:#222;
 }
 
-/* ===== BASIC RESET ===== */
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+/* Reset */
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
 
-/* ===== HEADER ===== */
-header{background:var(--panel);padding:16px;text-align:center;font-size:2rem;font-weight:700;border-bottom:1px solid var(--border);position:relative;}
+/* Header / Tabs */
+#tabsBar{display:flex;align-items:flex-end;gap:2px;padding:4px;background:var(--panel);border-bottom:1px solid var(--border);}
+.tab{position:relative;padding:10px 16px;background:var(--btn-bg);color:var(--text);border-top-left-radius:6px;border-top-right-radius:6px;cursor:pointer;display:flex;align-items:center;gap:8px;}
+.tab.active{background:var(--bg);border-bottom:1px solid var(--bg);font-weight:700;}
+.tab .close{margin-left:6px;font-weight:900;cursor:pointer;}
+.tab + .tab{margin-left:-2px;}
 
-/* ===== NAV ===== */
-nav{display:flex;justify-content:center;gap:18px;padding:10px;background:var(--panel);border-bottom:1px solid var(--border);}
-.nav-btn{padding:10px 18px;border:1px solid var(--border);border-radius:14px;cursor:pointer;background:#141414;color:var(--text);transition:.3s;}
-.nav-btn:hover{box-shadow:0 0 10px var(--accent);}
+/* Bookmark Bar */
+#bookmarkBar{display:flex;gap:4px;padding:4px;background:var(--panel);border-bottom:1px solid var(--border);}
+.bookmark-btn{padding:4px 10px;background:var(--btn-bg);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:0.85rem;}
+.bookmark-btn:hover{background:var(--btn-hover);}
 
-/* ===== MAIN SEARCH ===== */
-main{flex:1;display:flex;justify-content:center;align-items:center;padding:40px;}
-#searchInput{width:100%;max-width:600px;padding:16px 20px;background:#111;border:1px solid var(--border);color:var(--text);border-radius:999px;font-size:1.1rem;outline:none;}
+/* Browser Bar */
+#browserBar{display:flex;align-items:center;gap:6px;padding:6px;background:#111;border-bottom:1px solid var(--border);}
+.bubble-btn{padding:6px 12px;border-radius:4px;background:var(--btn-bg);border:1px solid var(--btn-outline);cursor:pointer;color:var(--text);}
+.bubble-btn:hover{background:var(--btn-hover);}
+#urlBar{flex:1;padding:6px 12px;background:var(--urlbar-bg);border:1px solid var(--urlbar-outline);border-radius:4px;color:var(--text);outline:none;font-family:monospace;font-size:0.9rem;}
 
-/* ===== FOOTER ===== */
-footer{padding:12px;text-align:center;background:var(--panel);border-top:1px solid var(--border);font-size:.85rem;color:#aaa;}
-
-/* ===== PROXY OVERLAY ===== */
-#proxyOverlay{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;z-index:9999;}
-#tabsBar{display:flex;gap:6px;padding:6px;background:var(--panel);border-bottom:1px solid var(--border);overflow-x:auto;}
-.tab{display:flex;align-items:center;gap:6px;padding:6px 10px;background:#141414;border:1px solid var(--border);border-radius:16px;font-size:.8rem;cursor:pointer;white-space:nowrap;}
-.tab.active{background:var(--accent);color:#000;font-weight:700;}
-.tab img{width:14px;height:14px}
-.tab .close{font-weight:900;cursor:pointer}
-
-/* ===== BROWSER BAR ===== */
-#browserBar{display:flex;align-items:center;gap:8px;padding:8px;background:var(--panel);border-bottom:1px solid var(--border);}
-.bubble-btn{padding:8px 14px;border-radius:999px;background:var(--bubble-bg);border:1px solid var(--border);cursor:pointer;transition:all .3s;}
-.bubble-btn:hover{box-shadow:0 0 10px var(--accent);}
-#urlBar{flex:1;padding:8px 16px;background:#0b0b0b;border:1px solid var(--border);border-radius:999px;font-family:monospace;font-size:.85rem;color:#ff5555;outline:none;}
-
-/* ===== FRAMES ===== */
+/* Frames */
 #frames{flex:1;position:relative;}
 .proxyFrame{position:absolute;inset:0;width:100%;height:100%;border:none;display:none;}
 .proxyFrame.active{display:block}
@@ -69,120 +61,95 @@ footer{padding:12px;text-align:center;background:var(--panel);border-top:1px sol
 </head>
 
 <body>
-<header>Glitch Hub</header>
 
-<nav>
-  <div class="nav-btn" onclick="openNav('../games/app.html')">Games</div>
-  <div class="nav-btn" onclick="openNav('../movies/index.html')">Movies</div>
-  <div class="nav-btn" onclick="openNav('../ai/index.html')">AI</div>
-  <div class="nav-btn" onclick="openNav('../tools/index.html')">Tools</div>
-</nav>
-
-<main>
-  <input id="searchInput" placeholder="Search or enter URL (press Enter)">
-</main>
-
-<footer>© 2025 Glitch Override</footer>
-
-<!-- ===== PROXY OVERLAY ===== -->
-<div id="proxyOverlay">
-  <div id="tabsBar"><div class="tab" onclick="newTab()">＋</div></div>
-  <div id="browserBar">
-    <div class="bubble-btn" onclick="goBack()">⟵</div>
-    <div class="bubble-btn" onclick="goForward()">⟶</div>
-    <div class="bubble-btn" onclick="refreshTab()">⟳</div>
-    <input id="urlBar" spellcheck="false">
-    <div class="bubble-btn" onclick="fullscreenTab()">⛶</div>
-    <div class="bubble-btn" onclick="injectCode()">{"</>"}</div>
-    <div class="bubble-btn" onclick="closeOverlay()">✕</div>
-  </div>
-  <div id="frames"></div>
+<!-- Tabs -->
+<div id="tabsBar">
+  <div class="tab" onclick="newTab()">＋</div>
 </div>
 
-<script>
-const overlay=document.getElementById("proxyOverlay");
-const tabsBar=document.getElementById("tabsBar");
-const frames=document.getElementById("frames");
-const urlBar=document.getElementById("urlBar");
-const searchInput=document.getElementById("searchInput");
+<!-- Bookmark Bar -->
+<div id="bookmarkBar">
+  <div class="bookmark-btn" onclick="injectBookmarklet('alert(`Hello from bookmarklet!`)')">Test Inject</div>
+</div>
 
-let tabs=[],active=null,editingUrl=false;
+<!-- Browser Bar -->
+<div id="browserBar">
+  <div class="bubble-btn" onclick="goBack()">⟵</div>
+  <div class="bubble-btn" onclick="goForward()">⟶</div>
+  <div class="bubble-btn" onclick="refreshTab()">⟳</div>
+  <input id="urlBar" spellcheck="false" placeholder="Enter URL">
+  <div class="bubble-btn" onclick="fullscreenTab()">⛶</div>
+  <div class="bubble-btn" onclick="injectCode()">{"</>"}</div>
+  <div class="bubble-btn" onclick="closeOverlay()">✕</div>
+</div>
+
+<!-- Frames -->
+<div id="frames"></div>
+
+<script>
+const tabsBar = document.getElementById("tabsBar");
+const frames = document.getElementById("frames");
+const urlBar = document.getElementById("urlBar");
+
+let tabs = [], active = null;
 
 // ===== URL NORMALIZER =====
 function normalize(input){
-  if(!input.includes(".")) return "https://duckduckgo.com/?q="+encodeURIComponent(input);
+  if(!input.includes(".")) return "https://www.startpage.com/sp/search?q="+encodeURIComponent(input);
   if(!input.startsWith("http")) return "https://"+input;
   return input;
 }
 
-// ===== HOME SEARCH =====
-searchInput.addEventListener("keydown",e=>{
-  if(e.key==="Enter"){
-    newTab(normalize(searchInput.value.trim()));
-  }
-});
-
-// ===== ADDRESS BAR =====
-urlBar.addEventListener("focus",()=>editingUrl=true);
-urlBar.addEventListener("blur",()=>editingUrl=false);
-urlBar.addEventListener("keydown",e=>{
-  if(e.key==="Enter" && active){
-    editingUrl=false;
-    active.iframe.src=
-      __uv$config.prefix+
-      __uv$config.encodeUrl(normalize(urlBar.value.trim()));
-  }
-});
-
-// ===== NAV BUTTONS =====
-function openNav(path){
-  newTab(location.origin+path.replace(/^.\//,"/"));
-}
-
 // ===== TABS =====
-function newTab(url="https://duckduckgo.com"){
-  const iframe=document.createElement("iframe");
+function newTab(url="https://www.startpage.com") {
+  const iframe = document.createElement("iframe");
   iframe.className="proxyFrame";
 
-  const tab=document.createElement("div");
+  const tab = document.createElement("div");
   tab.className="tab";
-
-  const title=document.createElement("span");
+  const title = document.createElement("span");
   title.textContent="New Tab";
 
-  const close=document.createElement("span");
+  const close = document.createElement("span");
   close.textContent="✕";
   close.className="close";
+  close.onclick=e=>{e.stopPropagation(); closeTab(tabObj)};
 
-  const tabObj={iframe,tab,title};
-  close.onclick=e=>{e.stopPropagation();closeTab(tabObj)};
+  const tabObj={iframe, tab, title};
   tab.onclick=()=>activate(tabObj);
+  tab.append(title, close);
 
-  tab.append(title,close);
   tabs.splice(tabs.length-1,0,tabObj);
-  tabsBar.insertBefore(tab,tabsBar.lastElementChild);
+  tabsBar.insertBefore(tab, tabsBar.lastElementChild);
   frames.appendChild(iframe);
 
+  iframe.src = __uv$config.prefix + __uv$config.encodeUrl(url);
+  overlayShow();
   activate(tabObj);
-  iframe.src=__uv$config.prefix+__uv$config.encodeUrl(url);
-  overlay.style.display="flex";
 }
 
 // ===== ACTIVATE TAB =====
 function activate(t){
   tabs.forEach(x=>{x.iframe.classList.remove("active"); x.tab.classList.remove("active");});
-  active=t;
+  active = t;
   t.iframe.classList.add("active");
   t.tab.classList.add("active");
+
   try{
-    const w=t.iframe.contentWindow;
-    urlBar.value=w.location.href;
-  }catch{}
+    const w = t.iframe.contentWindow;
+    let href = w.location.href;
+    if(href.includes(__uv$config.prefix)){
+      const encoded = href.split(__uv$config.prefix)[1];
+      urlBar.value = __uv$config.decodeUrl(encoded.replace(/^\/+/,'')) || urlBar.value;
+    } else {
+      urlBar.value = href;
+    }
+  } catch{}
 }
 
 // ===== CLOSE TAB =====
 function closeTab(t){
-  const i=tabs.indexOf(t);
+  const i = tabs.indexOf(t);
   if(i>-1){t.iframe.remove(); t.tab.remove(); tabs.splice(i,1); activate(tabs[i-1]||tabs[0]);}
 }
 
@@ -195,13 +162,33 @@ function fullscreenTab(){active?.iframe.requestFullscreen?.()}
 // ===== INJECT CODE =====
 function injectCode(){
   if(!active) return;
-  const code=`javascript:(function () {var script=document.createElement('script');script.src="//cdn.jsdelivr.net/npm/eruda";document.body.appendChild(script); script.onload = function () { eruda.init() } })();`;
+  const code = `javascript:(function () {
+    var script=document.createElement('script');
+    script.src="//cdn.jsdelivr.net/npm/eruda";
+    document.body.appendChild(script);
+    script.onload = function () { eruda.init(); }
+  })();`;
   active.iframe.contentWindow.eval(code);
 }
 
-// ===== CLOSE OVERLAY =====
-function closeOverlay(){overlay.style.display="none";}
-</script>
+// ===== BOOKMARKLET INJECTION =====
+function injectBookmarklet(code){
+  if(!active) return;
+  active.iframe.contentWindow.eval(code);
+}
 
+// ===== SEARCH INPUT ENTER =====
+document.addEventListener("keydown", e => {
+  if(e.target.id==="urlBar" && e.key==="Enter"){
+    if(active){
+      active.iframe.src=__uv$config.prefix+__uv$config.encodeUrl(normalize(urlBar.value.trim()));
+    }
+  }
+});
+
+// ===== SHOW PROXY OVERLAY =====
+function overlayShow(){frames.style.display="block";}
+function closeOverlay(){frames.style.display="none";}
+</script>
 </body>
 </html>
