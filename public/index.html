@@ -5,14 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Glitch Hub</title>
 
-<!-- ================= UV PROXY ================= -->
+<!-- ================= UV ================= -->
 <script src="/uv/uv.bundle.js"></script>
 <script src="/uv/uv.config.js"></script>
 <script>
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
+  addEventListener("load", () => {
     navigator.serviceWorker.register("/uv/sw.js", {
-      scope: __uv$config.prefix,
+      scope: __uv$config.prefix
     });
   });
 }
@@ -21,18 +21,16 @@ if ("serviceWorker" in navigator) {
 <style>
 :root{
   --bg:#050505;
+  --panel:#111;
+  --border:#2a2a2a;
   --accent:#ff2d2d;
-  --panel:rgba(20,20,20,0.96);
   --text:#e0e0e0;
-  --border:#2f2f2f;
-  --hover:#2a2a2a;
-  --transition:all .25s ease;
 }
 
 *{box-sizing:border-box;margin:0;padding:0}
 
 body{
-  font-family:'Segoe UI',Arial,sans-serif;
+  font-family:Segoe UI,Arial;
   background:var(--bg);
   color:var(--text);
   min-height:100vh;
@@ -40,47 +38,36 @@ body{
   flex-direction:column;
 }
 
-/* ===== Header ===== */
+/* ===== Header / Nav unchanged ===== */
 header{
   background:var(--panel);
-  padding:16px 32px;
+  padding:16px;
   text-align:center;
   font-size:2rem;
-  font-weight:700;
   border-bottom:1px solid var(--border);
 }
 
-/* ===== Nav ===== */
 nav{
   display:flex;
+  gap:16px;
   justify-content:center;
-  gap:20px;
-  background:var(--panel);
   padding:10px;
+  background:var(--panel);
   border-bottom:1px solid var(--border);
 }
 
 .section-button{
-  background:var(--panel);
+  padding:10px 18px;
   border:1px solid var(--border);
-  padding:12px 20px;
   border-radius:12px;
-  font-weight:600;
   cursor:pointer;
-  transition:var(--transition);
-}
-.section-button:hover{
-  background:var(--hover);
-  box-shadow:0 0 12px var(--accent);
 }
 
-/* ===== Main ===== */
 main{
   flex:1;
   display:flex;
   justify-content:center;
   align-items:center;
-  padding:40px;
 }
 
 #searchForm{
@@ -92,33 +79,19 @@ main{
 
 #searchInput{
   flex:1;
-  padding:12px 16px;
-  font-size:1.2rem;
-  border-radius:10px;
-  border:1px solid var(--border);
+  padding:12px;
   background:#111;
+  border:1px solid var(--border);
   color:var(--text);
+  border-radius:10px;
 }
 
 #searchButton{
   padding:12px 20px;
-  font-size:1.2rem;
-  font-weight:700;
   border:none;
   border-radius:10px;
   background:var(--accent);
-  color:#000;
-  cursor:pointer;
-}
-
-/* ===== Footer ===== */
-footer{
-  text-align:center;
-  padding:12px;
-  background:var(--panel);
-  border-top:1px solid var(--border);
-  font-size:.85rem;
-  color:#aaa;
+  font-weight:700;
 }
 
 /* ===== PROXY OVERLAY ===== */
@@ -127,51 +100,83 @@ footer{
   inset:0;
   background:#000;
   display:none;
-  z-index:9999;
-  display:flex;
   flex-direction:column;
+  z-index:9999;
 }
 
-/* ===== Browser Bar ===== */
+/* ===== TABS BAR ===== */
+#tabsBar{
+  display:flex;
+  gap:6px;
+  padding:6px;
+  background:#0c0c0c;
+  border-bottom:1px solid var(--border);
+  overflow-x:auto;
+}
+
+.tab{
+  padding:6px 12px;
+  background:#141414;
+  border:1px solid var(--border);
+  border-radius:10px;
+  font-size:.85rem;
+  cursor:pointer;
+  white-space:nowrap;
+}
+
+.tab.active{
+  background:var(--accent);
+  color:#000;
+  font-weight:700;
+}
+
+/* ===== BROWSER BAR ===== */
 #browserBar{
   display:flex;
   align-items:center;
-  gap:10px;
-  padding:10px;
+  gap:8px;
+  padding:8px;
   background:var(--panel);
   border-bottom:1px solid var(--border);
 }
 
+.bar-btn{
+  padding:8px 10px;
+  border:1px solid var(--border);
+  border-radius:8px;
+  cursor:pointer;
+}
+
 #urlDisplay{
   flex:1;
-  padding:10px 14px;
+  padding:8px 12px;
   background:#0d0d0d;
   border:1px solid var(--border);
   border-radius:10px;
-  color:#ff5555;
-  font-size:.95rem;
   font-family:monospace;
+  font-size:.9rem;
+  color:#ff5555;
   overflow:hidden;
   white-space:nowrap;
   text-overflow:ellipsis;
 }
 
-#proxyClose{
-  padding:10px 14px;
-  border:none;
-  border-radius:10px;
-  background:var(--accent);
-  font-weight:800;
-  cursor:pointer;
-  box-shadow:0 0 12px var(--accent);
+#proxyFrames{
+  flex:1;
+  position:relative;
 }
 
-/* iframe */
-#proxyFrame{
-  flex:1;
+.proxyFrame{
+  position:absolute;
+  inset:0;
   width:100%;
+  height:100%;
   border:none;
-  background:#fff;
+  display:none;
+}
+
+.proxyFrame.active{
+  display:block;
 }
 </style>
 </head>
@@ -181,83 +186,120 @@ footer{
 <header>Glitch Hub</header>
 
 <nav>
-  <div class="section-button" onclick="location.href='../games/app.html'">Games</div>
-  <div class="section-button" onclick="location.href='../movies/index.html'">Movies</div>
-  <div class="section-button" onclick="location.href='../ai/index.html'">AI</div>
-  <div class="section-button" onclick="location.href='../tools/index.html'">Tools</div>
+  <div class="section-button">Games</div>
+  <div class="section-button">Movies</div>
+  <div class="section-button">AI</div>
+  <div class="section-button">Tools</div>
 </nav>
 
 <main>
   <form id="searchForm">
     <input id="searchInput" placeholder="Search or enter URL..." />
-    <button id="searchButton" type="submit">Search</button>
+    <button id="searchButton">Search</button>
   </form>
 </main>
 
-<footer>© 2025 Glitch Override. All rights reserved.</footer>
-
-<!-- ================= PROXY OVERLAY ================= -->
+<!-- ================= OVERLAY ================= -->
 <div id="proxyOverlay">
-  <div id="browserBar">
-    <div id="urlDisplay">Loading...</div>
-    <button id="proxyClose">✕</button>
+
+  <div id="tabsBar">
+    <div class="tab" onclick="newTab()">＋</div>
   </div>
-  <iframe id="proxyFrame"></iframe>
+
+  <div id="browserBar">
+    <div class="bar-btn" onclick="goBack()">⟵</div>
+    <div class="bar-btn" onclick="goForward()">⟶</div>
+    <div id="urlDisplay">Loading...</div>
+    <div class="bar-btn" onclick="closeOverlay()">✕</div>
+  </div>
+
+  <div id="proxyFrames"></div>
 </div>
 
 <script>
 const overlay = document.getElementById("proxyOverlay");
-const frame = document.getElementById("proxyFrame");
+const frames = document.getElementById("proxyFrames");
+const tabsBar = document.getElementById("tabsBar");
 const urlDisplay = document.getElementById("urlDisplay");
-const searchForm = document.getElementById("searchForm");
-const searchInput = document.getElementById("searchInput");
 
-/* ===== LOAD PROXY ===== */
-function loadProxy(input){
-  let target = input.trim();
-  if(!target) return;
+let tabs = [];
+let activeTab = null;
 
-  if(!target.includes(".")){
-    target = "https://www.startpage.com/sp/search?q=" + encodeURIComponent(target);
-  } else if(!target.startsWith("http")){
-    target = "https://" + target;
+/* ===== TAB SYSTEM ===== */
+function newTab(url){
+  const iframe = document.createElement("iframe");
+  iframe.className = "proxyFrame";
+
+  const tab = document.createElement("div");
+  tab.className = "tab";
+  tab.textContent = "New Tab";
+
+  const tabObj = { iframe, tab };
+
+  tab.onclick = () => activateTab(tabObj);
+
+  tabs.splice(tabs.length - 1, 0, tabObj);
+  tabsBar.insertBefore(tab, tabsBar.lastElementChild);
+  frames.appendChild(iframe);
+
+  activateTab(tabObj);
+
+  if(url){
+    iframe.src = __uv$config.prefix + __uv$config.encodeUrl(url);
   }
 
   overlay.style.display = "flex";
-  frame.src = __uv$config.prefix + __uv$config.encodeUrl(target);
+}
+
+function activateTab(t){
+  tabs.forEach(x=>{
+    x.iframe.classList.remove("active");
+    x.tab.classList.remove("active");
+  });
+  activeTab = t;
+  t.iframe.classList.add("active");
+  t.tab.classList.add("active");
+}
+
+/* ===== NAV ===== */
+function goBack(){
+  activeTab?.iframe.contentWindow.history.back();
+}
+function goForward(){
+  activeTab?.iframe.contentWindow.history.forward();
+}
+function closeOverlay(){
+  overlay.style.display="none";
+  frames.innerHTML="";
+  tabs=[];
 }
 
 /* ===== SEARCH ===== */
-searchForm.addEventListener("submit",(e)=>{
+document.getElementById("searchForm").onsubmit = e=>{
   e.preventDefault();
-  loadProxy(searchInput.value);
-});
-
-/* ===== CLOSE ===== */
-document.getElementById("proxyClose").onclick = ()=>{
-  frame.src = "about:blank";
-  overlay.style.display = "none";
-  urlDisplay.textContent = "";
+  let v = searchInput.value.trim();
+  if(!v) return;
+  if(!v.includes(".")) v = "https://www.startpage.com/sp/search?q="+encodeURIComponent(v);
+  if(!v.startsWith("http")) v="https://"+v;
+  newTab(v);
 };
 
-/* ===== LIVE URL DECODER ===== */
+/* ===== LIVE URL + TITLE ===== */
 setInterval(()=>{
+  if(!activeTab) return;
   try{
-    if(!frame.contentWindow || !__uv$config) return;
-
-    const href = frame.contentWindow.location.href;
+    const href = activeTab.iframe.contentWindow.location.href;
     if(!href.includes(__uv$config.prefix)) return;
 
     const encoded = href.split(__uv$config.prefix)[1];
-    if(!encoded) return;
-
     const decoded = __uv$config.decodeUrl(encoded.replace(/^\/+/,''));
     urlDisplay.textContent = decoded;
-  }catch(e){}
+
+    const title = activeTab.iframe.contentDocument?.title;
+    if(title) activeTab.tab.textContent = title.slice(0,24);
+  }catch{}
 },500);
 </script>
 
 </body>
 </html>
-
-
