@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Glitch Hub Proxy Browser</title>
 
-<!-- UV PROXY -->
 <script src="/uv/uv.bundle.js"></script>
 <script src="/uv/uv.config.js"></script>
 <script>
@@ -19,41 +18,44 @@ if ("serviceWorker" in navigator) {
 <style>
 :root{
   --bg:#0a0a0a; --panel:#121212; --border:#333; --accent:#fff; --text:#fff;
-  --urlbar-bg:#000; --urlbar-outline:#fff; --btn-bg:#111; --btn-hover:#222;
+  --urlbar-bg:#000; --btn-bg:#111; --btn-hover:#222;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
 header{background:var(--panel);padding:16px;text-align:center;font-size:2rem;font-weight:700;border-bottom:1px solid var(--border);}
 nav{display:flex;justify-content:center;gap:18px;padding:12px;background:var(--panel);border-bottom:1px solid var(--border);}
-.nav-btn{padding:10px 20px;background:var(--btn-bg);border:1px solid var(--border);border-radius:8px;cursor:pointer;color:var(--text);transition:.3s;}
+.nav-btn{padding:10px 20px;background:var(--btn-bg);border:none;border-radius:8px;cursor:pointer;color:var(--text);transition:.3s;}
 .nav-btn:hover{background:var(--btn-hover);}
 #homeContent{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:20px;gap:20px;}
-#homeContent input{width:400px;max-width:90%;padding:14px 20px;border-radius:999px;background:var(--btn-bg);border:1px solid var(--border);color:var(--text);font-size:1.1rem;outline:none;}
+#homeContent input{width:400px;max-width:90%;padding:14px 20px;border-radius:999px;background:var(--btn-bg);border:none;color:var(--text);font-size:1.1rem;outline:none;}
+
+/* ===== PROXY OVERLAY ===== */
 #proxyOverlay{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;z-index:9999;}
-#tabsBar{display:flex;align-items:flex-end;gap:2px;padding:4px;background:var(--panel);border-bottom:1px solid var(--border);overflow-x:auto;}
-.tab{position:relative;padding:8px 16px;background:var(--btn-bg);color:var(--text);border-top-left-radius:6px;border-top-right-radius:6px;cursor:pointer;display:flex;align-items:center;gap:6px;min-width:80px;justify-content:center;}
+#tabsBar{display:flex;align-items:flex-end;gap:2px;padding:4px;background:var(--panel);border-bottom:1px solid var(--border);overflow:hidden;position:relative;}
+.tab{position:relative;flex-shrink:0;max-width:192px;min-width:80px;padding:8px 16px;background:var(--btn-bg);color:var(--text);border-top-left-radius:6px;border-top-right-radius:6px;cursor:pointer;display:flex;align-items:center;gap:6px;justify-content:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .tab.active{background:var(--bg);border-bottom:1px solid var(--bg);font-weight:700;}
 .tab img{width:16px;height:16px;vertical-align:middle;}
 .tab .close{margin-left:6px;font-weight:900;cursor:pointer;}
-.tab + .tab{margin-left:-2px;}
+#tabsCloseBtn{position:absolute;right:0;top:0;padding:0 6px;height:100%;display:flex;align-items:center;cursor:pointer;color:var(--text);}
+
+/* ===== BROWSER BAR ===== */
 #browserBar{display:flex;align-items:center;gap:6px;padding:6px;background:var(--btn-bg);border-bottom:1px solid var(--border);}
-.bubble-btn{padding:6px 12px;border-radius:4px;background:var(--btn-bg);border:1px solid var(--urlbar-outline);cursor:pointer;color:var(--text);}
+.bubble-btn{padding:6px 12px;border-radius:4px;background:var(--btn-bg);border:none;cursor:pointer;color:var(--text);}
 .bubble-btn:hover{background:var(--btn-hover);}
-#urlBar{flex:1;padding:6px 12px;background:var(--urlbar-bg);border:1px solid var(--urlbar-outline);border-radius:4px;color:var(--text);outline:none;font-family:monospace;font-size:0.9rem;}
-#bookmarkStar{padding:6px 12px;margin-left:4px;border-radius:4px;background:var(--btn-bg);border:1px solid var(--urlbar-outline);cursor:pointer;color:var(--text);}
+#urlBar{flex:1;padding:6px 12px;background:var(--urlbar-bg);border-radius:4px;color:var(--text);outline:none;font-family:monospace;font-size:0.9rem;}
+#bookmarkStar{padding:6px 12px;margin-left:4px;border-radius:4px;background:var(--btn-bg);border:none;cursor:pointer;color:var(--text);}
 #bookmarkBar{display:flex;gap:4px;padding:4px;background:var(--panel);border-bottom:1px solid var(--border);overflow-x:auto;}
-.bookmark-btn{padding:4px 10px;background:var(--btn-bg);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:0.85rem;}
+.bookmark-btn{padding:4px 10px;background:var(--btn-bg);color:var(--text);border:none;border-radius:4px;cursor:pointer;font-size:0.85rem;}
 .bookmark-btn:hover{background:var(--btn-hover);}
 #frames{flex:1;position:relative;}
 .proxyFrame{position:absolute;inset:0;width:100%;height:100%;border:none;display:none;}
 .proxyFrame.active{display:block;}
 #bookmarkModal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--panel);border:1px solid var(--border);padding:20px;border-radius:8px;display:none;flex-direction:column;gap:10px;z-index:10000;}
-#bookmarkModal input{padding:6px;border-radius:4px;background:var(--btn-bg);border:1px solid var(--border);color:var(--text);}
-#bookmarkModal button{padding:6px 12px;background:var(--btn-bg);border:1px solid var(--border);border-radius:4px;color:var(--text);cursor:pointer;}
+#bookmarkModal input{padding:6px;border-radius:4px;background:var(--btn-bg);border:none;color:var(--text);}
+#bookmarkModal button{padding:6px 12px;background:var(--btn-bg);border:none;border-radius:4px;color:var(--text);cursor:pointer;}
 #bookmarkModal button:hover{background:var(--btn-hover);}
 </style>
 </head>
-
 <body>
 
 <header>Glitch Hub</header>
@@ -70,7 +72,11 @@ nav{display:flex;justify-content:center;gap:18px;padding:12px;background:var(--p
 </div>
 
 <div id="proxyOverlay">
-  <div id="tabsBar"><div class="tab" onclick="newTab()">＋</div></div>
+  <div id="tabsBar">
+    <div class="tab" onclick="newTab()">＋</div>
+    <div id="tabsCloseBtn" onclick="closeOverlay()">✕</div>
+  </div>
+
   <div id="browserBar">
     <div class="bubble-btn" onclick="goBack()">⟵</div>
     <div class="bubble-btn" onclick="goForward()">⟶</div>
@@ -79,8 +85,8 @@ nav{display:flex;justify-content:center;gap:18px;padding:12px;background:var(--p
     <div class="bubble-btn" onclick="fullscreenTab()">⛶</div>
     <div class="bubble-btn" onclick="injectCode()">&lt;/&gt;</div>
     <div id="bookmarkStar" onclick="suggestBookmark()">★</div>
-    <div class="bubble-btn" onclick="closeOverlay()">✕</div>
   </div>
+
   <div id="bookmarkBar"></div>
   <div id="frames"></div>
 </div>
@@ -114,13 +120,9 @@ function normalize(input){
   return input;
 }
 
-// ===== HOME SEARCH =====
 homeSearch.addEventListener("keydown", e=>{
   if(e.key==="Enter") newTab(normalize(homeSearch.value.trim()));
 });
-
-// ===== NAVIGATION BUTTONS open local paths =====
-// already window.location.href in nav buttons
 
 function newTab(url="https://www.startpage.com"){
   homeContent.style.display="none";
@@ -131,20 +133,14 @@ function newTab(url="https://www.startpage.com"){
   tab.className="tab";
   const title = document.createElement("span");
   title.textContent="New Tab";
-  const favicon = document.createElement("img");
-  favicon.src="";
-
-  const close = document.createElement("span");
-  close.textContent="✕";
-  close.className="close";
-
+  const favicon = document.createElement("img"); favicon.src="";
+  const close = document.createElement("span"); close.textContent="✕"; close.className="close";
   const tabObj = {iframe, tab, title, url, favicon};
-  close.onclick = e=>{ e.stopPropagation(); closeTab(tabObj); };
+  close.onclick = e=>{e.stopPropagation(); closeTab(tabObj);};
   tab.onclick = ()=>activate(tabObj);
   tab.append(favicon, title, close);
-
   tabs.splice(tabs.length-1,0,tabObj);
-  tabsBar.insertBefore(tab, tabsBar.lastElementChild);
+  tabsBar.insertBefore(tab,tabsBar.querySelector(".tab:last-child"));
   frames.appendChild(iframe);
 
   iframe.src = __uv$config.prefix + __uv$config.encodeUrl(url);
@@ -157,9 +153,18 @@ function newTab(url="https://www.startpage.com"){
       tabObj.title.textContent = w.document.title || "New Tab";
       const linkIcon = w.document.querySelector("link[rel~='icon']");
       if(linkIcon) tabObj.favicon.src = linkIcon.href;
+      resizeTabs();
     } catch{}
   };
 }
+
+function resizeTabs(){
+  const availableWidth = tabsBar.clientWidth - 50; // space for new tab + close
+  const tabWidth = Math.min(192, Math.max(50, availableWidth / Math.max(tabs.length,1)));
+  tabs.forEach(t=>t.tab.style.width = tabWidth + "px");
+}
+
+window.addEventListener("resize", resizeTabs);
 
 function activate(t){
   tabs.forEach(x=>{x.iframe.classList.remove("active"); x.tab.classList.remove("active");});
@@ -187,9 +192,9 @@ function closeTab(t){
   const i = tabs.indexOf(t);
   if(i>-1){t.iframe.remove(); t.tab.remove(); tabs.splice(i,1); activate(tabs[i-1]||tabs[0]||null);}
   if(tabs.length===0){overlay.style.display="none"; homeContent.style.display="flex";}
+  resizeTabs();
 }
 
-// ===== NAV CONTROLS =====
 function goBack(){active?.iframe.contentWindow.history.back();}
 function goForward(){active?.iframe.contentWindow.history.forward();}
 function refreshTab(){active?.iframe.contentWindow.location.reload();}
@@ -205,32 +210,24 @@ function injectCode(){
   active.iframe.contentWindow.eval(code);
 }
 
-// ===== CLOSE OVERLAY =====
 function closeOverlay(){
   overlay.style.display="none";
   homeContent.style.display="flex";
   tabs.forEach(t=>{t.iframe.remove(); t.tab.remove();});
-  tabs=[];
-  active=null;
+  tabs=[]; active=null;
   bookmarkBar.innerHTML="";
 }
 
-// ===== BOOKMARKS =====
+// BOOKMARKS
 function suggestBookmark(){
   if(!active) return;
   const w = active.iframe.contentWindow;
   let href = active.url;
-  try{
-    if(w.location.href.includes(__uv$config.prefix)){
-      const encoded = w.location.href.split(__uv$config.prefix)[1];
-      href = __uv$config.decodeUrl(encoded.replace(/^\/+/,''));
-    }
-  } catch{}
+  try{if(w.location.href.includes(__uv$config.prefix)){const e=w.location.href.split(__uv$config.prefix)[1]; href=__uv$config.decodeUrl(e.replace(/^\/+/,''));}}catch{}
   bookmarkNameInput.value = w.document.title || "New Bookmark";
   bookmarkCodeInput.value = href;
   bookmarkModal.style.display="flex";
 }
-
 function closeBookmarkModal(){bookmarkModal.style.display="none";}
 function saveBookmark(){
   const name = bookmarkNameInput.value.trim();
@@ -238,11 +235,9 @@ function saveBookmark(){
   if(name && code) addBookmark(name, code);
   closeBookmarkModal();
 }
-
 function addBookmark(name, code){
   const btn = document.createElement("div");
-  btn.className="bookmark-btn";
-  btn.textContent=name;
+  btn.className="bookmark-btn"; btn.textContent=name;
   btn.onclick=()=>injectBookmarklet(code);
   bookmarkBar.appendChild(btn);
 }
@@ -251,7 +246,6 @@ function injectBookmarklet(code){
   active.iframe.contentWindow.eval(code);
 }
 
-// ===== URL BAR ENTER KEY =====
 urlBar.addEventListener("keydown", e=>{
   if(e.key==="Enter" && active){
     active.url = urlBar.value.trim();
