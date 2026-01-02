@@ -19,7 +19,7 @@ if ("serviceWorker" in navigator) {
 
 <style>
 :root{
-  --bg:#0a0a0a; --panel:#121212; --border:#333; --accent:#ffffff; --text:#ffffff;
+  --bg:#0a0a0a; --panel:#121212; --border:#333; --accent:#fff; --text:#fff;
   --urlbar-bg:#000; --urlbar-outline:#fff; --btn-bg:#111; --btn-hover:#222;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -28,8 +28,11 @@ header{background:var(--panel);padding:16px;text-align:center;font-size:2rem;fon
 nav{display:flex;justify-content:center;gap:18px;padding:12px;background:var(--panel);border-bottom:1px solid var(--border);}
 .nav-btn{padding:10px 20px;background:var(--btn-bg);border:1px solid var(--border);border-radius:8px;cursor:pointer;color:var(--text);transition:.3s;}
 .nav-btn:hover{background:var(--btn-hover);}
-main{flex:1;display:flex;justify-content:center;align-items:center;padding:40px;}
-#homeSearch{width:100%;max-width:600px;padding:14px 18px;background:#111;border:1px solid var(--border);color:var(--text);border-radius:999px;font-size:1.1rem;outline:none;}
+#homeContent{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:20px;gap:20px;}
+#homeContent h1{font-size:3rem;}
+#homeContent .shortcut-btns{display:flex;gap:12px;flex-wrap:wrap;}
+.shortcut-btn{padding:10px 18px;background:var(--btn-bg);border:1px solid var(--border);border-radius:8px;cursor:pointer;color:var(--text);transition:.3s;text-align:center;}
+.shortcut-btn:hover{background:var(--btn-hover);}
 #proxyOverlay{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;z-index:9999;}
 #tabsBar{display:flex;align-items:flex-end;gap:2px;padding:4px;background:var(--panel);border-bottom:1px solid var(--border);overflow-x:auto;}
 .tab{position:relative;padding:8px 16px;background:var(--btn-bg);color:var(--text);border-top-left-radius:6px;border-top-right-radius:6px;cursor:pointer;display:flex;align-items:center;gap:6px;min-width:80px;justify-content:center;}
@@ -65,9 +68,14 @@ main{flex:1;display:flex;justify-content:center;align-items:center;padding:40px;
   <div class="nav-btn" onclick="openNav('../tools/index.html')">Tools</div>
 </nav>
 
-<main>
-  <input id="homeSearch" placeholder="Search or enter URL (press Enter)">
-</main>
+<div id="homeContent">
+  <h1>Welcome to Glitch Hub</h1>
+  <div class="shortcut-btns">
+    <div class="shortcut-btn" onclick="newTab('https://www.startpage.com')">Startpage</div>
+    <div class="shortcut-btn" onclick="newTab('https://www.google.com')">Google</div>
+    <div class="shortcut-btn" onclick="newTab('https://www.bing.com')">Bing</div>
+  </div>
+</div>
 
 <div id="proxyOverlay">
   <div id="tabsBar"><div class="tab" onclick="newTab()">＋</div></div>
@@ -77,7 +85,7 @@ main{flex:1;display:flex;justify-content:center;align-items:center;padding:40px;
     <div class="bubble-btn" onclick="refreshTab()">⟳</div>
     <input id="urlBar" spellcheck="false">
     <div class="bubble-btn" onclick="fullscreenTab()">⛶</div>
-    <div class="bubble-btn" onclick="injectCode()">{"</>"}</div>
+    <div class="bubble-btn" onclick="injectCode()">&lt;/&gt;</div>
     <div class="bubble-btn" onclick="showBookmarkModal()">★</div>
     <div class="bubble-btn" onclick="closeOverlay()">✕</div>
   </div>
@@ -100,7 +108,7 @@ const frames = document.getElementById("frames");
 const urlBar = document.getElementById("urlBar");
 const overlay = document.getElementById("proxyOverlay");
 const bookmarkBar = document.getElementById("bookmarkBar");
-const homeSearch = document.getElementById("homeSearch");
+const homeContent = document.getElementById("homeContent");
 const bookmarkModal = document.getElementById("bookmarkModal");
 const bookmarkNameInput = document.getElementById("bookmarkName");
 const bookmarkCodeInput = document.getElementById("bookmarkCode");
@@ -118,6 +126,7 @@ function openNav(path){
 }
 
 function newTab(url="https://www.startpage.com"){
+  homeContent.style.display="none";
   const iframe = document.createElement("iframe");
   iframe.className="proxyFrame";
 
@@ -178,7 +187,8 @@ function updateUrlBar(){
 
 function closeTab(t){
   const i = tabs.indexOf(t);
-  if(i>-1){t.iframe.remove(); t.tab.remove(); tabs.splice(i,1); activate(tabs[i-1]||tabs[0]);}
+  if(i>-1){t.iframe.remove(); t.tab.remove(); tabs.splice(i,1); activate(tabs[i-1]||tabs[0]||null);}
+  if(tabs.length===0){overlay.style.display="none"; homeContent.style.display="flex";}
 }
 
 function goBack(){active?.iframe.contentWindow.history.back();}
@@ -220,13 +230,6 @@ urlBar.addEventListener("keydown",e=>{
     active.iframe.src=__uv$config.prefix+__uv$config.encodeUrl(active.url);
   }
 });
-
-homeSearch.addEventListener("keydown", e=>{
-  if(e.key==="Enter") newTab(normalize(homeSearch.value.trim()));
-});
-
-// Open initial tab
-newTab();
 </script>
 </body>
 </html>
