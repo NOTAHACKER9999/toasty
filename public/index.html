@@ -5,12 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Glitch Hub</title>
 
+<!-- ============ UV PROXY ============ -->
 <script src="/uv/uv.bundle.js"></script>
 <script src="/uv/uv.config.js"></script>
 <script>
 if ("serviceWorker" in navigator) {
-  addEventListener("load", () => {
-    navigator.serviceWorker.register("/uv/sw.js", { scope: __uv$config.prefix });
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/uv/sw.js", {
+      scope: __uv$config.prefix
+    });
   });
 }
 </script>
@@ -24,7 +27,7 @@ if ("serviceWorker" in navigator) {
   --text:#e0e0e0;
 }
 
-*{margin:0;padding:0;box-sizing:border-box}
+*{box-sizing:border-box;margin:0;padding:0}
 
 body{
   font-family:Segoe UI,Arial;
@@ -35,7 +38,84 @@ body{
   flex-direction:column;
 }
 
-/* ===== OVERLAY ===== */
+/* ===== HEADER ===== */
+header{
+  background:var(--panel);
+  padding:16px;
+  text-align:center;
+  font-size:2rem;
+  font-weight:700;
+  border-bottom:1px solid var(--border);
+}
+
+/* ===== NAV ===== */
+nav{
+  display:flex;
+  justify-content:center;
+  gap:18px;
+  padding:10px;
+  background:var(--panel);
+  border-bottom:1px solid var(--border);
+}
+
+.nav-btn{
+  padding:10px 18px;
+  border:1px solid var(--border);
+  border-radius:14px;
+  cursor:pointer;
+  background:#141414;
+  transition:.2s;
+}
+.nav-btn:hover{
+  box-shadow:0 0 12px var(--accent);
+}
+
+/* ===== MAIN SEARCH ===== */
+main{
+  flex:1;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:40px;
+}
+
+#searchForm{
+  display:flex;
+  gap:10px;
+  width:100%;
+  max-width:600px;
+}
+
+#searchInput{
+  flex:1;
+  padding:14px;
+  background:#111;
+  border:1px solid var(--border);
+  color:var(--text);
+  border-radius:999px;
+  font-size:1.1rem;
+}
+
+#searchButton{
+  padding:14px 26px;
+  border:none;
+  border-radius:999px;
+  background:var(--accent);
+  font-weight:800;
+  cursor:pointer;
+}
+
+/* ===== FOOTER ===== */
+footer{
+  padding:12px;
+  text-align:center;
+  background:var(--panel);
+  border-top:1px solid var(--border);
+  font-size:.85rem;
+  color:#aaa;
+}
+
+/* ===== PROXY OVERLAY ===== */
 #proxyOverlay{
   position:fixed;
   inset:0;
@@ -50,7 +130,7 @@ body{
   display:flex;
   gap:6px;
   padding:6px;
-  background:#0c0c0c;
+  background:#0b0b0b;
   border-bottom:1px solid var(--border);
   overflow-x:auto;
 }
@@ -62,9 +142,10 @@ body{
   padding:6px 10px;
   background:#141414;
   border:1px solid var(--border);
-  border-radius:14px;
-  cursor:pointer;
+  border-radius:16px;
   font-size:.8rem;
+  cursor:pointer;
+  white-space:nowrap;
 }
 
 .tab.active{
@@ -95,26 +176,26 @@ body{
 }
 
 .bubble-btn{
-  padding:8px 12px;
+  padding:8px 14px;
   border-radius:999px;
-  border:1px solid var(--border);
   background:#151515;
+  border:1px solid var(--border);
   cursor:pointer;
   box-shadow:
     inset 0 0 6px rgba(255,45,45,.25),
-    0 0 8px rgba(255,45,45,.35);
+    0 0 10px rgba(255,45,45,.35);
   transition:.2s;
 }
 
 .bubble-btn:hover{
   background:var(--accent);
   color:#000;
-  box-shadow:0 0 16px var(--accent);
+  box-shadow:0 0 18px var(--accent);
 }
 
 #urlDisplay{
   flex:1;
-  padding:8px 14px;
+  padding:8px 16px;
   background:#0b0b0b;
   border:1px solid var(--border);
   border-radius:999px;
@@ -126,7 +207,7 @@ body{
   text-overflow:ellipsis;
 }
 
-/* ===== IFRAMES ===== */
+/* ===== FRAMES ===== */
 #frames{
   flex:1;
   position:relative;
@@ -149,6 +230,25 @@ body{
 
 <body>
 
+<header>Glitch Hub</header>
+
+<nav>
+  <div class="nav-btn" onclick="location.href='../games/app.html'">Games</div>
+  <div class="nav-btn" onclick="location.href='../movies/index.html'">Movies</div>
+  <div class="nav-btn" onclick="location.href='../ai/index.html'">AI</div>
+  <div class="nav-btn" onclick="location.href='../tools/index.html'">Tools</div>
+</nav>
+
+<main>
+  <form id="searchForm">
+    <input id="searchInput" placeholder="Search or enter URL...">
+    <button id="searchButton">Search</button>
+  </form>
+</main>
+
+<footer>© 2025 Glitch Override</footer>
+
+<!-- ============ OVERLAY ============ -->
 <div id="proxyOverlay">
 
   <div id="tabsBar">
@@ -160,7 +260,7 @@ body{
     <div class="bubble-btn" onclick="goForward()">⟶</div>
     <div class="bubble-btn" onclick="refreshTab()">⟳</div>
     <div id="urlDisplay">Loading...</div>
-    <div class="bubble-btn" onclick="closeAll()">✕</div>
+    <div class="bubble-btn" onclick="closeOverlay()">✕</div>
   </div>
 
   <div id="frames"></div>
@@ -171,36 +271,50 @@ const overlay = document.getElementById("proxyOverlay");
 const tabsBar = document.getElementById("tabsBar");
 const frames = document.getElementById("frames");
 const urlDisplay = document.getElementById("urlDisplay");
+const searchInput = document.getElementById("searchInput");
 
 let tabs = [];
 let active = null;
 
-/* ===== TABS ===== */
+/* ===== SEARCH ===== */
+document.getElementById("searchForm").onsubmit = e=>{
+  e.preventDefault();
+  let v = searchInput.value.trim();
+  if(!v) return;
+  if(!v.includes(".")){
+    v="https://www.startpage.com/sp/search?q="+encodeURIComponent(v);
+  } else if(!v.startsWith("http")){
+    v="https://"+v;
+  }
+  newTab(v);
+};
+
+/* ===== TAB SYSTEM ===== */
 function newTab(url){
   const iframe = document.createElement("iframe");
-  iframe.className = "proxyFrame";
+  iframe.className="proxyFrame";
 
   const tab = document.createElement("div");
-  tab.className = "tab";
+  tab.className="tab";
 
-  const icon = document.createElement("img");
-  icon.src = "data:image/svg+xml;base64,PHN2Zy8+"; // fallback
+  const icon=document.createElement("img");
+  icon.src="data:image/svg+xml;base64,PHN2Zy8+";
 
-  const title = document.createElement("span");
-  title.textContent = "New Tab";
+  const title=document.createElement("span");
+  title.textContent="New Tab";
 
-  const close = document.createElement("span");
-  close.textContent = "✕";
-  close.className = "close";
-  close.onclick = e => {
+  const close=document.createElement("span");
+  close.textContent="✕";
+  close.className="close";
+  close.onclick=e=>{
     e.stopPropagation();
     closeTab(tabObj);
   };
 
   tab.append(icon,title,close);
-  tab.onclick = ()=>activate(tabObj);
+  tab.onclick=()=>activate(tabObj);
 
-  const tabObj = { iframe, tab, icon, title };
+  const tabObj={iframe,tab,icon,title};
   tabs.splice(tabs.length-1,0,tabObj);
   tabsBar.insertBefore(tab,tabsBar.lastElementChild);
   frames.appendChild(iframe);
@@ -208,7 +322,7 @@ function newTab(url){
   activate(tabObj);
 
   if(url){
-    iframe.src = __uv$config.prefix + __uv$config.encodeUrl(url);
+    iframe.src=__uv$config.prefix+__uv$config.encodeUrl(url);
   }
 
   overlay.style.display="flex";
@@ -225,7 +339,7 @@ function activate(t){
 }
 
 function closeTab(t){
-  const i = tabs.indexOf(t);
+  const i=tabs.indexOf(t);
   if(i>-1){
     t.iframe.remove();
     t.tab.remove();
@@ -234,11 +348,11 @@ function closeTab(t){
   }
 }
 
-/* ===== NAV ===== */
-function goBack(){ active?.iframe.contentWindow.history.back(); }
-function goForward(){ active?.iframe.contentWindow.history.forward(); }
-function refreshTab(){ active?.iframe.contentWindow.location.reload(); }
-function closeAll(){
+/* ===== NAV CONTROLS ===== */
+function goBack(){active?.iframe.contentWindow.history.back();}
+function goForward(){active?.iframe.contentWindow.history.forward();}
+function refreshTab(){active?.iframe.contentWindow.location.reload();}
+function closeOverlay(){
   overlay.style.display="none";
   tabs=[];
   frames.innerHTML="";
@@ -249,20 +363,20 @@ function closeAll(){
 setInterval(()=>{
   if(!active) return;
   try{
-    const w = active.iframe.contentWindow;
-    const d = active.iframe.contentDocument;
+    const w=active.iframe.contentWindow;
+    const d=active.iframe.contentDocument;
 
-    const href = w.location.href;
+    const href=w.location.href;
     if(href.includes(__uv$config.prefix)){
-      const encoded = href.split(__uv$config.prefix)[1];
-      urlDisplay.textContent =
+      const encoded=href.split(__uv$config.prefix)[1];
+      urlDisplay.textContent=
         __uv$config.decodeUrl(encoded.replace(/^\/+/,''));
     }
 
-    if(d?.title) active.title.textContent = d.title.slice(0,20);
+    if(d?.title) active.title.textContent=d.title.slice(0,22);
 
-    const fav = d?.querySelector("link[rel~='icon']");
-    if(fav?.href) active.icon.src = fav.href;
+    const fav=d?.querySelector("link[rel~='icon']");
+    if(fav?.href) active.icon.src=fav.href;
   }catch{}
 },500);
 </script>
