@@ -20,231 +20,64 @@ if ("serviceWorker" in navigator) {
 
 <style>
 :root{
-  --bg:#050505;
-  --panel:#0f0f0f;
-  --border:#2a2a2a;
-  --accent:#ff2d2d;
-  --text:#e0e0e0;
-  --bubble-bg:#151515;
+  --bg:#050505; --panel:#0f0f0f; --border:#2a2a2a; --accent:#ff2d2d; --text:#e0e0e0; --bubble-bg:#151515;
 }
 
+/* ===== BASIC RESET ===== */
 *{box-sizing:border-box;margin:0;padding:0}
-
-body{
-  font-family:Segoe UI,Arial;
-  background:var(--bg);
-  color:var(--text);
-  min-height:100vh;
-  display:flex;
-  flex-direction:column;
-}
+body{font-family:Segoe UI,Arial;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
 
 /* ===== HEADER ===== */
-header{
-  background:var(--panel);
-  padding:16px;
-  text-align:center;
-  font-size:2rem;
-  font-weight:700;
-  border-bottom:1px solid var(--border);
-  position:relative;
-}
+header{background:var(--panel);padding:16px;text-align:center;font-size:2rem;font-weight:700;border-bottom:1px solid var(--border);position:relative;}
+header .settings-btn{position:absolute;top:16px;right:16px;}
 
 /* ===== NAV ===== */
-nav{
-  display:flex;
-  justify-content:center;
-  gap:18px;
-  padding:10px;
-  background:var(--panel);
-  border-bottom:1px solid var(--border);
-}
-
-.nav-btn{
-  padding:10px 18px;
-  border:1px solid var(--border);
-  border-radius:14px;
-  cursor:pointer;
-  background:#141414;
-  color:var(--text);
-  transition:all .3s;
-}
-.nav-btn:hover{
-  box-shadow:0 0 10px var(--accent);
-}
+nav{display:flex;justify-content:center;gap:18px;padding:10px;background:var(--panel);border-bottom:1px solid var(--border);}
+.nav-btn{padding:10px 18px;border:1px solid var(--border);border-radius:14px;cursor:pointer;background:#141414;color:var(--text);transition:.3s;}
+.nav-btn:hover{box-shadow:0 0 10px var(--accent);}
 
 /* ===== MAIN SEARCH ===== */
-main{
-  flex:1;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  padding:40px;
-}
-
-#searchInput{
-  width:100%;
-  max-width:600px;
-  padding:16px 20px;
-  background:#111;
-  border:1px solid var(--border);
-  color:var(--text);
-  border-radius:999px;
-  font-size:1.1rem;
-  outline:none;
-}
+main{flex:1;display:flex;justify-content:center;align-items:center;padding:40px;}
+#searchInput{width:100%;max-width:600px;padding:16px 20px;background:#111;border:1px solid var(--border);color:var(--text);border-radius:999px;font-size:1.1rem;outline:none;}
 
 /* ===== FOOTER ===== */
-footer{
-  padding:12px;
-  text-align:center;
-  background:var(--panel);
-  border-top:1px solid var(--border);
-  font-size:.85rem;
-  color:#aaa;
-}
+footer{padding:12px;text-align:center;background:var(--panel);border-top:1px solid var(--border);font-size:.85rem;color:#aaa;}
 
 /* ===== PROXY OVERLAY ===== */
-#proxyOverlay{
-  position:fixed;
-  inset:0;
-  background:var(--bg);
-  display:none;
-  flex-direction:column;
-  z-index:9999;
-}
-
-/* ===== TABS ===== */
-#tabsBar{
-  display:flex;
-  gap:6px;
-  padding:6px;
-  background:var(--panel);
-  border-bottom:1px solid var(--border);
-  overflow-x:auto;
-}
-
-.tab{
-  display:flex;
-  align-items:center;
-  gap:6px;
-  padding:6px 10px;
-  background:#141414;
-  border:1px solid var(--border);
-  border-radius:16px;
-  font-size:.8rem;
-  cursor:pointer;
-  white-space:nowrap;
-}
-
-.tab.active{
-  background:var(--accent);
-  color:#000;
-  font-weight:700;
-}
-
+#proxyOverlay{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;z-index:9999;}
+#tabsBar{display:flex;gap:6px;padding:6px;background:var(--panel);border-bottom:1px solid var(--border);overflow-x:auto;}
+.tab{display:flex;align-items:center;gap:6px;padding:6px 10px;background:#141414;border:1px solid var(--border);border-radius:16px;font-size:.8rem;cursor:pointer;white-space:nowrap;}
+.tab.active{background:var(--accent);color:#000;font-weight:700;}
 .tab img{width:14px;height:14px}
 .tab .close{font-weight:900;cursor:pointer}
 
 /* ===== BROWSER BAR ===== */
-#browserBar{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  padding:8px;
-  background:var(--panel);
-  border-bottom:1px solid var(--border);
-}
-
-.bubble-btn{
-  padding:8px 14px;
-  border-radius:999px;
-  background:var(--bubble-bg);
-  border:1px solid var(--border);
-  cursor:pointer;
-  box-shadow:inset 0 0 6px rgba(255,45,45,.25),0 0 10px rgba(255,45,45,.35);
-  transition:all .3s;
-}
-.bubble-btn:hover{
-  box-shadow:0 0 15px var(--accent);
-}
-
-#urlBar{
-  flex:1;
-  padding:8px 16px;
-  background:#0b0b0b;
-  border:1px solid var(--border);
-  border-radius:999px;
-  font-family:monospace;
-  font-size:.85rem;
-  color:#ff5555;
-  outline:none;
-}
+#browserBar{display:flex;align-items:center;gap:8px;padding:8px;background:var(--panel);border-bottom:1px solid var(--border);}
+.bubble-btn{padding:8px 14px;border-radius:999px;background:var(--bubble-bg);border:1px solid var(--border);cursor:pointer;box-shadow:inset 0 0 6px rgba(255,45,45,.25),0 0 10px rgba(255,45,45,.35);transition:all .3s;}
+.bubble-btn:hover{box-shadow:0 0 15px var(--accent);}
+#urlBar{flex:1;padding:8px 16px;background:#0b0b0b;border:1px solid var(--border);border-radius:999px;font-family:monospace;font-size:.85rem;color:#ff5555;outline:none;}
 
 /* ===== FRAMES ===== */
-#frames{
-  flex:1;
-  position:relative;
-}
-
-.proxyFrame{
-  position:absolute;
-  inset:0;
-  width:100%;
-  height:100%;
-  border:none;
-  display:none;
-}
+#frames{flex:1;position:relative;}
+.proxyFrame{position:absolute;inset:0;width:100%;height:100%;border:none;display:none;}
 .proxyFrame.active{display:block}
 
 /* ===== SETTINGS PANEL ===== */
-#settingsPanel{
-  position:absolute;
-  top:40px;
-  right:10px;
-  background:var(--panel);
-  border:1px solid var(--border);
-  border-radius:12px;
-  padding:16px;
-  z-index:10001;
-  display:none;
-  width:250px;
-}
-
-#settingsPanel h3{
-  margin-bottom:8px;
-  font-size:1rem;
-  color:var(--accent);
-}
-
-.setting-item{
-  margin-bottom:10px;
-}
-
-.setting-item label{
-  font-size:.9rem;
-  display:block;
-  margin-bottom:4px;
-}
-.setting-item select, .setting-item input{
-  width:100%;
-  padding:6px;
-  border-radius:6px;
-  border:1px solid var(--border);
-  background:#111;
-  color:var(--text);
-  font-size:.9rem;
-}
+#settingsPanel{position:absolute;top:0;right:0;background:var(--panel);border-left:1px solid var(--border);height:100%;width:280px;z-index:10001;display:flex;flex-direction:row;transition:all .3s;}
+#settingsMenu{width:90px;background:#141414;display:flex;flex-direction:column;}
+#settingsMenu button{padding:12px;font-size:.85rem;border:none;background:none;color:var(--text);cursor:pointer;text-align:left;border-left:3px solid transparent;transition:.3s;}
+#settingsMenu button.active{border-left:3px solid var(--accent);font-weight:700;}
+#settingsContent{flex:1;padding:16px;overflow-y:auto;}
+.setting-item{margin-bottom:12px;}
+.setting-item label{display:block;margin-bottom:4px;font-size:.9rem;}
+.setting-item select, .setting-item input{width:100%;padding:6px;border-radius:6px;border:1px solid var(--border);background:#111;color:var(--text);font-size:.9rem;}
 </style>
 </head>
-
 <body>
 
 <header>
   Glitch Hub
-  <div style="position:absolute;top:16px;right:16px;">
-    <div class="bubble-btn" onclick="toggleSettings()">⚙</div>
-  </div>
+  <div class="settings-btn"><div class="bubble-btn" onclick="toggleSettings()">⚙</div></div>
 </header>
 
 <nav>
@@ -260,13 +93,9 @@ footer{
 
 <footer>© 2025 Glitch Override</footer>
 
-<!-- ===== OVERLAY ===== -->
+<!-- ===== PROXY OVERLAY ===== -->
 <div id="proxyOverlay">
-
-  <div id="tabsBar">
-    <div class="tab" onclick="newTab()">＋</div>
-  </div>
-
+  <div id="tabsBar"><div class="tab" onclick="newTab()">＋</div></div>
   <div id="browserBar">
     <div class="bubble-btn" onclick="goBack()">⟵</div>
     <div class="bubble-btn" onclick="goForward()">⟶</div>
@@ -276,47 +105,65 @@ footer{
     <div class="bubble-btn" onclick="injectCode()">{"</>"}</div>
     <div class="bubble-btn" onclick="closeOverlay()">✕</div>
   </div>
-
   <div id="frames"></div>
 </div>
 
 <!-- ===== SETTINGS PANEL ===== -->
 <div id="settingsPanel">
-  <h3>Settings</h3>
-  <div class="setting-item">
-    <label for="themeSelect">Theme</label>
-    <select id="themeSelect">
-      <option value="dark">Dark</option>
-      <option value="light">Light</option>
-      <option value="auto">Auto</option>
-    </select>
+  <div id="settingsMenu">
+    <button class="active" data-section="themeSection">Theme</button>
+    <button data-section="browserSection">Browser</button>
+    <button data-section="cloakSection">Cloak</button>
+    <button data-section="deviceSection">Device</button>
   </div>
+  <div id="settingsContent">
+    <div id="themeSection" class="settings-section">
+      <div class="setting-item">
+        <label for="themeSelect">Theme</label>
+        <select id="themeSelect">
+          <option value="dark">Dark</option>
+          <option value="light">Light</option>
+          <option value="auto">Auto</option>
+        </select>
+      </div>
+    </div>
 
-  <div class="setting-item">
-    <label for="defaultSearchSelect">Default Browser</label>
-    <select id="defaultSearchSelect">
-      <option value="https://www.startpage.com/sp/search?q=">Startpage</option>
-      <option value="https://www.google.com/search?q=">Google</option>
-      <option value="https://www.bing.com/search?q=">Bing</option>
-    </select>
-  </div>
+    <div id="browserSection" class="settings-section" style="display:none">
+      <div class="setting-item">
+        <label for="defaultSearchSelect">Default Browser</label>
+        <select id="defaultSearchSelect">
+          <option value="https://www.startpage.com/sp/search?q=">Startpage</option>
+          <option value="https://www.google.com/search?q=">Google</option>
+          <option value="https://www.bing.com/search?q=">Bing</option>
+          <option value="https://search.yahoo.com/search?p=">Yahoo</option>
+          <option value="https://duckduckgo.com/?q=">DuckDuckGo</option>
+        </select>
+      </div>
+    </div>
 
-  <div class="setting-item">
-    <label for="cloakTitleSelect">Cloak Tab Title</label>
-    <select id="cloakTitleSelect">
-      <option value="">None</option>
-      <option value="Glitch Hub">Glitch Hub</option>
-      <option value="Web Browser">Web Browser</option>
-    </select>
-  </div>
+    <div id="cloakSection" class="settings-section" style="display:none">
+      <div class="setting-item">
+        <label for="cloakSiteSelect">Cloak Site</label>
+        <select id="cloakSiteSelect">
+          <option value="">None</option>
+          <option value="Google">Google</option>
+          <option value="GitHub">GitHub</option>
+          <option value="YouTube">YouTube</option>
+          <option value="Facebook">Facebook</option>
+        </select>
+      </div>
+    </div>
 
-  <div class="setting-item">
-    <label for="cloakIconSelect">Cloak Tab Icon</label>
-    <select id="cloakIconSelect">
-      <option value="">None</option>
-      <option value="https://cdn-icons-png.flaticon.com/512/25/25231.png">GitHub</option>
-      <option value="https://www.google.com/favicon.ico">Google</option>
-    </select>
+    <div id="deviceSection" class="settings-section" style="display:none">
+      <div class="setting-item">
+        <label for="deviceSelect">Device</label>
+        <select id="deviceSelect">
+          <option value="desktop">Desktop</option>
+          <option value="tablet">Tablet</option>
+          <option value="mobile">Mobile</option>
+        </select>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -329,11 +176,11 @@ const searchInput=document.getElementById("searchInput");
 const settingsPanel=document.getElementById("settingsPanel");
 const themeSelect=document.getElementById("themeSelect");
 const defaultSearchSelect=document.getElementById("defaultSearchSelect");
-const cloakTitleSelect=document.getElementById("cloakTitleSelect");
-const cloakIconSelect=document.getElementById("cloakIconSelect");
+const cloakSiteSelect=document.getElementById("cloakSiteSelect");
+const deviceSelect=document.getElementById("deviceSelect");
 
-let tabs=[],active=null;
-let editingUrl=false;
+// Tabs
+let tabs=[],active=null,editingUrl=false;
 
 // ===== THEME =====
 function applyTheme(mode){
@@ -353,7 +200,7 @@ function applyTheme(mode){
   }
 }
 themeSelect.addEventListener("change",()=>applyTheme(themeSelect.value));
-applyTheme("dark"); // default
+applyTheme("dark");
 
 // ===== URL NORMALIZER =====
 function normalize(input){
@@ -395,7 +242,7 @@ function newTab(url=defaultSearchSelect.value){
   tab.className="tab";
 
   const icon=document.createElement("img");
-  icon.src="data:image/svg+xml;base64,PHN2Zy8+"; // default icon
+  icon.src="data:image/svg+xml;base64,PHN2Zy8+";
 
   const title=document.createElement("span");
   title.textContent="New Tab";
@@ -403,12 +250,12 @@ function newTab(url=defaultSearchSelect.value){
   const close=document.createElement("span");
   close.textContent="✕";
   close.className="close";
-  close.onclick=e=>{e.stopPropagation();closeTab(tabObj)};
-
-  tab.append(icon,title,close);
-  tab.onclick=()=>activate(tabObj);
 
   const tabObj={iframe,tab,icon,title};
+  close.onclick=e=>{e.stopPropagation();closeTab(tabObj)};
+  tab.onclick=()=>activate(tabObj);
+
+  tab.append(icon,title,close);
   tabs.splice(tabs.length-1,0,tabObj);
   tabsBar.insertBefore(tab,tabsBar.lastElementChild);
   frames.appendChild(iframe);
@@ -420,10 +267,7 @@ function newTab(url=defaultSearchSelect.value){
 
 // ===== ACTIVATE TAB =====
 function activate(t){
-  tabs.forEach(x=>{
-    x.iframe.classList.remove("active");
-    x.tab.classList.remove("active");
-  });
+  tabs.forEach(x=>{x.iframe.classList.remove("active"); x.tab.classList.remove("active");});
   active=t;
   t.iframe.classList.add("active");
   t.tab.classList.add("active");
@@ -432,12 +276,7 @@ function activate(t){
 // ===== CLOSE TAB =====
 function closeTab(t){
   const i=tabs.indexOf(t);
-  if(i>-1){
-    t.iframe.remove();
-    t.tab.remove();
-    tabs.splice(i,1);
-    activate(tabs[i-1]||tabs[0]);
-  }
+  if(i>-1){t.iframe.remove(); t.tab.remove(); tabs.splice(i,1); activate(tabs[i-1]||tabs[0]);}
 }
 
 // ===== NAV CONTROLS =====
@@ -454,11 +293,26 @@ function injectCode(){
 }
 
 // ===== SETTINGS PANEL =====
-function toggleSettings(){
-  settingsPanel.style.display=settingsPanel.style.display==="block"?"none":"block";
-}
+function toggleSettings(){settingsPanel.style.display=settingsPanel.style.display==="flex"?"none":"flex";}
 
-// ===== LIVE URL / TITLE / ICON / CLOAKING =====
+// Close settings when clicking outside
+document.addEventListener("click",e=>{
+  if(!settingsPanel.contains(e.target) && !e.target.closest(".settings-btn")) settingsPanel.style.display="none";
+});
+
+// ===== SETTINGS MENU =====
+const menuButtons=document.querySelectorAll("#settingsMenu button");
+menuButtons.forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    menuButtons.forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    document.querySelectorAll(".settings-section").forEach(s=>s.style.display="none");
+    const sec=document.getElementById(btn.dataset.section);
+    if(sec) sec.style.display="block";
+  });
+});
+
+// ===== LIVE URL / TITLE / ICON / SITE CLOAK =====
 setInterval(()=>{
   if(!active || editingUrl) return;
   try{
@@ -471,13 +325,25 @@ setInterval(()=>{
       urlBar.value=__uv$config.decodeUrl(encoded.replace(/^\/+/,'')) || urlBar.value;
     }
 
-    // title & icon cloaking
-    active.title.textContent=cloakTitleSelect.value || d?.title?.slice(0,22) || "New Tab";
-    active.icon.src=cloakIconSelect.value || (d?.querySelector("link[rel~='icon']")?.href || active.icon.src);
+    // Cloak our site's tab
+    if(cloakSiteSelect.value!==""){
+      let titles={Google:"Google",GitHub:"GitHub",YouTube:"YouTube",Facebook:"Facebook"};
+      let icons={
+        Google:"https://www.google.com/favicon.ico",
+        GitHub:"https://cdn-icons-png.flaticon.com/512/25/25231.png",
+        YouTube:"https://www.youtube.com/s/desktop/4fbb96c2/img/favicon.ico",
+        Facebook:"https://www.facebook.com/favicon.ico"
+      };
+      document.title=titles[cloakSiteSelect.value]||"Glitch Hub";
+      let link=document.querySelector("link[rel~='icon']");
+      if(!link){link=document.createElement("link");link.rel="icon";document.head.appendChild(link);}
+      link.href=icons[cloakSiteSelect.value]||"";
+    }else{
+      document.title="Glitch Hub";
+    }
   }catch{}
 },500);
 
 </script>
-
 </body>
 </html>
