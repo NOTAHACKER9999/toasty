@@ -47,6 +47,7 @@ header{
   font-size:2rem;
   font-weight:700;
   border-bottom:1px solid var(--border);
+  position:relative;
 }
 
 /* ===== NAV ===== */
@@ -107,7 +108,7 @@ footer{
 #proxyOverlay{
   position:fixed;
   inset:0;
-  background:#000;
+  background:var(--bg);
   display:none;
   flex-direction:column;
   z-index:9999;
@@ -118,7 +119,7 @@ footer{
   display:flex;
   gap:6px;
   padding:6px;
-  background:#0b0b0b;
+  background:var(--panel);
   border-bottom:1px solid var(--border);
   overflow-x:auto;
 }
@@ -290,17 +291,32 @@ footer{
       <option value="auto">Auto</option>
     </select>
   </div>
+
   <div class="setting-item">
-    <label for="defaultSearch">Default Search Engine</label>
-    <input id="defaultSearch" placeholder="https://www.startpage.com/sp/search?q=">
+    <label for="defaultSearchSelect">Default Browser</label>
+    <select id="defaultSearchSelect">
+      <option value="https://www.startpage.com/sp/search?q=">Startpage</option>
+      <option value="https://www.google.com/search?q=">Google</option>
+      <option value="https://www.bing.com/search?q=">Bing</option>
+    </select>
   </div>
+
   <div class="setting-item">
-    <label for="cloakTitle">Cloak Tab Title</label>
-    <input id="cloakTitle" placeholder="Custom Tab Title">
+    <label for="cloakTitleSelect">Cloak Tab Title</label>
+    <select id="cloakTitleSelect">
+      <option value="">None</option>
+      <option value="Glitch Hub">Glitch Hub</option>
+      <option value="Web Browser">Web Browser</option>
+    </select>
   </div>
+
   <div class="setting-item">
-    <label for="cloakIcon">Cloak Tab Icon URL</label>
-    <input id="cloakIcon" placeholder="Custom Favicon URL">
+    <label for="cloakIconSelect">Cloak Tab Icon</label>
+    <select id="cloakIconSelect">
+      <option value="">None</option>
+      <option value="https://cdn-icons-png.flaticon.com/512/25/25231.png">GitHub</option>
+      <option value="https://www.google.com/favicon.ico">Google</option>
+    </select>
   </div>
 </div>
 
@@ -312,14 +328,12 @@ const urlBar=document.getElementById("urlBar");
 const searchInput=document.getElementById("searchInput");
 const settingsPanel=document.getElementById("settingsPanel");
 const themeSelect=document.getElementById("themeSelect");
-const defaultSearchInput=document.getElementById("defaultSearch");
-const cloakTitleInput=document.getElementById("cloakTitle");
-const cloakIconInput=document.getElementById("cloakIcon");
+const defaultSearchSelect=document.getElementById("defaultSearchSelect");
+const cloakTitleSelect=document.getElementById("cloakTitleSelect");
+const cloakIconSelect=document.getElementById("cloakIconSelect");
 
 let tabs=[],active=null;
 let editingUrl=false;
-
-let DEFAULT_SEARCH="https://www.startpage.com/sp/search?q=";
 
 // ===== THEME =====
 function applyTheme(mode){
@@ -343,7 +357,7 @@ applyTheme("dark"); // default
 
 // ===== URL NORMALIZER =====
 function normalize(input){
-  if(!input.includes(".")) return (defaultSearchInput.value || DEFAULT_SEARCH)+encodeURIComponent(input);
+  if(!input.includes(".")) return defaultSearchSelect.value+encodeURIComponent(input);
   if(!input.startsWith("http")) return "https://"+input;
   return input;
 }
@@ -373,7 +387,7 @@ function openNav(path){
 }
 
 // ===== TABS =====
-function newTab(url=DEFAULT_SEARCH){
+function newTab(url=defaultSearchSelect.value){
   const iframe=document.createElement("iframe");
   iframe.className="proxyFrame";
 
@@ -458,14 +472,8 @@ setInterval(()=>{
     }
 
     // title & icon cloaking
-    if(cloakTitleInput.value) active.title.textContent=cloakTitleInput.value;
-    else if(d?.title) active.title.textContent=d.title.slice(0,22);
-
-    if(cloakIconInput.value) active.icon.src=cloakIconInput.value;
-    else{
-      const fav=d?.querySelector("link[rel~='icon']");
-      if(fav?.href) active.icon.src=fav.href;
-    }
+    active.title.textContent=cloakTitleSelect.value || d?.title?.slice(0,22) || "New Tab";
+    active.icon.src=cloakIconSelect.value || (d?.querySelector("link[rel~='icon']")?.href || active.icon.src);
   }catch{}
 },500);
 
