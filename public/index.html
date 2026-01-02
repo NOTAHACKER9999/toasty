@@ -193,10 +193,10 @@ footer{
 <header>Glitch Hub</header>
 
 <nav>
-  <div class="nav-btn">Games</div>
-  <div class="nav-btn">Movies</div>
-  <div class="nav-btn">AI</div>
-  <div class="nav-btn">Tools</div>
+  <div class="nav-btn" onclick="openNav('../games/app.html')">Games</div>
+  <div class="nav-btn" onclick="openNav('../movies/index.html')">Movies</div>
+  <div class="nav-btn" onclick="openNav('../ai/index.html')">AI</div>
+  <div class="nav-btn" onclick="openNav('../tools/index.html')">Tools</div>
 </nav>
 
 <main>
@@ -233,8 +233,9 @@ const searchInput=document.getElementById("searchInput");
 const SEARCH_ENGINE=q=>"https://www.startpage.com/sp/search?q="+encodeURIComponent(q);
 
 let tabs=[],active=null;
+let editingUrl=false;
 
-/* ===== URL PARSER ===== */
+/* ===== URL NORMALIZER ===== */
 function normalize(input){
   if(!input.includes(".")) return SEARCH_ENGINE(input);
   if(!input.startsWith("http")) return "https://"+input;
@@ -249,11 +250,22 @@ searchInput.addEventListener("keydown",e=>{
 });
 
 /* ===== ADDRESS BAR ===== */
+urlBar.addEventListener("focus",()=>editingUrl=true);
+urlBar.addEventListener("blur",()=>editingUrl=false);
+
 urlBar.addEventListener("keydown",e=>{
   if(e.key==="Enter" && active){
-    active.iframe.src=__uv$config.prefix+__uv$config.encodeUrl(normalize(urlBar.value.trim()));
+    editingUrl=false;
+    active.iframe.src=
+      __uv$config.prefix+
+      __uv$config.encodeUrl(normalize(urlBar.value.trim()));
   }
 });
+
+/* ===== NAV BUTTONS ===== */
+function openNav(path){
+  newTab(location.origin+path.replace(/^.\//,"/"));
+}
 
 /* ===== TABS ===== */
 function newTab(url=SEARCH_ENGINE("")){
@@ -289,12 +301,16 @@ function newTab(url=SEARCH_ENGINE("")){
 }
 
 function activate(t){
-  tabs.forEach(x=>{x.iframe.classList.remove("active");x.tab.classList.remove("active")});
+  tabs.forEach(x=>{
+    x.iframe.classList.remove("active");
+    x.tab.classList.remove("active");
+  });
   active=t;
   t.iframe.classList.add("active");
   t.tab.classList.add("active");
 }
 
+/* ===== CLOSE TAB ===== */
 function closeTab(t){
   const i=tabs.indexOf(t);
   if(i>-1){
@@ -305,7 +321,7 @@ function closeTab(t){
   }
 }
 
-/* ===== NAV ===== */
+/* ===== NAV CONTROLS ===== */
 function goBack(){active?.iframe.contentWindow.history.back()}
 function goForward(){active?.iframe.contentWindow.history.forward()}
 function refreshTab(){active?.iframe.contentWindow.location.reload()}
@@ -318,7 +334,7 @@ function closeOverlay(){
 
 /* ===== LIVE URL / TITLE / ICON ===== */
 setInterval(()=>{
-  if(!active) return;
+  if(!active || editingUrl) return;
   try{
     const w=active.iframe.contentWindow;
     const d=active.iframe.contentDocument;
@@ -326,7 +342,8 @@ setInterval(()=>{
     const href=w.location.href;
     if(href.includes(__uv$config.prefix)){
       const encoded=href.split(__uv$config.prefix)[1];
-      urlBar.value=__uv$config.decodeUrl(encoded.replace(/^\/+/,''));
+      urlBar.value=
+        __uv$config.decodeUrl(encoded.replace(/^\/+/,''));
     }
 
     if(d?.title) active.title.textContent=d.title.slice(0,22);
