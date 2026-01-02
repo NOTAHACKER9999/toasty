@@ -18,7 +18,7 @@ if ("serviceWorker" in navigator) {
 <style>
 :root{
   --bg:#0a0a0a; --panel:#121212; --border:#333; --accent:#fff; --text:#fff;
-  --urlbar-bg:#000; --btn-bg:#111; --btn-hover:#222;
+  --urlbar-bg:#000; --btn-bg:#111; --btn-hover:#222; --active-tab:#121212;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
@@ -32,11 +32,12 @@ nav{display:flex;justify-content:center;gap:18px;padding:12px;background:var(--p
 /* ===== PROXY OVERLAY ===== */
 #proxyOverlay{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;z-index:9999;}
 #tabsBar{display:flex;align-items:flex-end;gap:2px;padding:4px;background:var(--panel);border-bottom:1px solid var(--border);overflow:hidden;position:relative;}
-.tab{position:relative;flex-shrink:0;max-width:192px;min-width:80px;padding:8px 16px;background:var(--btn-bg);color:var(--text);border-top-left-radius:6px;border-top-right-radius:6px;cursor:pointer;display:flex;align-items:center;gap:6px;justify-content:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.tab.active{background:var(--bg);border-bottom:1px solid var(--bg);font-weight:700;}
+.tab{position:relative;flex-shrink:0;max-width:192px;min-width:80px;padding:8px 8px;background:var(--btn-bg);color:var(--text);border-top-left-radius:6px;border-top-right-radius:6px;cursor:pointer;display:flex;align-items:center;gap:6px;justify-content:flex-start;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:.2s;}
+.tab.active{background:var(--active-tab);}
 .tab img{width:16px;height:16px;vertical-align:middle;}
-.tab .close{margin-left:6px;font-weight:900;cursor:pointer;}
-#tabsCloseBtn{position:absolute;right:0;top:0;padding:0 6px;height:100%;display:flex;align-items:center;cursor:pointer;color:var(--text);}
+.tab .close{margin-left:auto;font-weight:900;cursor:pointer;color:#ff5555;}
+#newTabBtn{flex-shrink:0;padding:0 12px;background:var(--btn-bg);border-radius:6px;cursor:pointer;color:var(--text);display:flex;align-items:center;justify-content:center;font-weight:700;transition:.2s;}
+#newTabBtn:hover{background:var(--btn-hover);}
 
 /* ===== BROWSER BAR ===== */
 #browserBar{display:flex;align-items:center;gap:6px;padding:6px;background:var(--btn-bg);border-bottom:1px solid var(--border);}
@@ -73,8 +74,8 @@ nav{display:flex;justify-content:center;gap:18px;padding:12px;background:var(--p
 
 <div id="proxyOverlay">
   <div id="tabsBar">
-    <div class="tab" onclick="newTab()">＋</div>
-    <div id="tabsCloseBtn" onclick="closeOverlay()">✕</div>
+    <!-- Tabs inserted dynamically here -->
+    <div id="newTabBtn" onclick="newTab()">＋</div>
   </div>
 
   <div id="browserBar">
@@ -131,16 +132,15 @@ function newTab(url="https://www.startpage.com"){
 
   const tab = document.createElement("div");
   tab.className="tab";
-  const title = document.createElement("span");
-  title.textContent="New Tab";
+  const title = document.createElement("span"); title.textContent="New Tab";
   const favicon = document.createElement("img"); favicon.src="";
   const close = document.createElement("span"); close.textContent="✕"; close.className="close";
   const tabObj = {iframe, tab, title, url, favicon};
   close.onclick = e=>{e.stopPropagation(); closeTab(tabObj);};
   tab.onclick = ()=>activate(tabObj);
   tab.append(favicon, title, close);
-  tabs.splice(tabs.length-1,0,tabObj);
-  tabsBar.insertBefore(tab,tabsBar.querySelector(".tab:last-child"));
+  tabs.splice(tabs.length,0,tabObj);
+  tabsBar.insertBefore(tab, document.getElementById("newTabBtn"));
   frames.appendChild(iframe);
 
   iframe.src = __uv$config.prefix + __uv$config.encodeUrl(url);
@@ -159,7 +159,7 @@ function newTab(url="https://www.startpage.com"){
 }
 
 function resizeTabs(){
-  const availableWidth = tabsBar.clientWidth - 50; // space for new tab + close
+  const availableWidth = tabsBar.clientWidth - 60; // space for new tab
   const tabWidth = Math.min(192, Math.max(50, availableWidth / Math.max(tabs.length,1)));
   tabs.forEach(t=>t.tab.style.width = tabWidth + "px");
 }
@@ -171,6 +171,7 @@ function activate(t){
   active = t;
   t.iframe.classList.add("active");
   t.tab.classList.add("active");
+  t.tab.style.backgroundColor = "var(--active-tab)";
   updateUrlBar();
 }
 
@@ -208,14 +209,6 @@ function injectCode(){
     script.onload = function(){eruda.init();}
   })();`;
   active.iframe.contentWindow.eval(code);
-}
-
-function closeOverlay(){
-  overlay.style.display="none";
-  homeContent.style.display="flex";
-  tabs.forEach(t=>{t.iframe.remove(); t.tab.remove();});
-  tabs=[]; active=null;
-  bookmarkBar.innerHTML="";
 }
 
 // BOOKMARKS
