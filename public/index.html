@@ -20,254 +20,56 @@ if ("serviceWorker" in navigator) {
 
 <style>
 :root{
-  --bg:#050505;
-  --panel:#0f0f0f;
-  --border:#2a2a2a;
-  --accent:#ff2d2d;
-  --text:#e0e0e0;
+  --bg:#050505; 
+  --panel:#0f0f0f; 
+  --border:#2a2a2a; 
+  --accent:#ff2d2d; 
+  --text:#e0e0e0; 
+  --bubble-bg:#151515;
 }
 
-/* ===== RESET ===== */
+/* ===== BASIC RESET ===== */
 *{box-sizing:border-box;margin:0;padding:0}
-body{
-  font-family:Segoe UI,Arial;
-  background:var(--bg);
-  color:var(--text);
-  min-height:100vh;
-  display:flex;
-  flex-direction:column;
-}
+body{font-family:Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
 
 /* ===== HEADER ===== */
-header{
-  background:var(--panel);
-  padding:16px;
-  text-align:center;
-  font-size:2rem;
-  font-weight:700;
-  border-bottom:1px solid var(--border);
-  position:relative;
-}
-.settings-btn{
-  position:absolute;
-  top:16px;
-  right:16px;
-}
+header{background:var(--panel);padding:16px;text-align:center;font-size:2rem;font-weight:700;border-bottom:1px solid var(--border);position:relative;}
 
 /* ===== NAV ===== */
-nav{
-  display:flex;
-  justify-content:center;
-  gap:18px;
-  padding:10px;
-  background:var(--panel);
-  border-bottom:1px solid var(--border);
-}
-.nav-btn{
-  padding:10px 18px;
-  border:1px solid var(--border);
-  border-radius:14px;
-  cursor:pointer;
-  background:#141414;
-  transition:.3s;
-}
+nav{display:flex;justify-content:center;gap:18px;padding:10px;background:var(--panel);border-bottom:1px solid var(--border);}
+.nav-btn{padding:10px 18px;border:1px solid var(--border);border-radius:14px;cursor:pointer;background:#141414;color:var(--text);transition:.3s;}
 .nav-btn:hover{box-shadow:0 0 10px var(--accent);}
 
-/* ===== MAIN ===== */
-main{
-  flex:1;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  padding:40px;
-}
-#searchInput{
-  width:100%;
-  max-width:600px;
-  padding:16px 20px;
-  background:#111;
-  border:1px solid var(--border);
-  color:var(--text);
-  border-radius:999px;
-  font-size:1.1rem;
-  outline:none;
-}
+/* ===== MAIN SEARCH ===== */
+main{flex:1;display:flex;justify-content:center;align-items:center;padding:40px;}
+#searchInput{width:100%;max-width:600px;padding:16px 20px;background:#111;border:1px solid var(--border);color:var(--text);border-radius:999px;font-size:1.1rem;outline:none;}
 
 /* ===== FOOTER ===== */
-footer{
-  padding:12px;
-  text-align:center;
-  background:var(--panel);
-  border-top:1px solid var(--border);
-  font-size:.85rem;
-  color:#aaa;
-}
+footer{padding:12px;text-align:center;background:var(--panel);border-top:1px solid var(--border);font-size:.85rem;color:#aaa;}
 
-/* ================= TOAST-STYLE PROXY ================= */
+/* ===== PROXY OVERLAY ===== */
+#proxyOverlay{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;z-index:9999;}
+#tabsBar{display:flex;gap:6px;padding:6px;background:var(--panel);border-bottom:1px solid var(--border);overflow-x:auto;}
+.tab{display:flex;align-items:center;gap:6px;padding:6px 10px;background:#141414;border:1px solid var(--border);border-radius:16px;font-size:.8rem;cursor:pointer;white-space:nowrap;}
+.tab.active{background:var(--accent);color:#000;font-weight:700;}
+.tab img{width:14px;height:14px}
+.tab .close{font-weight:900;cursor:pointer}
 
-#proxyOverlay{
-  position:fixed;
-  inset:0;
-  display:none;
-  z-index:9999;
-  pointer-events:auto;
-}
+/* ===== BROWSER BAR ===== */
+#browserBar{display:flex;align-items:center;gap:8px;padding:8px;background:var(--panel);border-bottom:1px solid var(--border);}
+.bubble-btn{padding:8px 14px;border-radius:999px;background:var(--bubble-bg);border:1px solid var(--border);cursor:pointer;transition:all .3s;}
+.bubble-btn:hover{box-shadow:0 0 10px var(--accent);}
+#urlBar{flex:1;padding:8px 16px;background:#0b0b0b;border:1px solid var(--border);border-radius:999px;font-family:monospace;font-size:.85rem;color:#ff5555;outline:none;}
 
-#proxyOverlay::before{
-  content:"";
-  position:fixed;
-  inset:0;
-  background:#00000066;
-  backdrop-filter:blur(6px);
-}
-
-/* Tabs */
-#tabsBar{
-  position:fixed;
-  bottom:86px;
-  right:20px;
-  width:320px;
-  display:flex;
-  gap:6px;
-  padding:6px;
-  background:#000000a9;
-  backdrop-filter:blur(8px);
-  border-radius:16px;
-}
-
-.tab{
-  display:flex;
-  align-items:center;
-  gap:6px;
-  padding:6px 10px;
-  border:1.5px solid #ffffff1e;
-  border-radius:14px;
-  font-size:11px;
-  cursor:pointer;
-}
-.tab.active{
-  background:#ffffff15;
-}
-.tab .close{
-  font-weight:900;
-  cursor:pointer;
-}
-
-/* Browser bar */
-#browserBar{
-  position:fixed;
-  bottom:20px;
-  right:20px;
-  width:320px;
-  display:flex;
-  align-items:center;
-  gap:6px;
-  padding:10px;
-  background:#000000a9;
-  backdrop-filter:blur(8px);
-  border-radius:18px;
-}
-
-.bubble-btn{
-  padding:8px 12px;
-  border-radius:999px;
-  border:1.5px solid #ffffff1e;
-  background:transparent;
-  color:white;
-  cursor:pointer;
-}
-
-#urlBar{
-  flex:1;
-  padding:8px 14px;
-  border-radius:999px;
-  background:transparent;
-  border:1.5px solid #ffffff1e;
-  color:white;
-  font-size:12px;
-}
-
-/* Frames */
-#frames{
-  position:fixed;
-  inset:0;
-  z-index:-1;
-}
-.proxyFrame{
-  position:absolute;
-  inset:0;
-  width:100%;
-  height:100%;
-  border:none;
-  display:none;
-}
+/* ===== FRAMES ===== */
+#frames{flex:1;position:relative;}
+.proxyFrame{position:absolute;inset:0;width:100%;height:100%;border:none;display:none;}
 .proxyFrame.active{display:block}
-
-/* Hide site UI when proxy open */
-#proxyOverlay[style*="flex"] ~ header,
-#proxyOverlay[style*="flex"] ~ nav,
-#proxyOverlay[style*="flex"] ~ main,
-#proxyOverlay[style*="flex"] ~ footer{
-  display:none!important;
-}
-
-/* ===== SETTINGS ===== */
-#settingsPanel{
-  position:fixed;
-  top:0;
-  right:0;
-  width:260px;
-  height:100%;
-  background:var(--panel);
-  border-left:1px solid var(--border);
-  display:none;
-  z-index:10001;
-}
-#settingsMenu{
-  display:flex;
-  flex-direction:column;
-}
-#settingsMenu button{
-  padding:12px;
-  background:none;
-  border:none;
-  color:var(--text);
-  cursor:pointer;
-  text-align:left;
-}
-#settingsMenu button.active{
-  border-left:3px solid var(--accent);
-  font-weight:700;
-}
-#settingsContent{
-  padding:16px;
-}
-.setting-item{
-  margin-bottom:14px;
-}
-.setting-item label{
-  font-size:.85rem;
-  display:block;
-  margin-bottom:4px;
-}
-.setting-item select{
-  width:100%;
-  padding:6px;
-  background:#111;
-  border:1px solid var(--border);
-  color:var(--text);
-}
 </style>
 </head>
 
 <body>
-
-<header>
-  Glitch Hub
-  <div class="settings-btn">
-    <div class="bubble-btn" onclick="toggleSettings()">⚙</div>
-  </div>
-</header>
+<header>Glitch Hub</header>
 
 <nav>
   <div class="nav-btn" onclick="openNav('../games/app.html')">Games</div>
@@ -277,71 +79,24 @@ footer{
 </nav>
 
 <main>
-  <input id="searchInput" placeholder="Search or enter URL">
+  <input id="searchInput" placeholder="Search or enter URL (press Enter)">
 </main>
 
 <footer>© 2025 Glitch Override</footer>
 
-<!-- PROXY -->
+<!-- ===== PROXY OVERLAY ===== -->
 <div id="proxyOverlay">
-  <div id="tabsBar">
-    <div class="tab" onclick="newTab()">＋</div>
-  </div>
-
+  <div id="tabsBar"><div class="tab" onclick="newTab()">＋</div></div>
   <div id="browserBar">
     <div class="bubble-btn" onclick="goBack()">⟵</div>
     <div class="bubble-btn" onclick="goForward()">⟶</div>
     <div class="bubble-btn" onclick="refreshTab()">⟳</div>
-    <input id="urlBar">
+    <input id="urlBar" spellcheck="false">
+    <div class="bubble-btn" onclick="fullscreenTab()">⛶</div>
     <div class="bubble-btn" onclick="injectCode()">{"</>"}</div>
     <div class="bubble-btn" onclick="closeOverlay()">✕</div>
   </div>
-
   <div id="frames"></div>
-</div>
-
-<!-- SETTINGS -->
-<div id="settingsPanel">
-  <div id="settingsMenu">
-    <button class="active" data-section="browserSection">Browser</button>
-    <button data-section="cloakSection">Cloak</button>
-    <button data-section="deviceSection">Device</button>
-  </div>
-
-  <div id="settingsContent">
-    <div id="browserSection">
-      <div class="setting-item">
-        <label>Default Search</label>
-        <select id="defaultSearchSelect">
-          <option value="https://duckduckgo.com/?q=">DuckDuckGo</option>
-          <option value="https://www.google.com/search?q=">Google</option>
-        </select>
-      </div>
-    </div>
-
-    <div id="cloakSection" style="display:none">
-      <div class="setting-item">
-        <label>Cloak Site</label>
-        <select id="cloakSiteSelect">
-          <option value="">None</option>
-          <option value="Google">Google</option>
-          <option value="GitHub">GitHub</option>
-          <option value="YouTube">YouTube</option>
-        </select>
-      </div>
-    </div>
-
-    <div id="deviceSection" style="display:none">
-      <div class="setting-item">
-        <label>Device</label>
-        <select id="deviceSelect">
-          <option>Desktop</option>
-          <option>Tablet</option>
-          <option>Mobile</option>
-        </select>
-      </div>
-    </div>
-  </div>
 </div>
 
 <script>
@@ -350,40 +105,60 @@ const tabsBar=document.getElementById("tabsBar");
 const frames=document.getElementById("frames");
 const urlBar=document.getElementById("urlBar");
 const searchInput=document.getElementById("searchInput");
-const defaultSearchSelect=document.getElementById("defaultSearchSelect");
-const cloakSiteSelect=document.getElementById("cloakSiteSelect");
-const settingsPanel=document.getElementById("settingsPanel");
 
-let tabs=[],active=null;
+let tabs=[],active=null,editingUrl=false;
 
+// ===== URL NORMALIZER =====
 function normalize(input){
-  if(!input.includes(".")) return defaultSearchSelect.value+encodeURIComponent(input);
+  if(!input.includes(".")) return "https://duckduckgo.com/?q="+encodeURIComponent(input);
   if(!input.startsWith("http")) return "https://"+input;
   return input;
 }
 
+// ===== HOME SEARCH =====
 searchInput.addEventListener("keydown",e=>{
-  if(e.key==="Enter") newTab(normalize(searchInput.value));
+  if(e.key==="Enter"){
+    newTab(normalize(searchInput.value.trim()));
+  }
 });
 
-function newTab(url=defaultSearchSelect.value){
+// ===== ADDRESS BAR =====
+urlBar.addEventListener("focus",()=>editingUrl=true);
+urlBar.addEventListener("blur",()=>editingUrl=false);
+urlBar.addEventListener("keydown",e=>{
+  if(e.key==="Enter" && active){
+    editingUrl=false;
+    active.iframe.src=
+      __uv$config.prefix+
+      __uv$config.encodeUrl(normalize(urlBar.value.trim()));
+  }
+});
+
+// ===== NAV BUTTONS =====
+function openNav(path){
+  newTab(location.origin+path.replace(/^.\//,"/"));
+}
+
+// ===== TABS =====
+function newTab(url="https://duckduckgo.com"){
   const iframe=document.createElement("iframe");
   iframe.className="proxyFrame";
 
   const tab=document.createElement("div");
   tab.className="tab";
-  tab.textContent="Tab";
+
+  const title=document.createElement("span");
+  title.textContent="New Tab";
 
   const close=document.createElement("span");
   close.textContent="✕";
   close.className="close";
+
+  const tabObj={iframe,tab,title};
   close.onclick=e=>{e.stopPropagation();closeTab(tabObj)};
-
-  tab.appendChild(close);
-
-  const tabObj={iframe,tab};
   tab.onclick=()=>activate(tabObj);
 
+  tab.append(title,close);
   tabs.splice(tabs.length-1,0,tabObj);
   tabsBar.insertBefore(tab,tabsBar.lastElementChild);
   frames.appendChild(iframe);
@@ -393,54 +168,39 @@ function newTab(url=defaultSearchSelect.value){
   overlay.style.display="flex";
 }
 
+// ===== ACTIVATE TAB =====
 function activate(t){
-  tabs.forEach(x=>{
-    x.iframe.classList.remove("active");
-    x.tab.classList.remove("active");
-  });
+  tabs.forEach(x=>{x.iframe.classList.remove("active"); x.tab.classList.remove("active");});
   active=t;
   t.iframe.classList.add("active");
   t.tab.classList.add("active");
+  try{
+    const w=t.iframe.contentWindow;
+    urlBar.value=w.location.href;
+  }catch{}
 }
 
+// ===== CLOSE TAB =====
 function closeTab(t){
   const i=tabs.indexOf(t);
-  if(i>-1){
-    t.iframe.remove();
-    t.tab.remove();
-    tabs.splice(i,1);
-    activate(tabs[i-1]||tabs[0]);
-  }
+  if(i>-1){t.iframe.remove(); t.tab.remove(); tabs.splice(i,1); activate(tabs[i-1]||tabs[0]);}
 }
 
+// ===== NAV CONTROLS =====
 function goBack(){active?.iframe.contentWindow.history.back()}
 function goForward(){active?.iframe.contentWindow.history.forward()}
 function refreshTab(){active?.iframe.contentWindow.location.reload()}
-function closeOverlay(){overlay.style.display="none"}
+function fullscreenTab(){active?.iframe.requestFullscreen?.()}
 
+// ===== INJECT CODE =====
 function injectCode(){
   if(!active) return;
-  active.iframe.contentWindow.eval(`
-    var s=document.createElement('script');
-    s.src='//cdn.jsdelivr.net/npm/eruda';
-    document.body.appendChild(s);
-    s.onload=()=>eruda.init();
-  `);
+  const code=`javascript:(function () {var script=document.createElement('script');script.src="//cdn.jsdelivr.net/npm/eruda";document.body.appendChild(script); script.onload = function () { eruda.init() } })();`;
+  active.iframe.contentWindow.eval(code);
 }
 
-function toggleSettings(){
-  settingsPanel.style.display=
-    settingsPanel.style.display==="block"?"none":"block";
-}
-
-document.querySelectorAll("#settingsMenu button").forEach(btn=>{
-  btn.onclick=()=>{
-    document.querySelectorAll("#settingsMenu button").forEach(b=>b.classList.remove("active"));
-    btn.classList.add("active");
-    document.querySelectorAll("#settingsContent > div").forEach(d=>d.style.display="none");
-    document.getElementById(btn.dataset.section).style.display="block";
-  };
-});
+// ===== CLOSE OVERLAY =====
+function closeOverlay(){overlay.style.display="none";}
 </script>
 
 </body>
