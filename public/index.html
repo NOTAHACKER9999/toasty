@@ -27,6 +27,10 @@ if ("serviceWorker" in navigator) {
   --text:#e0e0e0;
 }
 
+/* THEMES */
+[data-theme="blue"]{--accent:#2da9ff}
+[data-theme="purple"]{--accent:#b22dff}
+
 *{box-sizing:border-box;margin:0;padding:0}
 
 body{
@@ -51,12 +55,8 @@ header{
 
 #settingsBtn{
   position:absolute;
-  top:12px;
   right:16px;
-  padding:6px 14px;
-  border-radius:999px;
-  border:1px solid var(--border);
-  background:#141414;
+  top:16px;
   cursor:pointer;
 }
 
@@ -139,7 +139,6 @@ footer{
   border-radius:16px;
   font-size:.8rem;
   cursor:pointer;
-  white-space:nowrap;
 }
 
 .tab.active{
@@ -167,9 +166,7 @@ footer{
   background:#151515;
   border:1px solid var(--border);
   cursor:pointer;
-  box-shadow:
-    inset 0 0 6px rgba(255,45,45,.25),
-    0 0 10px rgba(255,45,45,.35);
+  box-shadow:inset 0 0 6px rgba(255,45,45,.25),0 0 10px rgba(255,45,45,.35);
 }
 
 #urlBar{
@@ -180,16 +177,12 @@ footer{
   border-radius:999px;
   font-family:monospace;
   font-size:.85rem;
-  color:#ff5555;
+  color:var(--accent);
   outline:none;
 }
 
 /* ===== FRAMES ===== */
-#frames{
-  flex:1;
-  position:relative;
-}
-
+#frames{flex:1;position:relative}
 .proxyFrame{
   position:absolute;
   inset:0;
@@ -199,6 +192,37 @@ footer{
   display:none;
 }
 .proxyFrame.active{display:block}
+
+/* ===== SETTINGS PANEL ===== */
+#settingsPanel{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.7);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:10000;
+}
+
+.settings-box{
+  width:420px;
+  background:#0e0e0e;
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:20px;
+}
+
+.settings-box h3{margin:12px 0 6px}
+.settings-box select,
+.settings-box input{
+  width:100%;
+  padding:8px;
+  margin-bottom:10px;
+  background:#111;
+  border:1px solid var(--border);
+  color:white;
+  border-radius:10px;
+}
 </style>
 </head>
 
@@ -206,14 +230,14 @@ footer{
 
 <header>
   Glitch Hub
-  <button id="settingsBtn">⚙</button>
+  <div id="settingsBtn" onclick="openSettings()">⚙</div>
 </header>
 
 <nav>
-  <div class="nav-btn" onclick="location.href='../games/app.html'">Games</div>
-  <div class="nav-btn" onclick="location.href='../movies/index.html'">Movies</div>
-  <div class="nav-btn" onclick="location.href='../ai/index.html'">AI</div>
-  <div class="nav-btn" onclick="location.href='../tools/index.html'">Tools</div>
+<div class="nav-btn" onclick="location.href='../games/app.html'">Games</div>
+<div class="nav-btn" onclick="location.href='../movies/index.html'">Movies</div>
+<div class="nav-btn" onclick="location.href='../ai/index.html'">AI</div>
+<div class="nav-btn" onclick="location.href='../tools/index.html'">Tools</div>
 </nav>
 
 <main>
@@ -222,7 +246,7 @@ footer{
 
 <footer>© 2025 Glitch Override</footer>
 
-<!-- ===== OVERLAY ===== -->
+<!-- ===== PROXY OVERLAY ===== -->
 <div id="proxyOverlay">
 
   <div id="tabsBar">
@@ -233,152 +257,79 @@ footer{
     <div class="bubble-btn" onclick="goBack()">⟵</div>
     <div class="bubble-btn" onclick="goForward()">⟶</div>
     <div class="bubble-btn" onclick="refreshTab()">⟳</div>
-    <input id="urlBar" spellcheck="false">
-    <div class="bubble-btn" id="injectDevtools">&lt;/&gt;</div>
+    <input id="urlBar">
+    <div class="bubble-btn" onclick="fullscreen()">⛶</div>
+    <div class="bubble-btn" onclick="openSettings()">⚙</div>
     <div class="bubble-btn" onclick="closeOverlay()">✕</div>
   </div>
 
   <div id="frames"></div>
 </div>
 
+<!-- ===== SETTINGS ===== -->
+<div id="settingsPanel">
+  <div class="settings-box">
+    <h2>Settings</h2>
+
+    <h3>Default Search</h3>
+    <select id="searchSelect">
+      <option value="startpage">Startpage</option>
+      <option value="duckduckgo">DuckDuckGo</option>
+      <option value="google">Google</option>
+      <option value="bing">Bing</option>
+    </select>
+
+    <h3>Theme</h3>
+    <select id="themeSelect">
+      <option value="red">Red</option>
+      <option value="blue">Blue</option>
+      <option value="purple">Purple</option>
+    </select>
+
+    <h3>Cloaking</h3>
+    <input id="cloakTitle" placeholder="Fake Tab Title">
+    <input id="cloakIcon" placeholder="Favicon URL">
+
+    <button class="bubble-btn" onclick="saveSettings()">Save</button>
+    <button class="bubble-btn" onclick="closeSettings()">Close</button>
+  </div>
+</div>
+
 <script>
-const overlay=document.getElementById("proxyOverlay");
-const tabsBar=document.getElementById("tabsBar");
-const frames=document.getElementById("frames");
-const urlBar=document.getElementById("urlBar");
-const searchInput=document.getElementById("searchInput");
+/* ===== SETTINGS ===== */
+const panel=document.getElementById("settingsPanel");
 
-const SEARCH_ENGINE=q=>"https://www.startpage.com/sp/search?q="+encodeURIComponent(q);
+function openSettings(){panel.style.display="flex"}
+function closeSettings(){panel.style.display="none"}
 
-let tabs=[],active=null;
-let editingUrl=false;
-
-/* ===== NORMALIZE ===== */
-function normalize(input){
-  if(!input.includes(".")) return SEARCH_ENGINE(input);
-  if(!input.startsWith("http")) return "https://"+input;
-  return input;
-}
-
-/* ===== HOME SEARCH ===== */
-searchInput.addEventListener("keydown",e=>{
-  if(e.key==="Enter") newTab(normalize(searchInput.value.trim()));
-});
-
-/* ===== ADDRESS BAR ===== */
-urlBar.addEventListener("focus",()=>editingUrl=true);
-urlBar.addEventListener("blur",()=>editingUrl=false);
-
-urlBar.addEventListener("keydown",e=>{
-  if(e.key==="Enter" && active){
-    editingUrl=false;
-    active.iframe.src=
-      __uv$config.prefix+
-      __uv$config.encodeUrl(normalize(urlBar.value.trim()));
+function saveSettings(){
+  localStorage.search=searchSelect.value;
+  localStorage.theme=themeSelect.value;
+  if(cloakTitle.value) document.title=cloakTitle.value;
+  if(cloakIcon.value){
+    let l=document.querySelector("link[rel='icon']")||document.createElement("link");
+    l.rel="icon";l.href=cloakIcon.value;document.head.appendChild(l);
   }
-});
-
-/* ===== TABS ===== */
-function newTab(url=SEARCH_ENGINE("")){
-  const iframe=document.createElement("iframe");
-  iframe.className="proxyFrame";
-
-  const tab=document.createElement("div");
-  tab.className="tab";
-
-  const icon=document.createElement("img");
-  const title=document.createElement("span");
-  title.textContent="New Tab";
-
-  const close=document.createElement("span");
-  close.textContent="✕";
-  close.className="close";
-  close.onclick=e=>{e.stopPropagation();closeTab(tabObj)};
-
-  tab.append(icon,title,close);
-  tab.onclick=()=>activate(tabObj);
-
-  const tabObj={iframe,tab,icon,title};
-  tabs.splice(tabs.length-1,0,tabObj);
-  tabsBar.insertBefore(tab,tabsBar.lastElementChild);
-  frames.appendChild(iframe);
-
-  activate(tabObj);
-  iframe.src=__uv$config.prefix+__uv$config.encodeUrl(url);
-  overlay.style.display="flex";
+  document.body.dataset.theme=localStorage.theme;
+  closeSettings();
 }
 
-function activate(t){
-  tabs.forEach(x=>{
-    x.iframe.classList.remove("active");
-    x.tab.classList.remove("active");
-  });
-  active=t;
-  t.iframe.classList.add("active");
-  t.tab.classList.add("active");
+/* ===== SEARCH ENGINE ===== */
+function engine(q){
+  const e=localStorage.search||"startpage";
+  return {
+    startpage:"https://www.startpage.com/sp/search?q=",
+    duckduckgo:"https://duckduckgo.com/?q=",
+    google:"https://www.google.com/search?q=",
+    bing:"https://www.bing.com/search?q="
+  }[e]+encodeURIComponent(q);
 }
 
-/* ===== CLOSE TAB ===== */
-function closeTab(t){
-  const i=tabs.indexOf(t);
-  if(i>-1){
-    t.iframe.remove();
-    t.tab.remove();
-    tabs.splice(i,1);
-    activate(tabs[i-1]||tabs[0]);
-  }
+/* ===== FULLSCREEN ===== */
+function fullscreen(){
+  active?.iframe.requestFullscreen();
 }
-
-/* ===== NAV CONTROLS (WITH UV RELOAD FIX) ===== */
-function goBack(){
-  active?.iframe.contentWindow.history.back();
-  setTimeout(()=>active?.iframe.contentWindow.location.reload(),150);
-}
-function goForward(){
-  active?.iframe.contentWindow.history.forward();
-  setTimeout(()=>active?.iframe.contentWindow.location.reload(),150);
-}
-function refreshTab(){
-  active?.iframe.contentWindow.location.reload();
-}
-function closeOverlay(){
-  overlay.style.display="none";
-  tabs=[];
-  frames.innerHTML="";
-  tabsBar.innerHTML='<div class="tab" onclick="newTab()">＋</div>';
-}
-
-/* ===== LIVE URL / TITLE / ICON ===== */
-setInterval(()=>{
-  if(!active || editingUrl) return;
-  try{
-    const w=active.iframe.contentWindow;
-    const d=active.iframe.contentDocument;
-    const href=w.location.href;
-    if(href.includes(__uv$config.prefix)){
-      const encoded=href.split(__uv$config.prefix)[1];
-      urlBar.value=__uv$config.decodeUrl(encoded.replace(/^\/+/,''));
-    }
-    if(d?.title) active.title.textContent=d.title.slice(0,22);
-    const fav=d?.querySelector("link[rel~='icon']");
-    if(fav?.href) active.icon.src=fav.href;
-  }catch{}
-},500);
-
-/* ===== ERUDA INJECT ===== */
-document.getElementById("injectDevtools").onclick=()=>{
-  try{
-    const w=active?.iframe.contentWindow;
-    if(!w) return;
-    if(w.eruda){w.eruda.show();return;}
-    const s=w.document.createElement("script");
-    s.src="//cdn.jsdelivr.net/npm/eruda";
-    s.onload=()=>w.eruda.init();
-    w.document.body.appendChild(s);
-  }catch{}
-};
 </script>
 
 </body>
 </html>
-
