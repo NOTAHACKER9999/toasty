@@ -35,23 +35,23 @@ if ("serviceWorker" in navigator) {
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
 
-/* Header / Tabs */
+/* Tabs */
 #tabsBar{display:flex;align-items:flex-end;gap:2px;padding:4px;background:var(--panel);border-bottom:1px solid var(--border);}
-.tab{position:relative;padding:10px 16px;background:var(--btn-bg);color:var(--text);border-top-left-radius:6px;border-top-right-radius:6px;cursor:pointer;display:flex;align-items:center;gap:8px;}
+.tab{position:relative;padding:10px 16px;background:var(--btn-bg);color:var(--text);border-top-left-radius:6px;border-top-right-radius:6px;cursor:pointer;display:flex;align-items:center;gap:6px;}
 .tab.active{background:var(--bg);border-bottom:1px solid var(--bg);font-weight:700;}
 .tab .close{margin-left:6px;font-weight:900;cursor:pointer;}
 .tab + .tab{margin-left:-2px;}
 
-/* Bookmark Bar */
-#bookmarkBar{display:flex;gap:4px;padding:4px;background:var(--panel);border-bottom:1px solid var(--border);}
-.bookmark-btn{padding:4px 10px;background:var(--btn-bg);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:0.85rem;}
-.bookmark-btn:hover{background:var(--btn-hover);}
-
 /* Browser Bar */
-#browserBar{display:flex;align-items:center;gap:6px;padding:6px;background:#111;border-bottom:1px solid var(--border);}
-.bubble-btn{padding:6px 12px;border-radius:4px;background:var(--btn-bg);border:1px solid var(--btn-outline);cursor:pointer;color:var(--text);}
+#browserBar{display:flex;align-items:center;gap:6px;padding:6px;background:var(--btn-bg);border-bottom:1px solid var(--border);}
+.bubble-btn{padding:6px 12px;border-radius:4px;background:var(--btn-bg);border:1px solid var(--urlbar-outline);cursor:pointer;color:var(--text);}
 .bubble-btn:hover{background:var(--btn-hover);}
 #urlBar{flex:1;padding:6px 12px;background:var(--urlbar-bg);border:1px solid var(--urlbar-outline);border-radius:4px;color:var(--text);outline:none;font-family:monospace;font-size:0.9rem;}
+
+/* Bookmark Bar */
+#bookmarkBar{display:flex;gap:4px;padding:4px;background:var(--panel);border-bottom:1px solid var(--border);overflow-x:auto;}
+.bookmark-btn{padding:4px 10px;background:var(--btn-bg);color:var(--text);border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:0.85rem;}
+.bookmark-btn:hover{background:var(--btn-hover);}
 
 /* Frames */
 #frames{flex:1;position:relative;}
@@ -67,11 +67,6 @@ body{font-family:Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text
   <div class="tab" onclick="newTab()">＋</div>
 </div>
 
-<!-- Bookmark Bar -->
-<div id="bookmarkBar">
-  <div class="bookmark-btn" onclick="injectBookmarklet('alert(`Hello from bookmarklet!`)')">Test Inject</div>
-</div>
-
 <!-- Browser Bar -->
 <div id="browserBar">
   <div class="bubble-btn" onclick="goBack()">⟵</div>
@@ -83,6 +78,9 @@ body{font-family:Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text
   <div class="bubble-btn" onclick="closeOverlay()">✕</div>
 </div>
 
+<!-- Bookmark Bar -->
+<div id="bookmarkBar"></div>
+
 <!-- Frames -->
 <div id="frames"></div>
 
@@ -90,6 +88,7 @@ body{font-family:Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text
 const tabsBar = document.getElementById("tabsBar");
 const frames = document.getElementById("frames");
 const urlBar = document.getElementById("urlBar");
+const bookmarkBar = document.getElementById("bookmarkBar");
 
 let tabs = [], active = null;
 
@@ -100,8 +99,8 @@ function normalize(input){
   return input;
 }
 
-// ===== TABS =====
-function newTab(url="https://www.startpage.com") {
+// ===== CREATE NEW TAB =====
+function newTab(url="https://www.startpage.com"){
   const iframe = document.createElement("iframe");
   iframe.className="proxyFrame";
 
@@ -115,7 +114,7 @@ function newTab(url="https://www.startpage.com") {
   close.className="close";
   close.onclick=e=>{e.stopPropagation(); closeTab(tabObj)};
 
-  const tabObj={iframe, tab, title};
+  const tabObj={iframe, tab, title, url};
   tab.onclick=()=>activate(tabObj);
   tab.append(title, close);
 
@@ -135,16 +134,16 @@ function activate(t){
   t.iframe.classList.add("active");
   t.tab.classList.add("active");
 
+  // Update browser bar with unproxied link
   try{
     const w = t.iframe.contentWindow;
-    let href = w.location.href;
-    if(href.includes(__uv$config.prefix)){
-      const encoded = href.split(__uv$config.prefix)[1];
-      urlBar.value = __uv$config.decodeUrl(encoded.replace(/^\/+/,'')) || urlBar.value;
-    } else {
-      urlBar.value = href;
+    let href = t.url; // default
+    if(w.location.href.includes(__uv$config.prefix)){
+      const encoded = w.location.href.split(__uv$config.prefix)[1];
+      href = __uv$config.decodeUrl(encoded.replace(/^\/+/,''));
     }
-  } catch{}
+    urlBar.value = href;
+  }catch{urlBar.value = t.url;}
 }
 
 // ===== CLOSE TAB =====
@@ -153,13 +152,13 @@ function closeTab(t){
   if(i>-1){t.iframe.remove(); t.tab.remove(); tabs.splice(i,1); activate(tabs[i-1]||tabs[0]);}
 }
 
-// ===== NAV CONTROLS =====
+// ===== NAVIGATION =====
 function goBack(){active?.iframe.contentWindow.history.back()}
 function goForward(){active?.iframe.contentWindow.history.forward()}
 function refreshTab(){active?.iframe.contentWindow.location.reload()}
 function fullscreenTab(){active?.iframe.requestFullscreen?.()}
 
-// ===== INJECT CODE =====
+// ===== INJECT DEVTOOLS =====
 function injectCode(){
   if(!active) return;
   const code = `javascript:(function () {
@@ -177,18 +176,30 @@ function injectBookmarklet(code){
   active.iframe.contentWindow.eval(code);
 }
 
-// ===== SEARCH INPUT ENTER =====
-document.addEventListener("keydown", e => {
-  if(e.target.id==="urlBar" && e.key==="Enter"){
-    if(active){
-      active.iframe.src=__uv$config.prefix+__uv$config.encodeUrl(normalize(urlBar.value.trim()));
-    }
+// ===== URL BAR ENTER =====
+urlBar.addEventListener("keydown", e => {
+  if(e.key==="Enter" && active){
+    active.url = normalize(urlBar.value.trim());
+    active.iframe.src = __uv$config.prefix + __uv$config.encodeUrl(active.url);
   }
 });
 
-// ===== SHOW PROXY OVERLAY =====
+// ===== ADD BOOKMARK =====
+function addBookmark(name, code){
+  const btn = document.createElement("div");
+  btn.className="bookmark-btn";
+  btn.textContent = name;
+  btn.onclick = ()=>injectBookmarklet(code);
+  bookmarkBar.appendChild(btn);
+}
+
+// ===== SHOW PROXY FRAMES =====
 function overlayShow(){frames.style.display="block";}
 function closeOverlay(){frames.style.display="none";}
+
+// ===== INITIAL TAB =====
+newTab();
+
 </script>
 </body>
 </html>
