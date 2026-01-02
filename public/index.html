@@ -4,114 +4,444 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Glitch Hub</title>
-<link id="themeLink" rel="stylesheet" href="dark.css">
-<!-- UV PROXY SCRIPTS -->
+
+<!-- ============ UV PROXY ============ -->
 <script src="/uv/uv.bundle.js"></script>
 <script src="/uv/uv.config.js"></script>
 <script>
-if("serviceWorker" in navigator){
-  window.addEventListener("load",()=>{navigator.serviceWorker.register("/uv/sw.js",{scope:__uv$config.prefix});});
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/uv/sw.js", {
+      scope: __uv$config.prefix
+    });
+  });
 }
 </script>
+
+<style>
+:root{
+  --bg:#050505;
+  --panel:#0f0f0f;
+  --border:#2a2a2a;
+  --accent:#ff2d2d;
+  --text:#e0e0e0;
+}
+
+/* ===== RESET ===== */
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:Segoe UI,Arial;
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+
+/* ===== HEADER ===== */
+header{
+  background:var(--panel);
+  padding:16px;
+  text-align:center;
+  font-size:2rem;
+  font-weight:700;
+  border-bottom:1px solid var(--border);
+  position:relative;
+}
+.settings-btn{
+  position:absolute;
+  top:16px;
+  right:16px;
+}
+
+/* ===== NAV ===== */
+nav{
+  display:flex;
+  justify-content:center;
+  gap:18px;
+  padding:10px;
+  background:var(--panel);
+  border-bottom:1px solid var(--border);
+}
+.nav-btn{
+  padding:10px 18px;
+  border:1px solid var(--border);
+  border-radius:14px;
+  cursor:pointer;
+  background:#141414;
+  transition:.3s;
+}
+.nav-btn:hover{box-shadow:0 0 10px var(--accent);}
+
+/* ===== MAIN ===== */
+main{
+  flex:1;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:40px;
+}
+#searchInput{
+  width:100%;
+  max-width:600px;
+  padding:16px 20px;
+  background:#111;
+  border:1px solid var(--border);
+  color:var(--text);
+  border-radius:999px;
+  font-size:1.1rem;
+  outline:none;
+}
+
+/* ===== FOOTER ===== */
+footer{
+  padding:12px;
+  text-align:center;
+  background:var(--panel);
+  border-top:1px solid var(--border);
+  font-size:.85rem;
+  color:#aaa;
+}
+
+/* ================= TOAST-STYLE PROXY ================= */
+
+#proxyOverlay{
+  position:fixed;
+  inset:0;
+  display:none;
+  z-index:9999;
+  pointer-events:auto;
+}
+
+#proxyOverlay::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  background:#00000066;
+  backdrop-filter:blur(6px);
+}
+
+/* Tabs */
+#tabsBar{
+  position:fixed;
+  bottom:86px;
+  right:20px;
+  width:320px;
+  display:flex;
+  gap:6px;
+  padding:6px;
+  background:#000000a9;
+  backdrop-filter:blur(8px);
+  border-radius:16px;
+}
+
+.tab{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:6px 10px;
+  border:1.5px solid #ffffff1e;
+  border-radius:14px;
+  font-size:11px;
+  cursor:pointer;
+}
+.tab.active{
+  background:#ffffff15;
+}
+.tab .close{
+  font-weight:900;
+  cursor:pointer;
+}
+
+/* Browser bar */
+#browserBar{
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  width:320px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:10px;
+  background:#000000a9;
+  backdrop-filter:blur(8px);
+  border-radius:18px;
+}
+
+.bubble-btn{
+  padding:8px 12px;
+  border-radius:999px;
+  border:1.5px solid #ffffff1e;
+  background:transparent;
+  color:white;
+  cursor:pointer;
+}
+
+#urlBar{
+  flex:1;
+  padding:8px 14px;
+  border-radius:999px;
+  background:transparent;
+  border:1.5px solid #ffffff1e;
+  color:white;
+  font-size:12px;
+}
+
+/* Frames */
+#frames{
+  position:fixed;
+  inset:0;
+  z-index:-1;
+}
+.proxyFrame{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  border:none;
+  display:none;
+}
+.proxyFrame.active{display:block}
+
+/* Hide site UI when proxy open */
+#proxyOverlay[style*="flex"] ~ header,
+#proxyOverlay[style*="flex"] ~ nav,
+#proxyOverlay[style*="flex"] ~ main,
+#proxyOverlay[style*="flex"] ~ footer{
+  display:none!important;
+}
+
+/* ===== SETTINGS ===== */
+#settingsPanel{
+  position:fixed;
+  top:0;
+  right:0;
+  width:260px;
+  height:100%;
+  background:var(--panel);
+  border-left:1px solid var(--border);
+  display:none;
+  z-index:10001;
+}
+#settingsMenu{
+  display:flex;
+  flex-direction:column;
+}
+#settingsMenu button{
+  padding:12px;
+  background:none;
+  border:none;
+  color:var(--text);
+  cursor:pointer;
+  text-align:left;
+}
+#settingsMenu button.active{
+  border-left:3px solid var(--accent);
+  font-weight:700;
+}
+#settingsContent{
+  padding:16px;
+}
+.setting-item{
+  margin-bottom:14px;
+}
+.setting-item label{
+  font-size:.85rem;
+  display:block;
+  margin-bottom:4px;
+}
+.setting-item select{
+  width:100%;
+  padding:6px;
+  background:#111;
+  border:1px solid var(--border);
+  color:var(--text);
+}
+</style>
 </head>
+
 <body>
 
 <header>
   Glitch Hub
-  <div class="settings-btn"><div class="bubble-btn" onclick="toggleSettings()">⚙</div></div>
+  <div class="settings-btn">
+    <div class="bubble-btn" onclick="toggleSettings()">⚙</div>
+  </div>
 </header>
 
 <nav>
-<div class="nav-btn" onclick="openNav('../games/app.html')">Games</div>
-<div class="nav-btn" onclick="openNav('../movies/index.html')">Movies</div>
-<div class="nav-btn" onclick="openNav('../ai/index.html')">AI</div>
-<div class="nav-btn" onclick="openNav('../tools/index.html')">Tools</div>
+  <div class="nav-btn" onclick="openNav('../games/app.html')">Games</div>
+  <div class="nav-btn" onclick="openNav('../movies/index.html')">Movies</div>
+  <div class="nav-btn" onclick="openNav('../ai/index.html')">AI</div>
+  <div class="nav-btn" onclick="openNav('../tools/index.html')">Tools</div>
 </nav>
 
 <main>
-  <input id="searchInput" placeholder="Search or enter URL (press Enter)">
+  <input id="searchInput" placeholder="Search or enter URL">
 </main>
 
 <footer>© 2025 Glitch Override</footer>
 
-<!-- PROXY OVERLAY -->
+<!-- PROXY -->
 <div id="proxyOverlay">
-  <div id="tabsBar"><div class="tab" onclick="newTab()">＋</div></div>
+  <div id="tabsBar">
+    <div class="tab" onclick="newTab()">＋</div>
+  </div>
+
   <div id="browserBar">
     <div class="bubble-btn" onclick="goBack()">⟵</div>
     <div class="bubble-btn" onclick="goForward()">⟶</div>
     <div class="bubble-btn" onclick="refreshTab()">⟳</div>
-    <input id="urlBar" spellcheck="false">
-    <div class="bubble-btn" onclick="fullscreenTab()">⛶</div>
+    <input id="urlBar">
     <div class="bubble-btn" onclick="injectCode()">{"</>"}</div>
     <div class="bubble-btn" onclick="closeOverlay()">✕</div>
   </div>
+
   <div id="frames"></div>
 </div>
 
-<!-- SETTINGS PANEL -->
+<!-- SETTINGS -->
 <div id="settingsPanel">
   <div id="settingsMenu">
-    <button class="active" data-section="themeSection">Theme</button>
-    <button data-section="browserSection">Browser</button>
+    <button class="active" data-section="browserSection">Browser</button>
     <button data-section="cloakSection">Cloak</button>
     <button data-section="deviceSection">Device</button>
   </div>
+
   <div id="settingsContent">
-    <!-- Theme Section -->
-    <div id="themeSection" class="settings-section">
+    <div id="browserSection">
       <div class="setting-item">
-        <label for="themeSelect">Theme</label>
-        <select id="themeSelect">
-          <option value="dark">Dark</option>
-          <option value="light">Light</option>
-          <option value="auto">Auto</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- Browser Section -->
-    <div id="browserSection" class="settings-section" style="display:none">
-      <div class="setting-item">
-        <label for="defaultSearchSelect">Default Browser</label>
+        <label>Default Search</label>
         <select id="defaultSearchSelect">
-          <option value="https://www.startpage.com/sp/search?q=">Startpage</option>
-          <option value="https://www.google.com/search?q=">Google</option>
-          <option value="https://www.bing.com/search?q=">Bing</option>
-          <option value="https://search.yahoo.com/search?p=">Yahoo</option>
           <option value="https://duckduckgo.com/?q=">DuckDuckGo</option>
+          <option value="https://www.google.com/search?q=">Google</option>
         </select>
       </div>
     </div>
 
-    <!-- Cloak Section -->
-    <div id="cloakSection" class="settings-section" style="display:none">
+    <div id="cloakSection" style="display:none">
       <div class="setting-item">
-        <label for="cloakSiteSelect">Cloak Site</label>
+        <label>Cloak Site</label>
         <select id="cloakSiteSelect">
           <option value="">None</option>
           <option value="Google">Google</option>
           <option value="GitHub">GitHub</option>
           <option value="YouTube">YouTube</option>
-          <option value="Facebook">Facebook</option>
         </select>
       </div>
     </div>
 
-    <!-- Device Section -->
-    <div id="deviceSection" class="settings-section" style="display:none">
+    <div id="deviceSection" style="display:none">
       <div class="setting-item">
-        <label for="deviceSelect">Device</label>
+        <label>Device</label>
         <select id="deviceSelect">
-          <option value="desktop">Desktop</option>
-          <option value="tablet">Tablet</option>
-          <option value="mobile">Mobile</option>
+          <option>Desktop</option>
+          <option>Tablet</option>
+          <option>Mobile</option>
         </select>
       </div>
     </div>
   </div>
 </div>
 
-<script src="app.js"></script> <!-- All JS (tabs, proxy, settings) from previous full version -->
+<script>
+const overlay=document.getElementById("proxyOverlay");
+const tabsBar=document.getElementById("tabsBar");
+const frames=document.getElementById("frames");
+const urlBar=document.getElementById("urlBar");
+const searchInput=document.getElementById("searchInput");
+const defaultSearchSelect=document.getElementById("defaultSearchSelect");
+const cloakSiteSelect=document.getElementById("cloakSiteSelect");
+const settingsPanel=document.getElementById("settingsPanel");
+
+let tabs=[],active=null;
+
+function normalize(input){
+  if(!input.includes(".")) return defaultSearchSelect.value+encodeURIComponent(input);
+  if(!input.startsWith("http")) return "https://"+input;
+  return input;
+}
+
+searchInput.addEventListener("keydown",e=>{
+  if(e.key==="Enter") newTab(normalize(searchInput.value));
+});
+
+function newTab(url=defaultSearchSelect.value){
+  const iframe=document.createElement("iframe");
+  iframe.className="proxyFrame";
+
+  const tab=document.createElement("div");
+  tab.className="tab";
+  tab.textContent="Tab";
+
+  const close=document.createElement("span");
+  close.textContent="✕";
+  close.className="close";
+  close.onclick=e=>{e.stopPropagation();closeTab(tabObj)};
+
+  tab.appendChild(close);
+
+  const tabObj={iframe,tab};
+  tab.onclick=()=>activate(tabObj);
+
+  tabs.splice(tabs.length-1,0,tabObj);
+  tabsBar.insertBefore(tab,tabsBar.lastElementChild);
+  frames.appendChild(iframe);
+
+  activate(tabObj);
+  iframe.src=__uv$config.prefix+__uv$config.encodeUrl(url);
+  overlay.style.display="flex";
+}
+
+function activate(t){
+  tabs.forEach(x=>{
+    x.iframe.classList.remove("active");
+    x.tab.classList.remove("active");
+  });
+  active=t;
+  t.iframe.classList.add("active");
+  t.tab.classList.add("active");
+}
+
+function closeTab(t){
+  const i=tabs.indexOf(t);
+  if(i>-1){
+    t.iframe.remove();
+    t.tab.remove();
+    tabs.splice(i,1);
+    activate(tabs[i-1]||tabs[0]);
+  }
+}
+
+function goBack(){active?.iframe.contentWindow.history.back()}
+function goForward(){active?.iframe.contentWindow.history.forward()}
+function refreshTab(){active?.iframe.contentWindow.location.reload()}
+function closeOverlay(){overlay.style.display="none"}
+
+function injectCode(){
+  if(!active) return;
+  active.iframe.contentWindow.eval(`
+    var s=document.createElement('script');
+    s.src='//cdn.jsdelivr.net/npm/eruda';
+    document.body.appendChild(s);
+    s.onload=()=>eruda.init();
+  `);
+}
+
+function toggleSettings(){
+  settingsPanel.style.display=
+    settingsPanel.style.display==="block"?"none":"block";
+}
+
+document.querySelectorAll("#settingsMenu button").forEach(btn=>{
+  btn.onclick=()=>{
+    document.querySelectorAll("#settingsMenu button").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    document.querySelectorAll("#settingsContent > div").forEach(d=>d.style.display="none");
+    document.getElementById(btn.dataset.section).style.display="block";
+  };
+});
+</script>
+
 </body>
 </html>
