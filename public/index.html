@@ -4,74 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Glitch Hub</title>
-
-<!-- ============ UV PROXY ============ -->
+<link id="themeLink" rel="stylesheet" href="dark.css">
+<!-- UV PROXY SCRIPTS -->
 <script src="/uv/uv.bundle.js"></script>
 <script src="/uv/uv.config.js"></script>
 <script>
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/uv/sw.js", {
-      scope: __uv$config.prefix
-    });
-  });
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>{navigator.serviceWorker.register("/uv/sw.js",{scope:__uv$config.prefix});});
 }
 </script>
-
-<style>
-:root{
-  --bg:#050505; --panel:#0f0f0f; --border:#2a2a2a; --accent:#ff2d2d; --text:#e0e0e0; --bubble-bg:#151515;
-}
-
-/* ===== BASIC RESET ===== */
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Segoe UI,Arial;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
-
-/* ===== HEADER ===== */
-header{background:var(--panel);padding:16px;text-align:center;font-size:2rem;font-weight:700;border-bottom:1px solid var(--border);position:relative;}
-header .settings-btn{position:absolute;top:16px;right:16px;}
-
-/* ===== NAV ===== */
-nav{display:flex;justify-content:center;gap:18px;padding:10px;background:var(--panel);border-bottom:1px solid var(--border);}
-.nav-btn{padding:10px 18px;border:1px solid var(--border);border-radius:14px;cursor:pointer;background:#141414;color:var(--text);transition:.3s;}
-.nav-btn:hover{box-shadow:0 0 10px var(--accent);}
-
-/* ===== MAIN SEARCH ===== */
-main{flex:1;display:flex;justify-content:center;align-items:center;padding:40px;}
-#searchInput{width:100%;max-width:600px;padding:16px 20px;background:#111;border:1px solid var(--border);color:var(--text);border-radius:999px;font-size:1.1rem;outline:none;}
-
-/* ===== FOOTER ===== */
-footer{padding:12px;text-align:center;background:var(--panel);border-top:1px solid var(--border);font-size:.85rem;color:#aaa;}
-
-/* ===== PROXY OVERLAY ===== */
-#proxyOverlay{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;z-index:9999;}
-#tabsBar{display:flex;gap:6px;padding:6px;background:var(--panel);border-bottom:1px solid var(--border);overflow-x:auto;}
-.tab{display:flex;align-items:center;gap:6px;padding:6px 10px;background:#141414;border:1px solid var(--border);border-radius:16px;font-size:.8rem;cursor:pointer;white-space:nowrap;}
-.tab.active{background:var(--accent);color:#000;font-weight:700;}
-.tab img{width:14px;height:14px}
-.tab .close{font-weight:900;cursor:pointer}
-
-/* ===== BROWSER BAR ===== */
-#browserBar{display:flex;align-items:center;gap:8px;padding:8px;background:var(--panel);border-bottom:1px solid var(--border);}
-.bubble-btn{padding:8px 14px;border-radius:999px;background:var(--bubble-bg);border:1px solid var(--border);cursor:pointer;box-shadow:inset 0 0 6px rgba(255,45,45,.25),0 0 10px rgba(255,45,45,.35);transition:all .3s;}
-.bubble-btn:hover{box-shadow:0 0 15px var(--accent);}
-#urlBar{flex:1;padding:8px 16px;background:#0b0b0b;border:1px solid var(--border);border-radius:999px;font-family:monospace;font-size:.85rem;color:#ff5555;outline:none;}
-
-/* ===== FRAMES ===== */
-#frames{flex:1;position:relative;}
-.proxyFrame{position:absolute;inset:0;width:100%;height:100%;border:none;display:none;}
-.proxyFrame.active{display:block}
-
-/* ===== SETTINGS PANEL ===== */
-#settingsPanel{position:absolute;top:0;right:0;background:var(--panel);border-left:1px solid var(--border);height:100%;width:280px;z-index:10001;display:flex;flex-direction:row;transition:all .3s;}
-#settingsMenu{width:90px;background:#141414;display:flex;flex-direction:column;}
-#settingsMenu button{padding:12px;font-size:.85rem;border:none;background:none;color:var(--text);cursor:pointer;text-align:left;border-left:3px solid transparent;transition:.3s;}
-#settingsMenu button.active{border-left:3px solid var(--accent);font-weight:700;}
-#settingsContent{flex:1;padding:16px;overflow-y:auto;}
-.setting-item{margin-bottom:12px;}
-.setting-item label{display:block;margin-bottom:4px;font-size:.9rem;}
-.setting-item select, .setting-item input{width:100%;padding:6px;border-radius:6px;border:1px solid var(--border);background:#111;color:var(--text);font-size:.9rem;}
-</style>
 </head>
 <body>
 
@@ -93,7 +34,7 @@ footer{padding:12px;text-align:center;background:var(--panel);border-top:1px sol
 
 <footer>© 2025 Glitch Override</footer>
 
-<!-- ===== PROXY OVERLAY ===== -->
+<!-- PROXY OVERLAY -->
 <div id="proxyOverlay">
   <div id="tabsBar"><div class="tab" onclick="newTab()">＋</div></div>
   <div id="browserBar">
@@ -108,7 +49,7 @@ footer{padding:12px;text-align:center;background:var(--panel);border-top:1px sol
   <div id="frames"></div>
 </div>
 
-<!-- ===== SETTINGS PANEL ===== -->
+<!-- SETTINGS PANEL -->
 <div id="settingsPanel">
   <div id="settingsMenu">
     <button class="active" data-section="themeSection">Theme</button>
@@ -117,6 +58,7 @@ footer{padding:12px;text-align:center;background:var(--panel);border-top:1px sol
     <button data-section="deviceSection">Device</button>
   </div>
   <div id="settingsContent">
+    <!-- Theme Section -->
     <div id="themeSection" class="settings-section">
       <div class="setting-item">
         <label for="themeSelect">Theme</label>
@@ -128,6 +70,7 @@ footer{padding:12px;text-align:center;background:var(--panel);border-top:1px sol
       </div>
     </div>
 
+    <!-- Browser Section -->
     <div id="browserSection" class="settings-section" style="display:none">
       <div class="setting-item">
         <label for="defaultSearchSelect">Default Browser</label>
@@ -141,6 +84,7 @@ footer{padding:12px;text-align:center;background:var(--panel);border-top:1px sol
       </div>
     </div>
 
+    <!-- Cloak Section -->
     <div id="cloakSection" class="settings-section" style="display:none">
       <div class="setting-item">
         <label for="cloakSiteSelect">Cloak Site</label>
@@ -154,6 +98,7 @@ footer{padding:12px;text-align:center;background:var(--panel);border-top:1px sol
       </div>
     </div>
 
+    <!-- Device Section -->
     <div id="deviceSection" class="settings-section" style="display:none">
       <div class="setting-item">
         <label for="deviceSelect">Device</label>
@@ -167,183 +112,6 @@ footer{padding:12px;text-align:center;background:var(--panel);border-top:1px sol
   </div>
 </div>
 
-<script>
-const overlay=document.getElementById("proxyOverlay");
-const tabsBar=document.getElementById("tabsBar");
-const frames=document.getElementById("frames");
-const urlBar=document.getElementById("urlBar");
-const searchInput=document.getElementById("searchInput");
-const settingsPanel=document.getElementById("settingsPanel");
-const themeSelect=document.getElementById("themeSelect");
-const defaultSearchSelect=document.getElementById("defaultSearchSelect");
-const cloakSiteSelect=document.getElementById("cloakSiteSelect");
-const deviceSelect=document.getElementById("deviceSelect");
-
-// Tabs
-let tabs=[],active=null,editingUrl=false;
-
-// ===== THEME =====
-function applyTheme(mode){
-  if(mode==="auto"){
-    mode=window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";
-  }
-  if(mode==="dark"){
-    document.documentElement.style.setProperty('--bg','#050505');
-    document.documentElement.style.setProperty('--panel','#0f0f0f');
-    document.documentElement.style.setProperty('--text','#e0e0e0');
-    document.documentElement.style.setProperty('--bubble-bg','#151515');
-  }else{
-    document.documentElement.style.setProperty('--bg','#fff');
-    document.documentElement.style.setProperty('--panel','#ddd');
-    document.documentElement.style.setProperty('--text','#111');
-    document.documentElement.style.setProperty('--bubble-bg','#eee');
-  }
-}
-themeSelect.addEventListener("change",()=>applyTheme(themeSelect.value));
-applyTheme("dark");
-
-// ===== URL NORMALIZER =====
-function normalize(input){
-  if(!input.includes(".")) return defaultSearchSelect.value+encodeURIComponent(input);
-  if(!input.startsWith("http")) return "https://"+input;
-  return input;
-}
-
-// ===== HOME SEARCH =====
-searchInput.addEventListener("keydown",e=>{
-  if(e.key==="Enter"){
-    newTab(normalize(searchInput.value.trim()));
-  }
-});
-
-// ===== ADDRESS BAR =====
-urlBar.addEventListener("focus",()=>editingUrl=true);
-urlBar.addEventListener("blur",()=>editingUrl=false);
-urlBar.addEventListener("keydown",e=>{
-  if(e.key==="Enter" && active){
-    editingUrl=false;
-    active.iframe.src=
-      __uv$config.prefix+
-      __uv$config.encodeUrl(normalize(urlBar.value.trim()));
-  }
-});
-
-// ===== NAV BUTTONS =====
-function openNav(path){
-  newTab(location.origin+path.replace(/^.\//,"/"));
-}
-
-// ===== TABS =====
-function newTab(url=defaultSearchSelect.value){
-  const iframe=document.createElement("iframe");
-  iframe.className="proxyFrame";
-
-  const tab=document.createElement("div");
-  tab.className="tab";
-
-  const icon=document.createElement("img");
-  icon.src="data:image/svg+xml;base64,PHN2Zy8+";
-
-  const title=document.createElement("span");
-  title.textContent="New Tab";
-
-  const close=document.createElement("span");
-  close.textContent="✕";
-  close.className="close";
-
-  const tabObj={iframe,tab,icon,title};
-  close.onclick=e=>{e.stopPropagation();closeTab(tabObj)};
-  tab.onclick=()=>activate(tabObj);
-
-  tab.append(icon,title,close);
-  tabs.splice(tabs.length-1,0,tabObj);
-  tabsBar.insertBefore(tab,tabsBar.lastElementChild);
-  frames.appendChild(iframe);
-
-  activate(tabObj);
-  iframe.src=__uv$config.prefix+__uv$config.encodeUrl(url);
-  overlay.style.display="flex";
-}
-
-// ===== ACTIVATE TAB =====
-function activate(t){
-  tabs.forEach(x=>{x.iframe.classList.remove("active"); x.tab.classList.remove("active");});
-  active=t;
-  t.iframe.classList.add("active");
-  t.tab.classList.add("active");
-}
-
-// ===== CLOSE TAB =====
-function closeTab(t){
-  const i=tabs.indexOf(t);
-  if(i>-1){t.iframe.remove(); t.tab.remove(); tabs.splice(i,1); activate(tabs[i-1]||tabs[0]);}
-}
-
-// ===== NAV CONTROLS =====
-function goBack(){active?.iframe.contentWindow.history.back()}
-function goForward(){active?.iframe.contentWindow.history.forward()}
-function refreshTab(){active?.iframe.contentWindow.location.reload()}
-function fullscreenTab(){active?.iframe.requestFullscreen?.()}
-
-// ===== INJECT CODE =====
-function injectCode(){
-  if(!active) return;
-  const code=`javascript:(function () {var script=document.createElement('script');script.src="//cdn.jsdelivr.net/npm/eruda";document.body.appendChild(script); script.onload = function () { eruda.init() } })();`;
-  active.iframe.contentWindow.eval(code);
-}
-
-// ===== SETTINGS PANEL =====
-function toggleSettings(){settingsPanel.style.display=settingsPanel.style.display==="flex"?"none":"flex";}
-
-// Close settings when clicking outside
-document.addEventListener("click",e=>{
-  if(!settingsPanel.contains(e.target) && !e.target.closest(".settings-btn")) settingsPanel.style.display="none";
-});
-
-// ===== SETTINGS MENU =====
-const menuButtons=document.querySelectorAll("#settingsMenu button");
-menuButtons.forEach(btn=>{
-  btn.addEventListener("click",()=>{
-    menuButtons.forEach(b=>b.classList.remove("active"));
-    btn.classList.add("active");
-    document.querySelectorAll(".settings-section").forEach(s=>s.style.display="none");
-    const sec=document.getElementById(btn.dataset.section);
-    if(sec) sec.style.display="block";
-  });
-});
-
-// ===== LIVE URL / TITLE / ICON / SITE CLOAK =====
-setInterval(()=>{
-  if(!active || editingUrl) return;
-  try{
-    const w=active.iframe.contentWindow;
-    const d=active.iframe.contentDocument;
-
-    const href=w.location.href;
-    if(href.includes(__uv$config.prefix)){
-      const encoded=href.split(__uv$config.prefix)[1];
-      urlBar.value=__uv$config.decodeUrl(encoded.replace(/^\/+/,'')) || urlBar.value;
-    }
-
-    // Cloak our site's tab
-    if(cloakSiteSelect.value!==""){
-      let titles={Google:"Google",GitHub:"GitHub",YouTube:"YouTube",Facebook:"Facebook"};
-      let icons={
-        Google:"https://www.google.com/favicon.ico",
-        GitHub:"https://cdn-icons-png.flaticon.com/512/25/25231.png",
-        YouTube:"https://www.youtube.com/s/desktop/4fbb96c2/img/favicon.ico",
-        Facebook:"https://www.facebook.com/favicon.ico"
-      };
-      document.title=titles[cloakSiteSelect.value]||"Glitch Hub";
-      let link=document.querySelector("link[rel~='icon']");
-      if(!link){link=document.createElement("link");link.rel="icon";document.head.appendChild(link);}
-      link.href=icons[cloakSiteSelect.value]||"";
-    }else{
-      document.title="Glitch Hub";
-    }
-  }catch{}
-},500);
-
-</script>
+<script src="app.js"></script> <!-- All JS (tabs, proxy, settings) from previous full version -->
 </body>
 </html>
