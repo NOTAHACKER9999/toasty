@@ -17,12 +17,12 @@ if ("serviceWorker" in navigator) {
 :root{
   --bg:#0a0a0a; --panel:#121212; --bar:#0e0e0e; --tab:#1a1a1a; --tab-active:#121212; --text:#ffffff;
 }
-*{margin:0;padding:0;box-sizing:border-box}
+*{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:Segoe UI,Arial;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
 header{background:var(--panel);padding:14px;text-align:center;font-size:2rem;font-weight:700;}
 nav{display:flex;justify-content:center;gap:18px;padding:10px;background:var(--panel);}
 .nav-btn{padding:10px 18px;background:#111;border:none;border-radius:8px;color:white;cursor:pointer;}
-.nav-btn:hover{background:#222}
+.nav-btn:hover{background:#222;}
 #home{flex:1;display:flex;justify-content:center;align-items:center;}
 #homeSearch{width:420px;max-width:90%;padding:14px 18px;background:#111;border:none;border-radius:999px;color:white;font-size:1.1rem;outline:none;}
 #proxyOverlay{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;z-index:900;}
@@ -37,7 +37,7 @@ nav{display:flex;justify-content:center;gap:18px;padding:10px;background:var(--p
 #closeOverlayBtn:hover{background:#222;}
 #browserBar{display:flex;align-items:center;gap:6px;padding:6px;background:var(--bar);}
 .ctrl{padding:6px 10px;background:#111;border:none;color:white;cursor:pointer;}
-.ctrl:hover{background:#222}
+.ctrl:hover{background:#222;}
 #urlWrap{position:relative;flex:1;}
 #urlBar{width:100%;padding:6px 36px 6px 10px;background:black;border:none;color:white;font-family:monospace;outline:none;}
 #bookmarkStar{position:absolute;right:8px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:24px;user-select:none;}
@@ -128,51 +128,88 @@ iframe.active{display:block;}
 </div>
 
 <script>
-// ------------------ Variables ------------------
-const home=document.getElementById("home");
-const homeSearch=document.getElementById("homeSearch");
-const overlay=document.getElementById("proxyOverlay");
-const frames=document.getElementById("frames");
-const customFrame=document.getElementById("customFrame");
-const urlBar=document.getElementById("urlBar");
-const star=document.getElementById("bookmarkStar");
-const bookmarkBar=document.getElementById("bookmarkBar");
+// --------------- Variables ---------------
+const home = document.getElementById("home");
+const homeSearch = document.getElementById("homeSearch");
+const overlay = document.getElementById("proxyOverlay");
+const frames = document.getElementById("frames");
+const customFrame = document.getElementById("customFrame");
+const urlBar = document.getElementById("urlBar");
+const star = document.getElementById("bookmarkStar");
+const bookmarkBar = document.getElementById("bookmarkBar");
+const tabsBar = document.getElementById("tabsBar");
 
-const bmModalCreate=document.getElementById("bmModalCreate");
-const bmNameCreate=document.getElementById("bmNameCreate");
-const bmCodeCreate=document.getElementById("bmCodeCreate");
+let tabs = [];
+let active = null;
+let bookmarks = {};
+let historyList = [];
+let userEditing = false;
 
-const bmModalEdit=document.getElementById("bmModalEdit");
-const bmNameEdit=document.getElementById("bmNameEdit");
-const bmCodeEdit=document.getElementById("bmCodeEdit");
-
-const menuBtn=document.getElementById("menuBtn");
-const menuPanel=document.getElementById("menuPanel");
-
-let tabs=[], active=null;
-let bookmarks={}, editingURL=null;
-let userEditing=false;
-
-// ------------------ Tabs ------------------
-homeSearch.onkeydown=e=>{
-  if(e.key==="Enter") newTab(normalize(homeSearch.value));
-};
-
+// --------------- Helpers ---------------
 function normalize(v){
   if(!v.includes(".")) return "https://www.startpage.com/sp/search?q="+encodeURIComponent(v);
   if(!v.startsWith("http")) return "https://"+v;
   return v;
 }
 
-function newTab(url="https://www.startpage.com"){
-  home.style.display="none"; overlay.style.display="flex";
-  if(url.startsWith("/?/")) { openCustomPage(url); return; }
+// --------------- Tabs ---------------
+homeSearch.addEventListener("keydown", e=>{
+  if(e.key==="Enter") newTab(normalize(homeSearch.value));
+});
 
-  const iframe=document.createElement("iframe");
+function newTab(url="https://www.startpage.com"){
+  home.style.display="none";
+  overlay.style.display="flex";
+
+  if(url.startsWith("/?/")){ openCustomPage(url); return; }
+
+  const iframe = document.createElement("iframe");
   frames.appendChild(iframe);
-  iframe.src=__uv$config.prefix+__uv$config.encodeUrl(url);
-  iframe.onload=()=>updateTabTitle(iframe);
+  iframe.src = __uv$config.prefix+__uv$config.encodeUrl(url);
+  iframe.classList.add("active");
+
+  // Tab element
+  const tab = document.createElement("div");
+  tab.className = "tab active";
+  const span = document.createElement("span");
+  span.textContent = url;
+  tab.appendChild(span);
+
+  const closeBtn = document.createElement("span");
+  closeBtn.className = "close";
+  closeBtn.textContent = "✕";
+  closeBtn.onclick = e => { e.stopPropagation(); closeTab(tab, iframe); };
+  tab.appendChild(closeBtn);
+
+  tab.onclick = ()=> activateTab(tab, iframe);
+
+  tabsBar.insertBefore(tab, document.getElementById("newTabBtn"));
+
+  // Deactivate old tabs
+  tabs.forEach(t=>{ t.tab.classList.remove("active"); t.iframe.classList.remove("active"); });
+  tabs.push({tab,iframe,url});
+  active = {tab,iframe,url};
+
   showFrame(iframe);
+  updateURLBar();
+
+  addHistory(url);
+}
+
+function activateTab(tab, iframe){
+  tabs.forEach(t=>{ t.tab.classList.remove("active"); t.iframe.classList.remove("active"); });
+  tab.classList.add("active");
+  iframe.classList.add("active");
+  active = tabs.find(t=>t.tab===tab);
+  showFrame(active.iframe);
+  updateURLBar();
+}
+
+function closeTab(tab, iframe){
+  tab.remove(); iframe.remove();
+  tabs = tabs.filter(t=>t.tab!==tab);
+  if(tabs.length){ activateTab(tabs[tabs.length-1].tab, tabs[tabs.length-1].iframe);}
+  else { overlay.style.display='none'; home.style.display='flex'; }
 }
 
 function showFrame(frame){
@@ -181,30 +218,34 @@ function showFrame(frame){
   frame.style.display='block';
 }
 
-function updateTabTitle(iframe){
-  // can update the tab title from iframe.document.title
-}
-
-// ---------------- Custom Pages ------------------
+// --------------- Custom Pages ---------------
 function openCustomPage(url){
   Array.from(frames.children).forEach(f=>f.style.display='none');
   customFrame.style.display='block';
   customFrame.innerHTML="";
-  if(url.startsWith("/?/History")){
-    const h=document.createElement('h1'); h.textContent="History";
+  if(url==="/?/History"){
+    const h = document.createElement('h1'); h.textContent="History";
     customFrame.appendChild(h);
-  } else {
-    const h=document.createElement('h1'); h.textContent="Custom Page";
-    customFrame.appendChild(h);
+    const ul = document.createElement("ul");
+    historyList.forEach(hd=>{
+      const li = document.createElement("li");
+      li.textContent = `[${hd.time}] ${hd.url}`;
+      li.onclick = ()=> newTab(hd.url);
+      ul.appendChild(li);
+    });
+    customFrame.appendChild(ul);
   }
 }
 
-// ---------------- Menu ------------------
-menuBtn.addEventListener('mouseenter',()=>{menuPanel.style.display='flex';});
-menuBtn.addEventListener('mouseleave',()=>{setTimeout(()=>{if(!menuPanel.matches(':hover')) menuPanel.style.display='none';},150);});
-menuPanel.addEventListener('mouseleave',()=>{menuPanel.style.display='none';});
+// --------------- URL Bar -----------------
+function updateURLBar(){
+  if(active && !userEditing){
+    urlBar.value = active.url;
+  }
+}
+setInterval(updateURLBar,200);
 
-// ---------------- Proxy Controls ------------------
+// --------------- Browser Controls ----------
 function goBack(){active?.iframe.contentWindow.history.back();}
 function goForward(){active?.iframe.contentWindow.history.forward();}
 function reloadTab(){active?.iframe.contentWindow.location.reload();}
@@ -216,7 +257,18 @@ function injectDev(){
     s.onload=()=>eruda.init();
   }catch{}
 }
-function closeOverlay(){Array.from(frames.children).forEach(f=>f.remove()); customFrame.style.display='none'; overlay.style.display='none'; home.style.display='flex';}
+
+function closeOverlay(){
+  Array.from(frames.children).forEach(f=>f.remove());
+  customFrame.style.display='none';
+  overlay.style.display='none';
+  home.style.display='flex';
+}
+
+// --------------- History -----------------
+function addHistory(url){
+  historyList.push({url,time:new Date().toLocaleString()});
+}
 </script>
 </body>
 </html>
