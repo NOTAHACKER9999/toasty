@@ -2,343 +2,357 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Override Browser</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glitch Hub</title>
 
-<!-- ========= UV CONFIG ========= -->
 <script src="/uv/uv.bundle.js"></script>
 <script src="/uv/uv.config.js"></script>
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/uv/sw.js", { scope: __uv$config.prefix });
+}
+</script>
 
 <style>
-*{box-sizing:border-box;font-family:Arial}
-body{margin:0;background:#0b0b0b;color:#fff;overflow:hidden}
+:root{--bg:#0a0a0a;--panel:#121212;--bar:#0e0e0e;--tab:#1a1a1a;--tab-active:#202020;--text:#fff}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Segoe UI,Arial;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
 
-/* ---------- HOME ---------- */
-#home{
-  position:absolute;inset:0;
-  display:flex;flex-direction:column;
-  justify-content:center;align-items:center;
-  gap:22px;z-index:1
-}
-#home h1{color:red;letter-spacing:3px}
-#home input{
-  width:440px;padding:14px;
-  font-size:18px;border-radius:30px;
-  border:none;outline:none
-}
-.homeBtns{display:flex;gap:14px}
-.homeBtns button{
-  padding:12px 24px;
-  background:#000;border:1px solid red;
-  color:red;font-size:16px;
-  cursor:pointer
-}
+/* HOME */
+header{background:var(--panel);padding:14px;text-align:center;font-size:2rem;font-weight:700}
+nav{display:flex;justify-content:center;gap:16px;background:var(--panel);padding:10px}
+.nav-btn{padding:8px 16px;background:#111;border-radius:8px;cursor:pointer}
+.nav-btn:hover{background:#222}
+#home{flex:1;display:flex;justify-content:center;align-items:center}
+#homeSearch{width:420px;padding:14px;border-radius:999px;background:#111;color:white;border:none;font-size:1.1rem}
 
-/* ---------- OVERLAY ---------- */
-#overlay{
-  position:absolute;inset:0;
-  display:none;flex-direction:column;
-  background:#111;z-index:10
-}
+/* PROXY */
+#proxyOverlay{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column}
 
-/* ---------- TOP BAR ---------- */
-#topBar{
-  height:46px;background:#161616;
-  display:flex;align-items:center;
-  padding:0 10px;gap:8px;z-index:20
-}
-#tabs{display:flex;gap:4px;flex:1}
-.tab{
-  background:#222;padding:6px 10px;
-  border-radius:6px;cursor:pointer;
-  display:flex;align-items:center;gap:6px;
-  max-width:180px;overflow:hidden
-}
-.tab.active{background:#333}
-.tab img{width:14px;height:14px}
+/* TABS */
+#tabsBar{display:flex;align-items:flex-end;background:var(--panel);padding:4px}
+.tab{display:flex;align-items:center;gap:6px;padding:8px 26px 8px 10px;background:var(--tab);border-radius:8px 8px 0 0;cursor:pointer;position:relative;max-width:200px}
+.tab.active{background:var(--tab-active)}
+.tab img{width:16px;height:16px}
+.tab span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tab .close{position:absolute;right:6px;cursor:pointer}
+#newTabBtn,#closeOverlayBtn{padding:8px;background:#111;border-radius:8px;cursor:pointer}
+#closeOverlayBtn{margin-left:auto}
 
-#urlBar{
-  flex:3;padding:7px 12px;
-  border-radius:20px;border:none;
-  outline:none;font-size:14px
-}
+/* BAR */
+#browserBar{display:flex;align-items:center;gap:6px;padding:6px;background:var(--bar)}
+.ctrl{padding:6px 10px;background:#111;border:none;color:white;border-radius:6px;cursor:pointer}
+.ctrl:hover{background:#222}
+#urlWrap{position:relative;flex:1}
+#urlBar{width:100%;padding:8px 36px 8px 10px;background:black;border:none;color:white;font-family:monospace}
+#bookmarkStar{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:22px;cursor:pointer}
 
-#dots{font-size:20px;cursor:pointer;padding:4px 8px}
-#closeBtn{
-  background:red;color:black;
-  border:none;padding:6px 10px;
-  cursor:pointer
-}
+/* MENU */
+#menuBtn{font-size:22px}
+#menuPanel{position:absolute;top:42px;right:8px;background:#111;border-radius:10px;display:none;flex-direction:column;min-width:160px;z-index:10000}
+#menuPanel button{padding:10px;background:none;border:none;color:white;text-align:left;cursor:pointer}
+#menuPanel button:hover{background:#222}
 
-/* ---------- 3 DOT MENU ---------- */
-#menu{
-  position:absolute;top:46px;right:10px;
-  background:#222;border-radius:10px;
-  display:none;flex-direction:column;
-  min-width:170px;z-index:30
-}
-#menu button{
-  background:none;border:none;
-  color:#fff;text-align:left;
-  padding:10px 14px;cursor:pointer
-}
-#menu button:hover{background:#333}
+/* BOOKMARK BAR */
+#bookmarkBar{display:flex;gap:6px;padding:6px;background:var(--panel);overflow-x:auto}
+.bookmarkButton{padding:6px 10px;background:#111;border-radius:6px;cursor:pointer;white-space:nowrap}
+.bookmarkButton:hover{background:#222}
 
-/* ---------- BOOKMARK BAR ---------- */
-#bookmarkBar{
-  height:32px;background:#181818;
-  display:flex;gap:6px;
-  padding:4px 8px;overflow-x:auto
-}
-.bm{
-  background:#222;padding:4px 10px;
-  border-radius:6px;cursor:pointer;
-  white-space:nowrap
-}
+/* CONTENT */
+#frames{flex:1;position:relative}
+iframe,.customPage{position:absolute;inset:0;width:100%;height:100%;border:none;display:none}
+iframe.active,.customPage.active{display:block}
+.customPage{background:#0b0b0b;padding:24px;overflow:auto}
+.customHeader{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.customHeader button{padding:8px 14px;background:#222;border:none;color:white;border-radius:6px}
+.listItem{padding:12px;border-bottom:1px solid #222}
+.listItem span{color:#aaa;font-size:.85rem}
 
-/* ---------- CONTENT ---------- */
-#content{position:relative;flex:1}
-iframe{
-  position:absolute;inset:0;
-  width:100%;height:100%;
-  border:none;background:#000
-}
-
-/* ---------- PANELS ---------- */
-.panel{
-  position:absolute;inset:60px;
-  background:#111;border:1px solid #333;
-  border-radius:14px;padding:20px;
-  overflow:auto;z-index:25
-}
-.histItem{
-  padding:10px;border-bottom:1px solid #333;
-  cursor:pointer
-}
-.histItem:hover{background:#222}
+/* MODALS */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:10001}
+.modalBox{background:#111;padding:24px;border-radius:14px;display:flex;flex-direction:column;gap:12px}
+.modalBox input{padding:10px;background:black;border:none;color:white}
+.modalBox button{padding:8px;background:#222;color:white;border:none;border-radius:6px}
+.deleteBtn{background:#660000}
 </style>
 </head>
 
 <body>
 
-<!-- ========= HOME ========= -->
+<header>Glitch Hub</header>
+<nav>
+  <div class="nav-btn" onclick="location.href='../games/app.html'">Games</div>
+  <div class="nav-btn" onclick="location.href='../movies/index.html'">Movies</div>
+  <div class="nav-btn" onclick="location.href='../ai/index.html'">AI</div>
+  <div class="nav-btn" onclick="location.href='../tools/index.html'">Tools</div>
+</nav>
+
 <div id="home">
-  <h1>SCHOOL OVERRIDE</h1>
   <input id="homeSearch" placeholder="Search or enter URL">
-  <div class="homeBtns">
-    <button onclick="openBrowser()">Browser</button>
-    <button onclick="alert('Games coming soon')">Games</button>
-    <button onclick="alert('Stuff coming soon')">Stuff</button>
-  </div>
 </div>
 
-<!-- ========= OVERLAY ========= -->
-<div id="overlay">
+<div id="proxyOverlay">
+  <div id="tabsBar">
+    <div id="newTabBtn" onclick="newTab()">＋</div>
+    <div id="closeOverlayBtn" onclick="closeOverlay()">✕</div>
+  </div>
 
-  <div id="topBar">
-    <div id="tabs"></div>
-    <input id="urlBar">
-    <div id="dots">⋮</div>
-    <button id="closeBtn" onclick="closeBrowser()">X</button>
+  <div id="browserBar">
+    <button class="ctrl" onclick="goBack()">⟵</button>
+    <button class="ctrl" onclick="goForward()">⟶</button>
+    <button class="ctrl" onclick="reloadTab()">⟳</button>
+
+    <div id="urlWrap">
+      <input id="urlBar">
+      <span id="bookmarkStar" onclick="toggleBookmark()">☆</span>
+    </div>
+
+    <button class="ctrl" onclick="fullscreen()">⛶</button>
+    <button class="ctrl" id="menuBtn">⋮</button>
+
+    <div id="menuPanel">
+      <button onclick="newTab()">New Tab</button>
+      <button onclick="openCustom('/?/History')">History</button>
+      <button onclick="openCustom('/?/Bookmarks')">Bookmarks</button>
+      <button onclick="injectDev()">Dev Tools</button>
+    </div>
   </div>
 
   <div id="bookmarkBar"></div>
+  <div id="frames"></div>
+</div>
 
-  <div id="menu" onmouseleave="menu.style.display='none'">
-    <button onclick="newTab()">New Tab</button>
-    <button onclick="openHistory()">History</button>
-    <button onclick="openBookmarks()">Bookmarks</button>
-    <button onclick="injectDevTools()">Dev Tools</button>
-    <button onclick="alert('Settings soon')">Settings</button>
+<!-- BOOKMARK MODALS -->
+<div id="bmCreate" class="modal">
+  <div class="modalBox">
+    <input id="bmCreateName">
+    <input id="bmCreateCode">
+    <button onclick="saveBookmark()">Save</button>
+    <button onclick="closeBM()">Cancel</button>
   </div>
+</div>
 
-  <div id="content"></div>
+<div id="bmEdit" class="modal">
+  <div class="modalBox">
+    <input id="bmEditName">
+    <input id="bmEditCode">
+    <button onclick="saveEdit()">Save</button>
+    <button class="deleteBtn" onclick="deleteBM()">Delete</button>
+    <button onclick="closeBM()">Cancel</button>
+  </div>
 </div>
 
 <script>
-/* ========= ELEMENTS ========= */
 const home=document.getElementById("home");
-const overlay=document.getElementById("overlay");
-const content=document.getElementById("content");
-const tabsDiv=document.getElementById("tabs");
+const overlay=document.getElementById("proxyOverlay");
+const frames=document.getElementById("frames");
 const urlBar=document.getElementById("urlBar");
+const star=document.getElementById("bookmarkStar");
+const menu=document.getElementById("menuPanel");
 const bookmarkBar=document.getElementById("bookmarkBar");
-const menu=document.getElementById("menu");
-const dots=document.getElementById("dots");
-const homeSearch=document.getElementById("homeSearch");
 
-/* ========= STATE ========= */
-let tabs=[],activeTab=null;
-let historyLog=JSON.parse(localStorage.getItem("history")||"[]");
+let tabs=[],active=null;
 let bookmarks=JSON.parse(localStorage.getItem("bookmarks")||"{}");
-let typing=false,lastURL=null;
+let historyLog=JSON.parse(localStorage.getItem("history")||"[]");
+let lastURL=null;
+let userTyping=false,editKey=null;
 
-/* ========= HOME ========= */
-homeSearch.onkeydown=e=>{
-  if(e.key==="Enter"){
-    openBrowser();
-    newTab(homeSearch.value);
-  }
-};
+menuBtn.onclick=()=>menu.style.display="flex";
+menu.onmouseleave=()=>menu.style.display="none";
 
-/* ========= BROWSER ========= */
-function openBrowser(){
-  home.style.display="none";
-  overlay.style.display="flex";
-  if(!tabs.length) newTab();
-}
-function closeBrowser(){
-  overlay.style.display="none";
-  home.style.display="flex";
+function normalize(v){
+  if(v.startsWith("/?/")) return v;
+  if(!v.includes(".")) return "https://www.startpage.com/sp/search?q="+encodeURIComponent(v);
+  if(!v.startsWith("http")) return "https://"+v;
+  return v;
 }
 
-/* ========= TABS ========= */
-function newTab(input="https://duckduckgo.com"){
+homeSearch.onkeydown=e=>e.key==="Enter"&&newTab(normalize(homeSearch.value));
+
+function newTab(url="https://www.startpage.com"){
+  home.style.display="none";overlay.style.display="flex";
   const iframe=document.createElement("iframe");
-  const url = __uv$config.prefix + __uv$config.encodeUrl(
-    input.startsWith("http") ? input : "https://duckduckgo.com/?q="+encodeURIComponent(input)
-  );
-  iframe.src=url;
-  content.appendChild(iframe);
+  frames.appendChild(iframe);
+  const tab=document.createElement("div");
+  tab.className="tab";
+  tab.innerHTML=`<img><span>New Tab</span><span class="close">✕</span>`;
+  tabsBar.insertBefore(tab,newTabBtn);
 
-  const tab={iframe,url:input,title:"New Tab",icon:""};
-  tabs.push(tab);
-  setActive(tab);
+  const t={iframe,tab,url,mode:"proxy",custom:null};
+  tabs.push(t);
+
+  tab.onclick=()=>activate(t);
+  tab.querySelector(".close").onclick=e=>{e.stopPropagation();closeTab(t)};
 
   iframe.onload=()=>{
     try{
-      const raw=iframe.contentWindow.location.href;
-      const enc=raw.split(__uv$config.prefix)[1];
-      const dec=__uv$config.decodeUrl(enc.replace(/^\/+/,""));
-      tab.url=dec;
-      tab.title=iframe.contentDocument.title||dec;
-      tab.icon=iframe.contentDocument.querySelector("link[rel~='icon']")?.href||"";
-      logHistory(dec);
-      renderTabs();
+      tab.querySelector("span").textContent=iframe.contentDocument.title||url;
+      const ico=iframe.contentDocument.querySelector("link[rel~='icon']");
+      if(ico) tab.querySelector("img").src=ico.href;
     }catch{}
   };
+
+  iframe.src=__uv$config.prefix+__uv$config.encodeUrl(url);
+  activate(t);
 }
 
-function setActive(tab){
-  tabs.forEach(t=>t.iframe.style.display="none");
-  tab.iframe.style.display="block";
-  activeTab=tab;
-  renderTabs();
-}
-
-function renderTabs(){
-  tabsDiv.innerHTML="";
-  tabs.forEach(t=>{
-    const d=document.createElement("div");
-    d.className="tab"+(t===activeTab?" active":"");
-    d.onclick=()=>setActive(t);
-    if(t.icon){
-      const i=document.createElement("img");
-      i.src=t.icon;d.appendChild(i);
-    }
-    d.appendChild(document.createTextNode(t.title));
-    tabsDiv.appendChild(d);
+function activate(t){
+  tabs.forEach(x=>{
+    x.tab.classList.remove("active");
+    x.iframe.classList.remove("active");
+    if(x.custom) x.custom.classList.remove("active");
   });
+  active=t;
+  t.tab.classList.add("active");
+  (t.mode==="proxy"?t.iframe:t.custom).classList.add("active");
 }
 
-/* ========= URL BAR ========= */
-urlBar.onfocus=()=>typing=true;
-urlBar.onblur=()=>typing=false;
-urlBar.onkeydown=e=>{
-  if(e.key==="Enter") newTab(urlBar.value);
-};
+urlBar.onfocus=()=>userTyping=true;
+urlBar.onblur=()=>userTyping=false;
 
-setInterval(()=>{
-  if(activeTab && !typing){
-    try{
-      const raw=activeTab.iframe.contentWindow.location.href;
-      if(raw.includes(__uv$config.prefix)){
-        const enc=raw.split(__uv$config.prefix)[1];
-        const dec=__uv$config.decodeUrl(enc.replace(/^\/+/,""));
-        urlBar.value=dec;
-        logHistory(dec);
-      }
-    }catch{}
-  }
-},500);
-
-/* ========= HISTORY ========= */
-function logHistory(url){
-  if(!url||url===lastURL) return;
+function trackHistory(url){
+  if(!url || url===lastURL || url.startsWith("/?/")) return;
   lastURL=url;
   historyLog.push({url,time:new Date().toLocaleString()});
   localStorage.setItem("history",JSON.stringify(historyLog));
 }
 
-function openHistory(){
-  showPanel("History",p=>{
-    const clear=document.createElement("button");
-    clear.textContent="Clear History";
-    clear.onclick=()=>{
-      historyLog=[];
-      localStorage.removeItem("history");
-      openHistory();
-    };
-    p.appendChild(clear);
+function updateURL(){
+  if(!active || userTyping) return;
 
-    historyLog.slice().reverse().forEach(h=>{
-      const d=document.createElement("div");
-      d.className="histItem";
-      d.innerHTML=`<b>${h.url}</b><br><small>${h.time}</small>`;
-      d.onclick=()=>newTab(h.url);
-      p.appendChild(d);
-    });
-  });
+  if(active.mode==="proxy"){
+    try{
+      const raw=active.iframe.contentWindow.location.href;
+      if(!raw.includes(__uv$config.prefix)) return;
+      const enc=raw.split(__uv$config.prefix)[1];
+      const decoded=__uv$config.decodeUrl(enc.replace(/^\/+/,""));
+      active.url=decoded;
+      urlBar.value=decoded;
+      star.textContent=bookmarks[decoded]?"★":"☆";
+      trackHistory(decoded);
+    }catch{}
+  } else urlBar.value=active.url;
+}
+setInterval(updateURL,400);
+
+urlBar.onkeydown=e=>{
+  if(e.key!=="Enter")return;
+  const v=normalize(urlBar.value);
+  if(v.startsWith("/?/")) openCustom(v);
+  else{
+    active.mode="proxy";
+    active.iframe.src=__uv$config.prefix+__uv$config.encodeUrl(v);
+  }
+};
+
+function openCustom(path){
+  if(active.custom) active.custom.remove();
+  const page=document.createElement("div");
+  page.className="customPage active";
+  frames.appendChild(page);
+  active.custom=page;
+  active.mode="custom";
+  active.url=path;
+
+  if(path==="/?/History"){
+    page.innerHTML=`<div class="customHeader"><h1>History</h1><button onclick="closeCustom()">Close</button></div>`;
+    historyLog.forEach(h=>page.innerHTML+=`<div class="listItem">${h.url}<br><span>${h.time}</span></div>`);
+  }
+  if(path==="/?/Bookmarks"){
+    page.innerHTML=`<div class="customHeader"><h1>Bookmarks</h1><button onclick="closeCustom()">Close</button></div>`;
+    Object.values(bookmarks).forEach(b=>page.innerHTML+=`<div class="listItem">${b.name}<br><span>${b.code}</span></div>`);
+  }
 }
 
-/* ========= BOOKMARKS ========= */
+function closeCustom(){
+  active.custom.remove();
+  active.custom=null;
+  active.mode="proxy";
+}
+
+function toggleBookmark(){
+  if(bookmarks[active.url]) openEdit(active.url);
+  else{
+    bmCreateName.value=active.url;
+    bmCreateCode.value=active.url;
+    bmCreate.style.display="flex";
+  }
+}
+
+function saveBookmark(){
+  bookmarks[bmCreateCode.value]={name:bmCreateName.value,code:bmCreateCode.value};
+  localStorage.setItem("bookmarks",JSON.stringify(bookmarks));
+  closeBM();renderBookmarks();
+}
+
+function openEdit(key){
+  editKey=key;
+  bmEditName.value=bookmarks[key].name;
+  bmEditCode.value=bookmarks[key].code;
+  bmEdit.style.display="flex";
+}
+
+function saveEdit(){
+  delete bookmarks[editKey];
+  bookmarks[bmEditCode.value]={name:bmEditName.value,code:bmEditCode.value};
+  localStorage.setItem("bookmarks",JSON.stringify(bookmarks));
+  closeBM();renderBookmarks();
+}
+
+function deleteBM(){
+  delete bookmarks[editKey];
+  localStorage.setItem("bookmarks",JSON.stringify(bookmarks));
+  closeBM();renderBookmarks();
+}
+
+function closeBM(){
+  bmCreate.style.display="none";
+  bmEdit.style.display="none";
+}
+
 function renderBookmarks(){
   bookmarkBar.innerHTML="";
   Object.keys(bookmarks).forEach(url=>{
     const b=document.createElement("div");
-    b.className="bm";
-    b.textContent=bookmarks[url];
-    b.onclick=()=>newTab(url);
+    b.className="bookmarkButton";
+    b.textContent=bookmarks[url].name;
+    let t;
+    b.onmousedown=()=>t=setTimeout(()=>openEdit(url),600);
+    b.onmouseup=b.onmouseleave=()=>clearTimeout(t);
+    b.onclick=()=>{
+      if(url.startsWith("javascript:")){
+        try{
+          const s=active.iframe.contentDocument.createElement("script");
+          s.textContent=url.replace("javascript:","");
+          active.iframe.contentDocument.body.appendChild(s);
+        }catch{}
+      } else newTab(url);
+    };
     bookmarkBar.appendChild(b);
   });
 }
-function openBookmarks(){
-  showPanel("Bookmarks",p=>{
-    Object.keys(bookmarks).forEach(url=>{
-      p.innerHTML+=`<div>${bookmarks[url]}<br><small>${url}</small></div>`;
-    });
-  });
-}
+renderBookmarks();
 
-/* ========= PANELS ========= */
-function showPanel(title,build){
-  document.querySelectorAll(".panel").forEach(p=>p.remove());
-  const p=document.createElement("div");
-  p.className="panel";
-  p.innerHTML=`<h2>${title}</h2>`;
-  build(p);
-  content.appendChild(p);
-}
-
-/* ========= MENU ========= */
-dots.onclick=()=>{
-  menu.style.display=menu.style.display==="flex"?"none":"flex";
-};
-
-/* ========= DEVTOOLS ========= */
-function injectDevTools(){
+function injectDev(){
   try{
-    const d=activeTab.iframe.contentDocument;
+    const d=active.iframe.contentDocument;
     const s=d.createElement("script");
     s.src="//cdn.jsdelivr.net/npm/eruda";
-    s.onload=()=>d.body.appendChild(
-      Object.assign(d.createElement("script"),{textContent:"eruda.init();"})
-    );
+    s.onload=()=>{const i=d.createElement("script");i.textContent="eruda.init();";d.body.appendChild(i)};
     d.body.appendChild(s);
   }catch{}
 }
 
-renderBookmarks();
+function goBack(){active?.iframe.contentWindow.history.back()}
+function goForward(){active?.iframe.contentWindow.history.forward()}
+function reloadTab(){active?.iframe.contentWindow.location.reload()}
+function fullscreen(){active?.iframe.requestFullscreen()}
+function closeTab(t){
+  t.tab.remove();t.iframe.remove();if(t.custom)t.custom.remove();
+  tabs=tabs.filter(x=>x!==t);
+  tabs.length?activate(tabs.at(-1)):closeOverlay();
+}
+function closeOverlay(){overlay.style.display="none";home.style.display="flex"}
 </script>
 </body>
 </html>
