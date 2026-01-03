@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Glitch Hub</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<!-- UV -->
 <script src="/uv/uv.bundle.js"></script>
 <script src="/uv/uv.config.js"></script>
 <script>
@@ -15,235 +16,131 @@ if ("serviceWorker" in navigator) {
 
 <style>
 :root{
-  --bg:#0a0a0a;
-  --panel:#121212;
-  --bar:#0e0e0e;
-  --tab:#1a1a1a;
-  --tab-active:#121212;
-  --text:#ffffff;
+  --bg:#0a0a0a;--panel:#121212;--bar:#0e0e0e;--tab:#1a1a1a;
+  --tab-active:#181818;--text:#fff;--border:#222;
 }
-
-*{margin:0;padding:0;box-sizing:border-box}
-
+*{box-sizing:border-box;margin:0;padding:0}
 body{
-  font-family:Segoe UI,Arial;
-  background:var(--bg);
-  color:var(--text);
-  height:100vh;
-  display:flex;
-  flex-direction:column;
-  overflow:hidden;
+  background:var(--bg);color:var(--text);height:100vh;
+  font-family:Segoe UI,Arial;display:flex;flex-direction:column;
 }
 
-header{
-  background:var(--panel);
-  padding:14px;
-  text-align:center;
-  font-size:2rem;
-  font-weight:700;
+/* ===== HOME ===== */
+#home{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  pointer-events:auto;
+}
+#home input{
+  width:420px;max-width:90%;
+  padding:14px 18px;border-radius:999px;
+  background:#111;border:none;color:white;font-size:1.1rem;
+  outline:none;pointer-events:auto;
 }
 
-nav{
-  display:flex;
-  justify-content:center;
-  gap:18px;
-  padding:10px;
-  background:var(--panel);
-}
-
-.nav-btn{
-  padding:10px 18px;
-  background:#111;
-  border-radius:8px;
-  cursor:pointer;
-}
+/* ===== HEADER ===== */
+header{padding:14px;background:var(--panel);text-align:center;font-size:2rem}
+nav{display:flex;gap:12px;justify-content:center;background:var(--panel);padding:8px}
+.nav-btn{padding:8px 16px;background:#111;border-radius:8px;cursor:pointer}
 .nav-btn:hover{background:#222}
 
-/* HOME */
-#home{
-  flex:1;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  pointer-events:auto;
-}
-#homeSearch{
-  width:420px;
-  max-width:90%;
-  padding:14px 18px;
-  background:#111;
-  border:none;
-  border-radius:999px;
-  color:white;
-  font-size:1.1rem;
-  outline:none;
-  pointer-events:auto;
-}
-
-/* OVERLAY */
+/* ===== OVERLAY ===== */
 #proxyOverlay{
-  position:fixed;
-  inset:0;
-  background:var(--bg);
-  display:none;
-  flex-direction:column;
-  z-index:900;
+  position:fixed;inset:0;background:var(--bg);
+  display:none;flex-direction:column;z-index:1000;
 }
 
-/* TABS */
+/* ===== TABS ===== */
 #tabsBar{
-  display:flex;
-  align-items:flex-end;
-  background:var(--panel);
-  padding:4px;
+  display:flex;align-items:flex-end;
+  background:var(--panel);padding:4px;
 }
 .tab{
-  display:flex;
-  align-items:center;
-  gap:6px;
+  display:flex;align-items:center;gap:6px;
   padding:8px 26px 8px 10px;
-  background:var(--tab);
-  border-radius:8px 8px 0 0;
-  cursor:pointer;
-  max-width:180px;
+  background:var(--tab);border-radius:8px 8px 0 0;
+  cursor:pointer;position:relative;max-width:220px;
 }
 .tab.active{background:var(--tab-active)}
 .tab img{width:16px;height:16px}
-.tab span{
-  overflow:hidden;
-  white-space:nowrap;
-  text-overflow:ellipsis;
-}
+.tab span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tab .close{
-  position:absolute;
-  right:6px;
-  cursor:pointer;
+  position:absolute;right:6px;top:4px;cursor:pointer
 }
+#newTabBtn{padding:8px 12px;background:#111;border-radius:8px;margin-left:6px;cursor:pointer}
+#closeOverlayBtn{margin-left:auto;padding:6px 12px;background:#111;border-radius:8px;cursor:pointer}
 
-#newTabBtn{
-  padding:8px 14px;
-  background:#111;
-  border-radius:8px;
-  cursor:pointer;
-  margin-left:4px;
-}
-
+/* ===== BAR ===== */
 #browserBar{
-  display:flex;
-  align-items:center;
-  gap:6px;
-  padding:6px;
-  background:var(--bar);
+  display:flex;gap:6px;align-items:center;
+  background:var(--bar);padding:6px;
 }
-
-.ctrl{
-  padding:6px 10px;
-  background:#111;
-  border:none;
-  color:white;
-  cursor:pointer;
-}
+.ctrl{padding:6px 10px;background:#111;border:none;color:white;cursor:pointer}
 .ctrl:hover{background:#222}
-
-#urlWrap{flex:1;position:relative}
+#urlWrap{position:relative;flex:1}
 #urlBar{
-  width:100%;
-  padding:6px 36px 6px 10px;
-  background:black;
-  border:none;
-  color:white;
-  outline:none;
+  width:100%;padding:6px 36px 6px 10px;
+  background:black;border:none;color:white;font-family:monospace;
 }
-
 #bookmarkStar{
-  position:absolute;
-  right:8px;
-  top:50%;
-  transform:translateY(-50%);
-  cursor:pointer;
-  font-size:20px;
+  position:absolute;right:8px;top:50%;
+  transform:translateY(-50%);font-size:22px;cursor:pointer;
 }
 
-#threeDots{
-  font-size:20px;
-  padding:6px 10px;
-  cursor:pointer;
-}
-
-/* 3 DOT MENU */
+/* ===== 3 DOTS ===== */
+#menuWrap{position:relative}
+#menuBtn{font-size:20px}
 #menu{
-  position:absolute;
-  top:92px;
-  right:10px;
-  background:#111;
-  border-radius:10px;
-  display:none;
-  flex-direction:column;
-  min-width:180px;
-  z-index:9999;
+  position:absolute;right:0;top:36px;
+  background:#111;border:1px solid var(--border);
+  display:none;flex-direction:column;min-width:160px;
 }
-.menuItem{
-  padding:10px;
-  cursor:pointer;
+#menu button{
+  background:none;border:none;color:white;
+  padding:10px;text-align:left;cursor:pointer;
 }
-.menuItem:hover{background:#222}
+#menu button:hover{background:#222}
+#menu .bottom{border-top:1px solid #222;margin-top:4px}
 
-/* BOOKMARK BAR */
+/* ===== BOOKMARK BAR ===== */
 #bookmarkBar{
-  display:flex;
-  gap:6px;
-  padding:6px;
-  background:var(--panel);
-  overflow-x:auto;
+  display:flex;gap:6px;padding:6px;background:var(--panel);
+  overflow-x:auto;min-height:36px;
 }
 .bookmarkButton{
-  padding:6px 10px;
-  background:#111;
-  border-radius:6px;
-  cursor:pointer;
+  padding:6px 10px;background:#111;border-radius:6px;cursor:pointer;
+  white-space:nowrap;
 }
+.bookmarkButton:hover{background:#222}
 
-/* FRAMES */
+/* ===== FRAMES ===== */
 #frames{flex:1;position:relative}
-iframe{
-  position:absolute;
-  inset:0;
-  width:100%;
-  height:100%;
-  border:none;
-  display:none;
-}
+iframe{position:absolute;inset:0;width:100%;height:100%;border:none;display:none}
 iframe.active{display:block}
 
-/* PANEL OVERLAY */
-.panelOverlay{
-  position:absolute;
-  inset:0;
-  background:#0a0a0a;
-  z-index:50;
-  display:none;
-  flex-direction:column;
+/* ===== INTERNAL PANELS ===== */
+.internalPanel{
+  position:absolute;inset:0;background:#0b0b0b;
+  padding:24px;overflow:auto;
 }
-.panelHeader{
-  padding:12px;
-  font-size:1.3rem;
-  background:#111;
-  display:flex;
-  justify-content:space-between;
-}
-.panelContent{
-  padding:20px;
-  overflow:auto;
-  flex:1;
-}
+.internalPanel h1{margin-bottom:16px}
+.internalPanel button{padding:8px 14px;background:#222;border:none;color:white}
 
+/* ===== MODALS ===== */
+.modal{
+  position:fixed;inset:0;background:rgba(0,0,0,.6);
+  display:none;align-items:center;justify-content:center;z-index:2000;
+}
+.box{background:#111;padding:24px;border-radius:14px;display:flex;flex-direction:column;gap:12px}
+.box input{padding:10px;background:black;border:none;color:white}
+.box button{padding:8px;background:#222;border:none;color:white}
+.deleteBtn{background:#660000}
+.deleteBtn:hover{background:#990000}
 </style>
 </head>
 
 <body>
 
 <header>Glitch Hub</header>
-
 <nav>
   <div class="nav-btn">Games</div>
   <div class="nav-btn">Movies</div>
@@ -256,9 +153,9 @@ iframe.active{display:block}
 </div>
 
 <div id="proxyOverlay">
-
   <div id="tabsBar">
     <div id="newTabBtn">＋</div>
+    <div id="closeOverlayBtn">✕</div>
   </div>
 
   <div id="browserBar">
@@ -271,174 +168,185 @@ iframe.active{display:block}
       <span id="bookmarkStar">☆</span>
     </div>
 
-    <div id="threeDots">⋮</div>
+    <button class="ctrl" onclick="injectDev()">&lt;/&gt;</button>
+
+    <div id="menuWrap">
+      <button class="ctrl" id="menuBtn">⋮</button>
+      <div id="menu">
+        <button onclick="newTab()">New Tab</button>
+        <button onclick="openInternal('History')">History</button>
+        <button onclick="openInternal('Bookmarks')">Bookmarks</button>
+        <button onclick="injectDev()">Dev Tools</button>
+        <button class="bottom" onclick="openInternal('Settings')">Settings</button>
+      </div>
+    </div>
   </div>
 
   <div id="bookmarkBar"></div>
   <div id="frames"></div>
-
-  <!-- PANELS -->
-  <div id="historyPanel" class="panelOverlay">
-    <div class="panelHeader">
-      History
-      <button onclick="closePanel()">✕</button>
-    </div>
-    <div class="panelContent" id="historyList"></div>
-  </div>
-
-  <div id="bookmarksPanel" class="panelOverlay">
-    <div class="panelHeader">
-      Bookmarks
-      <button onclick="closePanel()">✕</button>
-    </div>
-    <div class="panelContent" id="bookmarksList"></div>
-  </div>
-
-  <div id="settingsPanel" class="panelOverlay">
-    <div class="panelHeader">
-      Settings
-      <button onclick="closePanel()">✕</button>
-    </div>
-    <div class="panelContent">
-      <p>Settings panel ready.</p>
-    </div>
-  </div>
-
 </div>
 
-<!-- 3 DOT MENU -->
-<div id="menu">
-  <div class="menuItem" onclick="newTab()">New Tab</div>
-  <div class="menuItem" onclick="openHistory()">History</div>
-  <div class="menuItem" onclick="openBookmarks()">Bookmarks</div>
-  <div class="menuItem" onclick="injectDev()">Dev Tools</div>
-  <div class="menuItem" onclick="openSettings()">Settings</div>
+<!-- BOOKMARK MODALS -->
+<div class="modal" id="bmCreate">
+  <div class="box">
+    <input id="bmNameC" placeholder="Name">
+    <input id="bmCodeC" placeholder="URL or javascript:">
+    <button onclick="saveBMC()">Save</button>
+    <button onclick="closeModal()">Cancel</button>
+  </div>
+</div>
+
+<div class="modal" id="bmEdit">
+  <div class="box">
+    <input id="bmNameE">
+    <input id="bmCodeE">
+    <button onclick="saveBME()">Save</button>
+    <button class="deleteBtn" onclick="deleteBME()">Delete</button>
+    <button onclick="closeModal()">Cancel</button>
+  </div>
 </div>
 
 <script>
+/* ================= CORE STATE ================= */
 const home=document.getElementById("home");
 const overlay=document.getElementById("proxyOverlay");
 const homeSearch=document.getElementById("homeSearch");
 const frames=document.getElementById("frames");
 const tabsBar=document.getElementById("tabsBar");
 const urlBar=document.getElementById("urlBar");
-const menu=document.getElementById("menu");
+const star=document.getElementById("bookmarkStar");
+const bookmarkBar=document.getElementById("bookmarkBar");
 
 let tabs=[],active=null;
-let history=[];
+let bookmarks=JSON.parse(localStorage.bookmarks||"{}");
+let historyLog=JSON.parse(localStorage.history||"[]");
+let editingURL=null,userTyping=false;
 
-/* HOME */
+/* ================= MENU ================= */
+const menu=document.getElementById("menu");
+menuBtn.onclick=()=>menu.style.display="flex";
+menu.onmouseleave=()=>menu.style.display="none";
+
+/* ================= HOME ================= */
 homeSearch.onkeydown=e=>{
-  if(e.key==="Enter") newTab(homeSearch.value);
+  if(e.key==="Enter") newTab(normalize(homeSearch.value));
 };
 
-/* NORMALIZE */
+/* ================= UTILS ================= */
 function normalize(v){
   if(!v.includes(".")) return "https://www.startpage.com/sp/search?q="+encodeURIComponent(v);
   if(!v.startsWith("http")) return "https://"+v;
   return v;
 }
 
-/* TABS */
+/* ================= TABS ================= */
+newTabBtn.onclick=()=>newTab();
+
 function newTab(url="https://www.startpage.com"){
-  home.style.display="none";
-  overlay.style.display="flex";
-
+  home.style.display="none";overlay.style.display="flex";
   const iframe=document.createElement("iframe");
-  const tab=document.createElement("div");
-  tab.className="tab";
-  tab.innerHTML=`<img><span>New Tab</span><div class="close">✕</div>`;
-
-  tabsBar.insertBefore(tab,document.getElementById("newTabBtn"));
+  const tab=document.createElement("div");tab.className="tab";
+  const icon=document.createElement("img");
+  const title=document.createElement("span");title.textContent="New Tab";
+  const close=document.createElement("span");close.textContent="✕";close.className="close";
+  tab.append(icon,title,close);
+  tabsBar.insertBefore(tab,newTabBtn);
   frames.appendChild(iframe);
 
   const obj={iframe,tab,url};
   tabs.push(obj);
 
+  close.onclick=e=>{e.stopPropagation();closeTab(obj)};
   tab.onclick=()=>activate(obj);
-  tab.querySelector(".close").onclick=e=>{
-    e.stopPropagation();
-    tab.remove();
-    iframe.remove();
-  };
 
-  iframe.src=__uv$config.prefix+__uv$config.encodeUrl(normalize(url));
+  iframe.src=__uv$config.prefix+__uv$config.encodeUrl(url);
+  activate(obj);
 
   iframe.onload=()=>{
     try{
-      tab.querySelector("span").textContent=iframe.contentDocument.title;
+      title.textContent=iframe.contentDocument.title||url;
       const ico=iframe.contentDocument.querySelector("link[rel~='icon']");
-      if(ico) tab.querySelector("img").src=ico.href;
+      if(ico) icon.src=ico.href;
     }catch{}
   };
-
-  activate(obj);
 }
 
 function activate(t){
-  tabs.forEach(x=>{
-    x.tab.classList.remove("active");
-    x.iframe.classList.remove("active");
-  });
+  tabs.forEach(x=>{x.tab.classList.remove("active");x.iframe.classList.remove("active")});
   active=t;
   t.tab.classList.add("active");
   t.iframe.classList.add("active");
 }
 
-/* URL BAR AUTO UPDATE */
-let editing=false;
-urlBar.oninput=()=>editing=true;
-urlBar.onblur=()=>editing=false;
+function closeTab(t){
+  t.tab.remove();t.iframe.remove();
+  tabs=tabs.filter(x=>x!==t);
+  if(tabs.length) activate(tabs.at(-1));
+  else closeOverlay();
+}
 
-setInterval(()=>{
-  if(active && !editing){
+function closeOverlay(){
+  overlay.style.display="none";
+  home.style.display="flex";
+  setTimeout(()=>homeSearch.focus(),0);
+}
+
+/* ================= URL BAR ================= */
+urlBar.oninput=()=>userTyping=true;
+urlBar.onblur=()=>userTyping=false;
+urlBar.onkeydown=e=>{
+  if(e.key==="Enter"&&active){
+    active.url=normalize(urlBar.value);
+    active.iframe.src=__uv$config.prefix+__uv$config.encodeUrl(active.url);
+  }
+};
+
+function updateURL(){
+  if(active&&!userTyping){
     try{
       const enc=active.iframe.contentWindow.location.href.split(__uv$config.prefix)[1];
-      active.url=__uv$config.decodeUrl(enc.replace(/^\/+/,""));
-      urlBar.value=active.url;
-
-      history.push({
-        url:active.url,
-        time:new Date().toLocaleString()
-      });
+      active.url=__uv$config.decodeUrl(enc?.replace(/^\/+/,""));
     }catch{}
+    urlBar.value=active.url;
+    star.textContent=bookmarks[active.url]?"★":"☆";
+    logHistory(active.url);
   }
-},800);
+  requestAnimationFrame(updateURL);
+}
+requestAnimationFrame(updateURL);
 
-/* NAV */
-urlBar.onkeydown=e=>{
-  if(e.key==="Enter"){
-    active.iframe.src=__uv$config.prefix+__uv$config.encodeUrl(normalize(urlBar.value));
+/* ================= HISTORY ================= */
+function logHistory(url){
+  if(!url||url.startsWith("/?/"))return;
+  const last=historyLog[0];
+  if(last&&last.url===url)return;
+  historyLog.unshift({url,time:new Date().toLocaleString()});
+  localStorage.history=JSON.stringify(historyLog);
+}
+
+/* ================= INTERNAL PAGES ================= */
+function openInternal(type){
+  if(!active)return;
+  const panel=document.createElement("div");
+  panel.className="internalPanel";
+  panel.innerHTML=`<button onclick="this.parentElement.remove()">Close</button><h1>${type}</h1>`;
+  if(type==="History"){
+    historyLog.forEach(h=>{
+      panel.innerHTML+=`<div>${h.time} — ${h.url}</div>`;
+    });
   }
-};
-
-function goBack(){active?.iframe.contentWindow.history.back()}
-function goForward(){active?.iframe.contentWindow.history.forward()}
-function reloadTab(){active?.iframe.contentWindow.location.reload()}
-
-/* MENU */
-threeDots.onclick=()=>{
-  menu.style.display=menu.style.display==="flex"?"none":"flex";
-};
-menu.onmouseleave=()=>menu.style.display="none";
-
-/* PANELS */
-function closePanel(){
-  document.querySelectorAll(".panelOverlay").forEach(p=>p.style.display="none");
-}
-function openHistory(){
-  const list=document.getElementById("historyList");
-  list.innerHTML=history.map(h=>`<div>${h.time} — ${h.url}</div>`).join("");
-  document.getElementById("historyPanel").style.display="flex";
-}
-function openBookmarks(){
-  document.getElementById("bookmarksPanel").style.display="flex";
-}
-function openSettings(){
-  document.getElementById("settingsPanel").style.display="flex";
+  if(type==="Bookmarks"){
+    Object.values(bookmarks).forEach(b=>{
+      panel.innerHTML+=`<div>${b.name} — ${b.code}</div>`;
+    });
+  }
+  if(type==="Settings"){
+    panel.innerHTML+=`<div>Settings panel (future)</div>`;
+  }
+  frames.appendChild(panel);
 }
 
-/* DEV TOOLS */
+/* ================= DEVTOOLS ================= */
 function injectDev(){
   try{
     active.iframe.contentWindow.eval(`
@@ -449,7 +357,64 @@ function injectDev(){
     `);
   }catch{}
 }
-</script>
 
+/* ================= BOOKMARKS ================= */
+bookmarkStar.onclick=()=>{
+  if(bookmarks[active.url]) openEdit(active.url);
+  else{
+    bmCreate.style.display="flex";
+    bmNameC.value=active.url;
+    bmCodeC.value=active.url;
+  }
+};
+
+function saveBMC(){
+  bookmarks[bmCodeC.value]={name:bmNameC.value,code:bmCodeC.value};
+  localStorage.bookmarks=JSON.stringify(bookmarks);
+  closeModal();renderBookmarks();
+}
+function openEdit(url){
+  editingURL=url;
+  bmEdit.style.display="flex";
+  bmNameE.value=bookmarks[url].name;
+  bmCodeE.value=bookmarks[url].code;
+}
+function saveBME(){
+  delete bookmarks[editingURL];
+  bookmarks[bmCodeE.value]={name:bmNameE.value,code:bmCodeE.value};
+  localStorage.bookmarks=JSON.stringify(bookmarks);
+  closeModal();renderBookmarks();
+}
+function deleteBME(){
+  delete bookmarks[editingURL];
+  localStorage.bookmarks=JSON.stringify(bookmarks);
+  closeModal();renderBookmarks();
+}
+function closeModal(){
+  bmCreate.style.display="none";
+  bmEdit.style.display="none";
+}
+
+function renderBookmarks(){
+  bookmarkBar.innerHTML="";
+  Object.entries(bookmarks).forEach(([url,b])=>{
+    const btn=document.createElement("div");
+    btn.className="bookmarkButton";
+    btn.textContent=b.name;
+    let hold;
+    btn.onmousedown=()=>hold=setTimeout(()=>openEdit(url),600);
+    btn.onmouseup=btn.onmouseleave=()=>clearTimeout(hold);
+    btn.onclick=()=>{
+      if(b.code.startsWith("javascript:")){
+        const s=active.iframe.contentDocument.createElement("script");
+        s.textContent=b.code.replace(/^javascript:/,"");
+        active.iframe.contentDocument.body.appendChild(s);
+      }else newTab(b.code);
+    };
+    bookmarkBar.appendChild(btn);
+  });
+}
+renderBookmarks();
+</script>
 </body>
 </html>
