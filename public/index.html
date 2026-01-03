@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Glitch Hub</title>
 
+<!-- Ultraviolet -->
 <script src="/uv/uv.bundle.js"></script>
 <script src="/uv/uv.config.js"></script>
 <script>
@@ -16,71 +17,72 @@ if ("serviceWorker" in navigator) {
 <style>
 :root{
   --bg:#0a0a0a; --panel:#121212; --bar:#0e0e0e;
-  --tab:#1a1a1a; --tab-active:#222; --text:#fff;
+  --tab:#1a1a1a; --tab-active:#202020; --text:#fff;
 }
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:Segoe UI,Arial;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+body{font-family:Segoe UI,Arial;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
 
-header{background:var(--panel);padding:14px;text-align:center;font-size:2rem;font-weight:700;}
-nav{display:flex;justify-content:center;gap:18px;padding:10px;background:var(--panel);}
-.nav-btn{padding:10px 18px;background:#111;border-radius:8px;cursor:pointer;}
+header{background:var(--panel);padding:14px;text-align:center;font-size:2rem;font-weight:700}
+nav{display:flex;justify-content:center;gap:18px;padding:10px;background:var(--panel)}
+.nav-btn{padding:10px 18px;background:#111;border-radius:8px;cursor:pointer}
 .nav-btn:hover{background:#222}
 
-#home{flex:1;display:flex;justify-content:center;align-items:center;}
-#homeSearch{width:420px;padding:14px;border-radius:999px;background:#111;color:white;border:none;font-size:1.1rem;}
+#home{flex:1;display:flex;justify-content:center;align-items:center}
+#homeSearch{width:420px;padding:14px;border-radius:999px;background:#111;color:white;border:none;font-size:1.1rem}
 
-#proxyOverlay{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;z-index:900;}
+#proxyOverlay{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;z-index:900}
 
-#tabsBar{display:flex;align-items:flex-end;background:var(--panel);padding:4px;gap:4px;}
-.tab{display:flex;align-items:center;gap:6px;padding:8px 26px 8px 10px;background:var(--tab);border-radius:8px 8px 0 0;cursor:pointer;max-width:200px;position:relative;}
-.tab.active{background:var(--tab-active);}
-.tab img{width:16px;height:16px;}
-.tab span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.tab .close{position:absolute;right:6px;top:4px;cursor:pointer;}
+#tabsBar{display:flex;align-items:flex-end;background:var(--panel);padding:4px}
+.tab{position:relative;display:flex;align-items:center;gap:6px;padding:8px 26px 8px 10px;background:var(--tab);border-radius:8px 8px 0 0;cursor:pointer;max-width:220px}
+.tab.active{background:var(--tab-active)}
+.tab img{width:16px;height:16px}
+.tab span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tab .close{position:absolute;right:6px;top:6px;cursor:pointer}
 
-#newTabBtn{padding:8px;background:#111;border-radius:8px;cursor:pointer;}
-#closeOverlayBtn{margin-left:auto;padding:8px;background:#111;border-radius:8px;cursor:pointer;}
+#newTabBtn{padding:8px;background:#111;border-radius:8px;cursor:pointer}
+#closeOverlayBtn{margin-left:auto;padding:8px;background:#111;border-radius:8px;cursor:pointer}
 
-#browserBar{display:flex;align-items:center;gap:6px;padding:6px;background:var(--bar);}
-.ctrl{padding:6px 10px;background:#111;border:none;color:white;cursor:pointer;border-radius:6px;}
+#browserBar{display:flex;align-items:center;gap:6px;padding:6px;background:var(--bar)}
+.ctrl{padding:6px 10px;background:#111;border:none;color:white;cursor:pointer;border-radius:6px}
 .ctrl:hover{background:#222}
 
-#urlWrap{position:relative;flex:1;}
-#urlBar{width:100%;padding:8px 36px 8px 10px;background:black;border:none;color:white;font-family:monospace;}
-#bookmarkStar{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:22px;cursor:pointer;}
+#urlWrap{position:relative;flex:1}
+#urlBar{width:100%;padding:8px 36px 8px 10px;background:black;border:none;color:white;font-family:monospace}
+#bookmarkStar{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:22px;cursor:pointer}
 
-#menuBtn{font-size:22px;}
-
+#menuBtn{font-size:22px}
 #menuPanel{
   position:absolute;top:42px;right:8px;
   background:#111;border-radius:10px;
   display:none;flex-direction:column;
-  min-width:160px;z-index:10000;
+  min-width:170px;z-index:10000
 }
 #menuPanel button{
-  padding:10px;background:none;border:none;color:white;text-align:left;cursor:pointer;
+  padding:10px;background:none;border:none;color:white;text-align:left;cursor:pointer
 }
 #menuPanel button:hover{background:#222}
 
-#bookmarkBar{display:flex;gap:6px;padding:6px;background:var(--panel);overflow-x:auto;}
-.bookmarkButton{padding:6px 10px;background:#111;border-radius:6px;cursor:pointer;}
+#bookmarkBar{display:flex;gap:6px;padding:6px;background:var(--panel);overflow-x:auto}
+.bookmarkButton{padding:6px 10px;background:#111;border-radius:6px;cursor:pointer}
 
-#frames{flex:1;position:relative;}
-iframe,.customPage{position:absolute;inset:0;width:100%;height:100%;border:none;display:none;}
-iframe.active,.customPage.active{display:block;}
-
-.customPage{
-  background:#0b0b0b;padding:30px;overflow:auto;
+#frames{flex:1;position:relative}
+iframe,.customPage{
+  position:absolute;inset:0;width:100%;height:100%;
+  border:none;display:none
 }
+iframe.active,.customPage.active{display:block}
 
+.customPage{background:#0b0b0b;padding:30px;overflow:auto}
 .customHeader{
-  display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;
+  display:flex;justify-content:space-between;align-items:center;margin-bottom:20px
 }
-.customHeader h1{font-size:1.8rem;}
-.customHeader button{padding:8px 14px;background:#222;border:none;color:white;border-radius:6px;cursor:pointer;}
-
+.customHeader h1{font-size:1.8rem}
+.customHeader button{
+  padding:8px 14px;background:#222;border:none;color:white;border-radius:6px;cursor:pointer
+}
 .listItem{
   padding:12px;border-bottom:1px solid #222;
+  display:flex;justify-content:space-between;gap:10px
 }
 .listItem span{color:#aaa;font-size:.85rem}
 </style>
@@ -102,8 +104,8 @@ iframe.active,.customPage.active{display:block;}
 
 <div id="proxyOverlay">
   <div id="tabsBar">
-    <div id="newTabBtn" onclick="newTab()">＋</div>
-    <div id="closeOverlayBtn" onclick="closeOverlay()">✕</div>
+    <div id="newTabBtn">＋</div>
+    <div id="closeOverlayBtn">✕</div>
   </div>
 
   <div id="browserBar">
@@ -113,7 +115,7 @@ iframe.active,.customPage.active{display:block;}
 
     <div id="urlWrap">
       <input id="urlBar">
-      <span id="bookmarkStar" onclick="toggleBookmark()">☆</span>
+      <span id="bookmarkStar">☆</span>
     </div>
 
     <button class="ctrl" onclick="fullscreen()">⛶</button>
@@ -140,13 +142,15 @@ const urlBar=document.getElementById("urlBar");
 const star=document.getElementById("bookmarkStar");
 const menu=document.getElementById("menuPanel");
 
-let tabs=[],active=null;
+let tabs=[],activeTab=null;
 let bookmarks={},historyLog=[];
-let editing=false;
+let editingURL=false;
 
+/* ---------- MENU ---------- */
 document.getElementById("menuBtn").onclick=()=>menu.style.display="flex";
 menu.onmouseleave=()=>menu.style.display="none";
 
+/* ---------- UTILS ---------- */
 function normalize(v){
   if(v.startsWith("/?/")) return v;
   if(!v.includes(".")) return "https://www.startpage.com/sp/search?q="+encodeURIComponent(v);
@@ -154,20 +158,26 @@ function normalize(v){
   return v;
 }
 
+/* ---------- HOME ---------- */
 homeSearch.onkeydown=e=>{
   if(e.key==="Enter") newTab(normalize(homeSearch.value));
 };
 
+/* ---------- TABS ---------- */
+document.getElementById("newTabBtn").onclick=()=>newTab();
+document.getElementById("closeOverlayBtn").onclick=closeOverlay;
+
 function newTab(url="https://www.startpage.com"){
-  home.style.display="none";overlay.style.display="flex";
+  home.style.display="none";
+  overlay.style.display="flex";
 
   const iframe=document.createElement("iframe");
+  frames.appendChild(iframe);
+
   const tab=document.createElement("div");
   tab.className="tab";
   tab.innerHTML=`<img><span>New Tab</span><span class="close">✕</span>`;
-
-  document.getElementById("tabsBar").insertBefore(tab,newTabBtn);
-  frames.appendChild(iframe);
+  document.getElementById("tabsBar").insertBefore(tab,document.getElementById("newTabBtn"));
 
   const t={tab,iframe,custom:null,url,mode:"proxy"};
   tabs.push(t);
@@ -178,31 +188,33 @@ function newTab(url="https://www.startpage.com"){
   iframe.src=__uv$config.prefix+__uv$config.encodeUrl(url);
   iframe.onload=()=>{
     try{
-      tab.querySelector("span").textContent=iframe.contentDocument.title;
+      tab.querySelector("span").textContent=iframe.contentDocument.title||url;
       const ico=iframe.contentDocument.querySelector("link[rel~='icon']");
       if(ico) tab.querySelector("img").src=ico.href;
     }catch{}
   };
 
   activate(t);
+  logHistory(url);
 }
 
 function activate(t){
   tabs.forEach(x=>{
     x.tab.classList.remove("active");
-    if(x.iframe) x.iframe.classList.remove("active");
-    if(x.custom) x.custom.classList.remove("active");
+    x.iframe.style.display="none";
+    if(x.custom) x.custom.style.display="none";
   });
-  active=t;
+  activeTab=t;
   t.tab.classList.add("active");
-  if(t.mode==="proxy") t.iframe.classList.add("active");
-  else t.custom.classList.add("active");
+  if(t.mode==="proxy") t.iframe.style.display="block";
+  else t.custom.style.display="block";
   urlBar.value=t.url;
   star.textContent=bookmarks[t.url]?"★":"☆";
 }
 
-urlBar.onfocus=()=>editing=true;
-urlBar.onblur=()=>editing=false;
+/* ---------- URL BAR ---------- */
+urlBar.onfocus=()=>editingURL=true;
+urlBar.onblur=()=>editingURL=false;
 
 urlBar.onkeydown=e=>{
   if(e.key!=="Enter") return;
@@ -212,78 +224,95 @@ urlBar.onkeydown=e=>{
 };
 
 function navigate(url){
-  active.mode="proxy";
-  active.url=url;
-  if(active.custom){active.custom.remove();active.custom=null;}
-  active.iframe.src=__uv$config.prefix+__uv$config.encodeUrl(url);
+  activeTab.mode="proxy";
+  activeTab.url=url;
+  if(activeTab.custom){activeTab.custom.remove();activeTab.custom=null}
+  activeTab.iframe.src=__uv$config.prefix+__uv$config.encodeUrl(url);
+  activate(activeTab);
   logHistory(url);
 }
 
+/* ---------- CUSTOM PAGES ---------- */
 function openCustom(path){
-  active.mode="custom";
-  active.url=path;
-  active.iframe.classList.remove("active");
+  activeTab.mode="custom";
+  activeTab.url=path;
+  activeTab.iframe.style.display="none";
+  if(activeTab.custom) activeTab.custom.remove();
 
-  if(active.custom) active.custom.remove();
   const p=document.createElement("div");
   p.className="customPage active";
   frames.appendChild(p);
-  active.custom=p;
+  activeTab.custom=p;
 
   if(path==="/?/History") renderHistory(p);
-  if(path==="/?/Bookmarks") renderBookmarks(p);
+  if(path==="/?/Bookmarks") renderBookmarksPage(p);
 
-  urlBar.value=path;
+  activate(activeTab);
 }
 
 function renderHistory(p){
   p.innerHTML=`<div class="customHeader"><h1>History</h1><button onclick="closeCustom()">Close</button></div>`;
   historyLog.forEach(h=>{
-    p.innerHTML+=`<div class="listItem">${h.url}<br><span>${h.time}</span></div>`;
+    p.innerHTML+=`<div class="listItem"><div>${h.url}<br><span>${h.time}</span></div></div>`;
   });
 }
 
-function renderBookmarks(p){
+function renderBookmarksPage(p){
   p.innerHTML=`<div class="customHeader"><h1>Bookmarks</h1><button onclick="closeCustom()">Close</button></div>`;
   Object.values(bookmarks).forEach(b=>{
-    p.innerHTML+=`<div class="listItem">${b.name}<br><span>${b.code}</span></div>`;
+    p.innerHTML+=`<div class="listItem"><div>${b.name}<br><span>${b.code}</span></div></div>`;
   });
 }
 
 function closeCustom(){
-  active.custom.remove();
-  active.custom=null;
-  active.mode="proxy";
-  active.iframe.classList.add("active");
-  urlBar.value=active.url;
+  activeTab.mode="proxy";
+  activeTab.custom.style.display="none";
+  activate(activeTab);
 }
 
+/* ---------- HISTORY ---------- */
 function logHistory(url){
   historyLog.push({url,time:new Date().toLocaleString()});
 }
 
-function toggleBookmark(){
-  if(bookmarks[active.url]) delete bookmarks[active.url];
-  else bookmarks[active.url]={name:active.url,code:active.url};
-  star.textContent=bookmarks[active.url]?"★":"☆";
+/* ---------- BOOKMARKS ---------- */
+star.onclick=()=>{
+  if(bookmarks[activeTab.url]) delete bookmarks[activeTab.url];
+  else bookmarks[activeTab.url]={name:activeTab.url,code:activeTab.url};
+  star.textContent=bookmarks[activeTab.url]?"★":"☆";
+};
+
+/* ---------- CONTROLS ---------- */
+function goBack(){activeTab?.iframe.contentWindow.history.back()}
+function goForward(){activeTab?.iframe.contentWindow.history.forward()}
+function reloadTab(){activeTab?.iframe.contentWindow.location.reload()}
+function fullscreen(){activeTab?.iframe.requestFullscreen()}
+function closeTab(t){
+  t.tab.remove();t.iframe.remove();
+  if(t.custom) t.custom.remove();
+  tabs=tabs.filter(x=>x!==t);
+  if(tabs.length) activate(tabs[tabs.length-1]);
+  else closeOverlay();
+}
+function closeOverlay(){
+  overlay.style.display="none";
+  home.style.display="flex";
 }
 
+/* ---------- DEV TOOLS ---------- */
 function injectDev(){
   try{
-    const d=active.iframe.contentDocument;
+    const d=activeTab.iframe.contentDocument;
     const s=d.createElement("script");
     s.src="//cdn.jsdelivr.net/npm/eruda";
-    s.onload=()=>{const i=d.createElement("script");i.textContent="eruda.init();";d.body.appendChild(i);}
+    s.onload=()=>{
+      const i=d.createElement("script");
+      i.textContent="eruda.init();";
+      d.body.appendChild(i);
+    };
     d.body.appendChild(s);
   }catch{}
 }
-
-function goBack(){active?.iframe.contentWindow.history.back();}
-function goForward(){active?.iframe.contentWindow.history.forward();}
-function reloadTab(){active?.iframe.contentWindow.location.reload();}
-function fullscreen(){active?.iframe.requestFullscreen();}
-function closeTab(t){t.tab.remove();t.iframe.remove();t.custom?.remove();tabs=tabs.filter(x=>x!==t);}
-function closeOverlay(){overlay.style.display="none";home.style.display="flex";}
 </script>
 
 </body>
