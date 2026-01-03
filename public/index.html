@@ -8,15 +8,13 @@
 <script src="/uv/uv.bundle.js"></script>
 <script src="/uv/uv.config.js"></script>
 <script>
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("/uv/sw.js", { scope: __uv$config.prefix });
+if("serviceWorker"in navigator){
+  navigator.serviceWorker.register("/uv/sw.js",{scope:__uv$config.prefix});
 }
 </script>
 
 <style>
-:root{
-  --bg:#0a0a0a; --panel:#121212; --bar:#0e0e0e; --tab:#1a1a1a; --tab-active:#121212; --text:#ffffff;
-}
+:root{--bg:#0a0a0a;--panel:#121212;--bar:#0e0e0e;--tab:#1a1a1a;--tab-active:#121212;--text:#fff;}
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:Segoe UI,Arial;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
 header{background:var(--panel);padding:14px;text-align:center;font-size:2rem;font-weight:700;}
@@ -29,7 +27,6 @@ nav{display:flex;justify-content:center;gap:18px;padding:10px;background:var(--p
 #tabsBar{display:flex;align-items:flex-end;background:var(--panel);padding:4px;overflow:hidden;position:relative;}
 .tab{position:relative;display:flex;align-items:center;gap:6px;padding:8px 26px 8px 10px;background:var(--tab);color:white;border-top-left-radius:8px;border-top-right-radius:8px;cursor:pointer;min-width:80px;max-width:192px;white-space:nowrap;overflow:hidden;}
 .tab.active{background:var(--tab-active);}
-.tab img{width:16px;height:16px;}
 .tab span{overflow:hidden;text-overflow:ellipsis;}
 .tab .close{position:absolute;top:4px;right:6px;color:white;font-weight:700;font-size:14px;cursor:pointer;z-index:5;}
 #newTabBtn{padding:8px 14px;background:#111;color:white;cursor:pointer;border-radius:8px;margin-left:4px;}
@@ -48,7 +45,6 @@ nav{display:flex;justify-content:center;gap:18px;padding:10px;background:var(--p
 iframe{position:absolute;inset:0;width:100%;height:100%;border:none;display:none;}
 iframe.active{display:block;}
 .customFrame{position:absolute;inset:0;width:100%;height:100%;background:#0a0a0a;color:white;display:none;overflow:auto;padding:20px;}
-.customFrame h1{margin-bottom:10px;}
 #bmModalCreate,#bmModalEdit{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:10001;}
 .bmBox{background:#111;padding:24px;border-radius:14px;display:flex;flex-direction:column;gap:12px;}
 .bmBox input{padding:10px;background:black;border:none;color:white;font-size:1rem;}
@@ -64,7 +60,6 @@ iframe.active{display:block;}
 </style>
 </head>
 <body>
-
 <header>Glitch Hub</header>
 <nav>
   <div class="nav-btn" onclick="location.href='../games/app.html'">Games</div>
@@ -128,7 +123,7 @@ iframe.active{display:block;}
 </div>
 
 <script>
-// --------------- Variables ---------------
+// ---------------- Variables ----------------
 const home = document.getElementById("home");
 const homeSearch = document.getElementById("homeSearch");
 const overlay = document.getElementById("proxyOverlay");
@@ -138,46 +133,40 @@ const urlBar = document.getElementById("urlBar");
 const star = document.getElementById("bookmarkStar");
 const bookmarkBar = document.getElementById("bookmarkBar");
 const tabsBar = document.getElementById("tabsBar");
+const menuBtn = document.getElementById("menuBtn");
+const menuPanel = document.getElementById("menuPanel");
 
-let tabs = [];
-let active = null;
+let tabs = [], active = null;
 let bookmarks = {};
 let historyList = [];
 let userEditing = false;
 
-// --------------- Helpers ---------------
+// --------------- Helpers -----------------
 function normalize(v){
   if(!v.includes(".")) return "https://www.startpage.com/sp/search?q="+encodeURIComponent(v);
   if(!v.startsWith("http")) return "https://"+v;
   return v;
 }
 
-// --------------- Tabs ---------------
+// --------------- Tabs -----------------
 homeSearch.addEventListener("keydown", e=>{
   if(e.key==="Enter") newTab(normalize(homeSearch.value));
 });
 
 function newTab(url="https://www.startpage.com"){
-  home.style.display="none";
-  overlay.style.display="flex";
+  home.style.display="none"; overlay.style.display="flex";
 
   if(url.startsWith("/?/")){ openCustomPage(url); return; }
 
   const iframe = document.createElement("iframe");
   frames.appendChild(iframe);
   iframe.src = __uv$config.prefix+__uv$config.encodeUrl(url);
-  iframe.classList.add("active");
 
   // Tab element
-  const tab = document.createElement("div");
-  tab.className = "tab active";
-  const span = document.createElement("span");
-  span.textContent = url;
-  tab.appendChild(span);
+  const tab = document.createElement("div"); tab.className="tab active";
+  const span = document.createElement("span"); span.textContent=url; tab.appendChild(span);
 
-  const closeBtn = document.createElement("span");
-  closeBtn.className = "close";
-  closeBtn.textContent = "✕";
+  const closeBtn = document.createElement("span"); closeBtn.className="close"; closeBtn.textContent="✕";
   closeBtn.onclick = e => { e.stopPropagation(); closeTab(tab, iframe); };
   tab.appendChild(closeBtn);
 
@@ -191,15 +180,19 @@ function newTab(url="https://www.startpage.com"){
   active = {tab,iframe,url};
 
   showFrame(iframe);
-  updateURLBar();
-
   addHistory(url);
+
+  iframe.onload=()=>{
+    try{
+      span.textContent = iframe.contentDocument.title || url;
+      active.url = iframe.contentWindow.location.href;
+    }catch{}
+  };
 }
 
 function activateTab(tab, iframe){
   tabs.forEach(t=>{ t.tab.classList.remove("active"); t.iframe.classList.remove("active"); });
-  tab.classList.add("active");
-  iframe.classList.add("active");
+  tab.classList.add("active"); iframe.classList.add("active");
   active = tabs.find(t=>t.tab===tab);
   showFrame(active.iframe);
   updateURLBar();
@@ -230,18 +223,16 @@ function openCustomPage(url){
     historyList.forEach(hd=>{
       const li = document.createElement("li");
       li.textContent = `[${hd.time}] ${hd.url}`;
+      li.style.cursor="pointer";
       li.onclick = ()=> newTab(hd.url);
-      ul.appendChild(li);
+      customFrame.appendChild(li);
     });
-    customFrame.appendChild(ul);
   }
 }
 
 // --------------- URL Bar -----------------
 function updateURLBar(){
-  if(active && !userEditing){
-    urlBar.value = active.url;
-  }
+  if(active && !userEditing) urlBar.value = active.url;
 }
 setInterval(updateURLBar,200);
 
@@ -257,7 +248,6 @@ function injectDev(){
     s.onload=()=>eruda.init();
   }catch{}
 }
-
 function closeOverlay(){
   Array.from(frames.children).forEach(f=>f.remove());
   customFrame.style.display='none';
@@ -266,9 +256,12 @@ function closeOverlay(){
 }
 
 // --------------- History -----------------
-function addHistory(url){
-  historyList.push({url,time:new Date().toLocaleString()});
-}
+function addHistory(url){ historyList.push({url,time:new Date().toLocaleString()}); }
+
+// --------------- 3-dot menu -----------------
+menuBtn.addEventListener('mouseenter',()=>{menuPanel.style.display='flex';});
+menuBtn.addEventListener('mouseleave',()=>{setTimeout(()=>{if(!menuPanel.matches(':hover')) menuPanel.style.display='none';},150);});
+menuPanel.addEventListener('mouseleave',()=>{menuPanel.style.display='none';});
 </script>
 </body>
 </html>
