@@ -138,43 +138,6 @@ nav{
 #urlBar{width:100%;padding:6px 36px 6px 10px;background:black;border:none;color:white;font-family:monospace;outline:none;}
 #bookmarkStar{position:absolute;right:8px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:24px;user-select:none;}
 
-/* Bookmark Panel overlay */
-#bookmarkBackdrop{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,0.5);
-  z-index:9999;
-  display:none;
-}
-.bookmarkPanel{
-  position:fixed;
-  top:60px;
-  left:50%;
-  transform:translateX(-50%);
-  width:800px;
-  max-width:95%;
-  max-height:500px;
-  background:#111;
-  border:2px solid #444;
-  border-radius:14px;
-  display:flex; flex-direction:column; gap:10px;
-  padding:16px;
-  overflow-y:auto;
-  z-index:10000;
-  display:none;
-  box-shadow:0 0 30px rgba(0,0,0,0.8);
-}
-.bookmarkItem{
-  background:#222;
-  padding:12px 16px;
-  border-radius:8px;
-  cursor:pointer;
-  display:flex; justify-content:space-between; align-items:center;
-  transition:0.2s;
-}
-.bookmarkItem:hover{background:#333;}
-.bookmarkName{flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:500; font-size:1rem;}
-
 /* Bottom Bookmark BAR */
 #bookmarkBar{
   display:flex;
@@ -260,9 +223,6 @@ iframe.active{display:block;}
 
   <div id="frames"></div>
 </div>
-
-<!-- Bookmark Panel Overlay -->
-<div id="bookmarkBackdrop"></div>
 
 <!-- CREATE BOOKMARK MODAL -->
 <div id="bmModalCreate">
@@ -396,12 +356,31 @@ function deleteBookmarkEdit(){
 }
 function closeBMEdit(){bmModalEdit.style.display="none"; editingURL=null;}
 
-// Render bookmarks (bottom bar)
+// Render bookmarks (bottom bar) with hold-to-edit
 function renderBookmarks(){
   bookmarkBar.innerHTML="";
   Object.keys(bookmarks).forEach(url=>{
-    const btn=document.createElement("div"); btn.className="bookmarkButton"; btn.textContent=bookmarks[url].name;
-    btn.onclick=()=>{if(url.startsWith("javascript:")){active.iframe.contentWindow.eval(url.replace(/^javascript:/,""));}else newTab(url);}
+    const btn=document.createElement("div");
+    btn.className="bookmarkButton";
+    btn.textContent=bookmarks[url].name;
+
+    let holdTimer;
+
+    btn.onmousedown = () => {
+      holdTimer = setTimeout(() => {
+        openBMEdit(url); // Hold to edit
+      }, 600);
+    };
+    btn.onmouseup = btn.onmouseleave = () => clearTimeout(holdTimer);
+
+    btn.onclick = (e) => {
+      if(e.detail === 1){ // Quick click opens
+        if(url.startsWith("javascript:")){
+          active.iframe.contentWindow.eval(url.replace(/^javascript:/,""));
+        } else newTab(url);
+      }
+    };
+
     bookmarkBar.appendChild(btn);
   });
 }
