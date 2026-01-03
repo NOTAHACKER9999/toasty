@@ -69,7 +69,7 @@ iframe.active,.customPage.active{display:block}
 .listItem span{color:#aaa;font-size:.85rem}
 .customBody{display:flex;flex-direction:column;gap:12px;margin-top:12px}
 .customBody label{font-weight:600;margin-bottom:6px}
-.customBody select{padding:8px;background:#111;color:white;border:none;border-radius:6px;width:200px}
+.customBody select{padding:8px;background:#111;color:white;border:none;border-radius:6px;width:220px}
 
 /* MODALS */
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:10001}
@@ -160,30 +160,50 @@ const menuBtn=document.getElementById("menuBtn");
 let tabs=[],active=null;
 let bookmarks=JSON.parse(localStorage.getItem("bookmarks")||"{}");
 let historyLog=JSON.parse(localStorage.getItem("history")||"[]");
-let lastURL=null;
-let userTyping=false,editKey=null;
-let defaultBrowser=localStorage.getItem("defaultBrowser") || "Chrome";
+let lastURL=null,userTyping=false,editKey=null;
+
+// Default browser for search queries
+let defaultBrowser = localStorage.getItem("defaultBrowser") || "Chrome";
+const browserSearchURLs = {
+  "Chrome": "https://www.google.com/search?q=",
+  "Edge": "https://www.bing.com/search?q=",
+  "Firefox": "https://search.mozilla.org/?q=",
+  "Opera": "https://www.google.com/search?q=",
+  "Safari": "https://www.google.com/search?q=",
+  "Brave": "https://search.brave.com/search?q=",
+  "Vivaldi": "https://vivaldi.com/search/?q=",
+  "Tor": "https://duckduckgo.com/?q=",
+  "Internet Explorer": "https://www.bing.com/search?q=",
+  "Other": "https://www.google.com/search?q="
+};
 
 menuBtn.onclick=()=>menu.style.display="flex";
 menu.onmouseleave=()=>menu.style.display="none";
 
-// Focus search bar automatically
+// Focus home search bar automatically
 homeSearch.focus();
 
-// Normalize input for search or URL
+// Normalize URL or search
 function normalize(v){
   if(v.startsWith("/?/")) return v;
-  if(!v.includes(".")) return "https://www.startpage.com/sp/search?q="+encodeURIComponent(v);
+  if(!v.includes(".")) return browserSearchURLs[defaultBrowser]+encodeURIComponent(v);
   if(!v.startsWith("http")) return "https://"+v;
   return v;
 }
 
-// Home search bar Enter
+// Home search bar enter
 homeSearch.addEventListener("keydown", e=>{
   if(e.key==="Enter"){
     const query=homeSearch.value.trim();
     if(!query) return;
-    newTab(normalize(query));
+
+    let url;
+    if(query.includes(".")){
+      url=query.startsWith("http")?query:"https://"+query;
+    } else {
+      url = browserSearchURLs[defaultBrowser]+encodeURIComponent(query);
+    }
+    newTab(normalize(url));
     homeSearch.value="";
   }
 });
@@ -287,45 +307,34 @@ function openCustom(path){
   if(path==="/?/Settings"){
     page.innerHTML=`<div class="customHeader"><h1>Settings</h1><button onclick="closeCustom()">Close</button></div>
     <div class="customBody">
-      <label for="browserSelect">Default Browser:</label>
+      <label for="browserSelect">Default Browser for Home Search:</label>
       <select id="browserSelect">
-        <option value="Chrome">Chrome</option>
-        <option value="Edge">Edge</option>
-        <option value="Firefox">Firefox</option>
-        <option value="Opera">Opera</option>
-        <option value="Safari">Safari</option>
-        <option value="Brave">Brave</option>
-        <option value="Vivaldi">Vivaldi</option>
-        <option value="Tor">Tor</option>
-        <option value="Internet Explorer">Internet Explorer</option>
-        <option value="Other">Other</option>
+        <option>Chrome</option>
+        <option>Edge</option>
+        <option>Firefox</option>
+        <option>Opera</option>
+        <option>Safari</option>
+        <option>Brave</option>
+        <option>Vivaldi</option>
+        <option>Tor</option>
+        <option>Internet Explorer</option>
+        <option>Other</option>
       </select>
     </div>`;
-    const sel = document.getElementById("browserSelect");
-    sel.value = defaultBrowser;
-    sel.onchange = () => {
-      defaultBrowser = sel.value;
-      localStorage.setItem("defaultBrowser", defaultBrowser);
-      alert("Default browser set to: " + defaultBrowser);
+    const sel=document.getElementById("browserSelect");
+    sel.value=defaultBrowser;
+    sel.onchange=()=>{
+      defaultBrowser=sel.value;
+      localStorage.setItem("defaultBrowser",defaultBrowser);
+      alert("Default browser set to: "+defaultBrowser);
     }
   }
 }
 
-function closeCustom(){
-  if(active.custom) active.custom.remove();
-  active.custom=null;
-  active.mode="proxy";
-}
+function closeCustom(){if(active.custom) active.custom.remove();active.custom=null;active.mode="proxy"}
 
 // BOOKMARK FUNCTIONS
-function toggleBookmark(){
-  if(bookmarks[active.url]) openEdit(active.url);
-  else{
-    bmCreateName.value=active.url;
-    bmCreateCode.value=active.url;
-    bmCreate.style.display="flex";
-  }
-}
+function toggleBookmark(){if(bookmarks[active.url]) openEdit(active.url); else {bmCreateName.value=active.url;bmCreateCode.value=active.url;bmCreate.style.display="flex"}}
 function saveBookmark(){bookmarks[bmCreateCode.value]={name:bmCreateName.value,code:bmCreateCode.value};localStorage.setItem("bookmarks",JSON.stringify(bookmarks));closeBM();renderBookmarks()}
 function openEdit(key){editKey=key;bmEditName.value=bookmarks[key].name;bmEditCode.value=bookmarks[key].code;bmEdit.style.display="flex"}
 function saveEdit(){delete bookmarks[editKey];bookmarks[bmEditCode.value]={name:bmEditName.value,code:bmEditCode.value};localStorage.setItem("bookmarks",JSON.stringify(bookmarks));closeBM();renderBookmarks()}
@@ -342,11 +351,7 @@ function renderBookmarks(){
     b.onmouseup=b.onmouseleave=()=>clearTimeout(t);
     b.onclick=()=>{
       if(url.startsWith("javascript:")){
-        try{
-          const s=active.iframe.contentDocument.createElement("script");
-          s.textContent=url.replace("javascript:","");
-          active.iframe.contentDocument.body.appendChild(s);
-        }catch{}
+        try{const s=active.iframe.contentDocument.createElement("script");s.textContent=url.replace("javascript:","");active.iframe.contentDocument.body.appendChild(s)}catch{}
       } else newTab(url);
     };
     bookmarkBar.appendChild(b);
@@ -355,15 +360,7 @@ function renderBookmarks(){
 renderBookmarks();
 
 // DEV TOOLS INJECTION
-function injectDev(){
-  try{
-    const d=active.iframe.contentDocument;
-    const s=d.createElement("script");
-    s.src="//cdn.jsdelivr.net/npm/eruda";
-    s.onload=()=>{const i=d.createElement("script");i.textContent="eruda.init();";d.body.appendChild(i)};
-    d.body.appendChild(s);
-  }catch{}
-}
+function injectDev(){try{const d=active.iframe.contentDocument;const s=d.createElement("script");s.src="//cdn.jsdelivr.net/npm/eruda";s.onload=()=>{const i=d.createElement("script");i.textContent="eruda.init();";d.body.appendChild(i)};d.body.appendChild(s)}catch{}}
 
 // BROWSER CONTROLS
 function goBack(){active?.iframe.contentWindow.history.back()}
