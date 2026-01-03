@@ -56,8 +56,6 @@ iframe.active{display:block;}
 .bmBox button:hover{background:#333;}
 .bmBox .deleteBtn{background:#660000;}
 .bmBox .deleteBtn:hover{background:#990000;}
-
-/* Menu */
 #menuBtn{padding:6px 10px;background:#111;border:none;color:white;border-radius:6px;cursor:pointer;font-size:18px;position:relative;}
 #menuBtn:hover{background:#222;}
 #menuPanel{position:absolute;top:36px;right:0;background:#111;border:1px solid #333;border-radius:6px;display:none;flex-direction:column;min-width:140px;z-index:1002;}
@@ -79,7 +77,6 @@ iframe.active{display:block;}
   <input id="homeSearch" placeholder="Search or enter URL">
 </div>
 
-<!-- Proxy Overlay -->
 <div id="proxyOverlay">
   <div id="tabsBar">
     <div id="newTabBtn" onclick="newTab()">＋</div>
@@ -93,13 +90,11 @@ iframe.active{display:block;}
       <input id="urlBar">
       <span id="bookmarkStar" onclick="toggleBookmark()">☆</span>
     </div>
-
-    <!-- Menu -->
     <div id="menuContainer" style="position:relative;">
       <button id="menuBtn">⋮</button>
       <div id="menuPanel">
         <div class="menuItem" onclick="newTab()">New Tab</div>
-        <div class="menuItem" onclick="openHistory()">History</div>
+        <div class="menuItem" onclick="openCustomPage('/?/History')">History</div>
         <div class="menuItem" onclick="alert('Bookmarks Panel opened')">Bookmarks</div>
         <div class="menuItem" onclick="injectDev()">Dev Tools</div>
         <div class="menuItem" onclick="alert('Settings Panel opened')">Settings</div>
@@ -108,12 +103,9 @@ iframe.active{display:block;}
   </div>
   <div id="bookmarkBar"></div>
   <div id="frames"></div>
-
-  <!-- Custom frame for /?/ pages -->
   <div id="customFrame" class="customFrame"></div>
 </div>
 
-<!-- Bookmark modals -->
 <div id="bmModalCreate">
   <div class="bmBox">
     <input id="bmNameCreate" placeholder="Bookmark Name">
@@ -133,19 +125,32 @@ iframe.active{display:block;}
 </div>
 
 <script>
-// ------------------ Variables ------------------
+// ---------------- Variables ----------------
 const home=document.getElementById("home");
 const homeSearch=document.getElementById("homeSearch");
 const overlay=document.getElementById("proxyOverlay");
 const frames=document.getElementById("frames");
 const customFrame=document.getElementById("customFrame");
 const urlBar=document.getElementById("urlBar");
+const star=document.getElementById("bookmarkStar");
+const bookmarkBar=document.getElementById("bookmarkBar");
+
+const bmModalCreate=document.getElementById("bmModalCreate");
+const bmNameCreate=document.getElementById("bmNameCreate");
+const bmCodeCreate=document.getElementById("bmCodeCreate");
+
+const bmModalEdit=document.getElementById("bmModalEdit");
+const bmNameEdit=document.getElementById("bmNameEdit");
+const bmCodeEdit=document.getElementById("bmCodeEdit");
+
+const menuBtn=document.getElementById("menuBtn");
+const menuPanel=document.getElementById("menuPanel");
 
 let tabs=[], active=null;
 let bookmarks={}, editingURL=null;
-let userEditingURL=false;
+let userEditing=false;
 
-// ------------------ Tabs ------------------
+// ---------------- Tabs ----------------
 homeSearch.onkeydown=e=>{
   if(e.key==="Enter") newTab(normalize(homeSearch.value));
 };
@@ -158,7 +163,6 @@ function normalize(v){
 
 function newTab(url="https://www.startpage.com"){
   home.style.display="none"; overlay.style.display="flex";
-
   if(url.startsWith("/?/")) { openCustomPage(url); return; }
 
   const iframe=document.createElement("iframe");
@@ -168,30 +172,51 @@ function newTab(url="https://www.startpage.com"){
 }
 
 function showFrame(frame){
-  // Hide iframe and custom frame
   Array.from(frames.children).forEach(f=>f.style.display='none');
   customFrame.style.display='none';
   frame.style.display='block';
 }
 
-// ------------------ Custom /?/ Pages ------------------
+// ---------------- Custom Pages ----------------
 function openCustomPage(url){
   Array.from(frames.children).forEach(f=>f.style.display='none');
   customFrame.style.display='block';
   customFrame.innerHTML="";
-
   if(url.startsWith("/?/History")){
-    const h = document.createElement('h1'); h.textContent="History Page";
+    const h=document.createElement('h1'); h.textContent="History";
     customFrame.appendChild(h);
-    const p = document.createElement('p'); p.textContent="Your custom history would go here.";
+    const p=document.createElement('p'); p.textContent="Your previous searches will appear here.";
     customFrame.appendChild(p);
   } else {
-    const h = document.createElement('h1'); h.textContent="Custom Page";
+    const h=document.createElement('h1'); h.textContent="Custom Page";
     customFrame.appendChild(h);
-    const p = document.createElement('p'); p.textContent="Custom content for "+url;
+    const p=document.createElement('p'); p.textContent="Content for "+url;
     customFrame.appendChild(p);
   }
 }
+
+// ---------------- URL Bar ----------------
+urlBar.addEventListener('input', ()=>{userEditing=true;});
+urlBar.addEventListener('blur', ()=>{userEditing=false;});
+
+// ---------------- Menu ----------------
+menuBtn.addEventListener('mouseenter',()=>{menuPanel.style.display='flex';});
+menuBtn.addEventListener('mouseleave',()=>{setTimeout(()=>{if(!menuPanel.matches(':hover')) menuPanel.style.display='none';},150);});
+menuPanel.addEventListener('mouseleave',()=>{menuPanel.style.display='none';});
+
+// ---------------- Proxy Controls ----------------
+function goBack(){active?.iframe.contentWindow.history.back();}
+function goForward(){active?.iframe.contentWindow.history.forward();}
+function reloadTab(){active?.iframe.contentWindow.location.reload();}
+function injectDev(){
+  try{
+    const s=document.createElement('script');
+    s.src='//cdn.jsdelivr.net/npm/eruda';
+    active.iframe.contentDocument.body.appendChild(s);
+    s.onload=()=>eruda.init();
+  }catch{}
+}
+function closeOverlay(){Array.from(frames.children).forEach(f=>f.remove()); customFrame.style.display='none'; overlay.style.display='none'; home.style.display='flex';}
 </script>
 </body>
 </html>
