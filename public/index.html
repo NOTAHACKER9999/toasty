@@ -86,7 +86,7 @@ nav{
   background:var(--bg);
   display:none;
   flex-direction:column;
-  z-index:9999;
+  z-index:9000;
 }
 
 /* ---------- TABS ---------- */
@@ -126,7 +126,7 @@ nav{
   text-overflow:ellipsis;
 }
 
-/* CLOSE BUTTON — OVERLAYED */
+/* CLOSE BUTTON */
 .tab .close{
   position:absolute;
   top:4px;
@@ -155,6 +155,7 @@ nav{
   gap:6px;
   padding:6px;
   background:var(--bar);
+  z-index:9100;
 }
 
 .ctrl{
@@ -173,7 +174,7 @@ nav{
 
 #urlBar{
   width:100%;
-  padding:6px 36px 6px 10px;
+  padding:6px 38px 6px 10px;
   background:black;
   border:none;
   color:white;
@@ -184,11 +185,11 @@ nav{
 /* BOOKMARK STAR */
 #bookmarkStar{
   position:absolute;
-  right:8px;
+  right:10px;
   top:50%;
   transform:translateY(-50%);
   cursor:pointer;
-  font-size:16px;
+  font-size:18px;
   user-select:none;
 }
 
@@ -224,29 +225,57 @@ iframe{
 }
 iframe.active{display:block}
 
-/* ---------- BOOKMARK MODAL ---------- */
+/* ---------- BOOKMARK PANEL (FIXED) ---------- */
 #bmModal{
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,.6);
+  background:rgba(0,0,0,.7);
   display:none;
   justify-content:center;
   align-items:center;
+  z-index:10000; /* ABOVE PROXY */
 }
+
 #bmBox{
-  background:#111;
-  padding:20px;
-  border-radius:10px;
+  width:420px;
+  max-width:90%;
+  background:#0d0d0d;
+  border-radius:14px;
+  padding:22px;
   display:flex;
   flex-direction:column;
-  gap:10px;
+  gap:14px;
 }
+
+#bmBox h2{
+  font-size:1.2rem;
+  text-align:center;
+}
+
 #bmBox input{
-  padding:6px;
+  padding:10px;
   background:black;
   border:none;
   color:white;
+  border-radius:8px;
+  font-family:monospace;
 }
+
+#bmActions{
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+}
+
+#bmActions button{
+  padding:8px 14px;
+  background:#111;
+  color:white;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+}
+#bmActions button:hover{background:#222}
 </style>
 </head>
 
@@ -289,13 +318,16 @@ iframe.active{display:block}
   <div id="frames"></div>
 </div>
 
-<!-- BOOKMARK MODAL -->
+<!-- BOOKMARK PANEL -->
 <div id="bmModal">
   <div id="bmBox">
-    <input id="bmName">
-    <input id="bmCode">
-    <button onclick="saveBookmark()">Save</button>
-    <button onclick="closeBM()">Cancel</button>
+    <h2>Add Bookmark</h2>
+    <input id="bmName" placeholder="Bookmark name">
+    <input id="bmCode" placeholder="URL or javascript: bookmarklet">
+    <div id="bmActions">
+      <button onclick="closeBM()">Cancel</button>
+      <button onclick="saveBookmark()">Save</button>
+    </div>
   </div>
 </div>
 
@@ -314,7 +346,7 @@ let bookmarks={};
 
 function normalize(v){
   if(!v.includes(".")) return "https://www.startpage.com/sp/search?q="+encodeURIComponent(v);
-  if(!v.startsWith("http")) return "https://"+v;
+  if(!v.startsWith("http") && !v.startsWith("javascript:")) return "https://"+v;
   return v;
 }
 
@@ -372,6 +404,7 @@ function activate(t){
 }
 
 function updateURL(){
+  if(!active) return;
   try{
     const enc=active.iframe.contentWindow.location.href.split(__uv$config.prefix)[1];
     active.url=__uv$config.decodeUrl(enc.replace(/^\/+/,''));
@@ -383,7 +416,7 @@ function updateURL(){
 
 urlBar.onkeydown=e=>{
   if(e.key==="Enter"){
-    active.url=urlBar.value;
+    active.url=normalize(urlBar.value);
     active.iframe.src=__uv$config.prefix+__uv$config.encodeUrl(active.url);
   }
 };
@@ -404,25 +437,32 @@ function toggleBookmark(){
     delete bookmarks[active.url];
     star.textContent="☆";
   }else{
-    document.getElementById("bmName").value=active.tab.innerText;
-    document.getElementById("bmCode").value=active.url;
-    document.getElementById("bmModal").style.display="flex";
+    bmName.value=active.tab.innerText;
+    bmCode.value=active.url;
+    bmModal.style.display="flex";
   }
 }
 
 function saveBookmark(){
-  const n=bmName.value;
-  const c=bmCode.value;
-  bookmarks[c]=true;
+  const name=bmName.value;
+  const code=bmCode.value;
+  bookmarks[code]=true;
+
   const b=document.createElement("div");
   b.className="bookmark";
-  b.textContent=n;
-  b.onclick=()=>active.iframe.contentWindow.eval(c);
+  b.textContent=name;
+  b.onclick=()=>{
+    if(code.startsWith("javascript:")){
+      active.iframe.contentWindow.eval(code.slice(11));
+    }else{
+      active.iframe.src=__uv$config.prefix+__uv$config.encodeUrl(code);
+    }
+  };
   bookmarkBar.appendChild(b);
   closeBM();
 }
-function closeBM(){bmModal.style.display="none"}
 
+function closeBM(){bmModal.style.display="none"}
 function goBack(){active?.iframe.contentWindow.history.back()}
 function goForward(){active?.iframe.contentWindow.history.forward()}
 function reloadTab(){active?.iframe.contentWindow.location.reload()}
