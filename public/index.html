@@ -16,37 +16,45 @@ if ("serviceWorker" in navigator) {
 
 <style>
 :root{
-  --bg:#0a0a0a;--panel:#121212;--bar:#0e0e0e;--tab:#1a1a1a;
-  --tab-active:#181818;--text:#fff;--border:#222;
+  --bg:#0a0a0a;--panel:#121212;--bar:#0e0e0e;
+  --tab:#1a1a1a;--tab-active:#1f1f1f;--text:#fff;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{
-  background:var(--bg);color:var(--text);height:100vh;
-  font-family:Segoe UI,Arial;display:flex;flex-direction:column;
+  background:var(--bg);color:var(--text);
+  height:100vh;display:flex;flex-direction:column;
+  font-family:Segoe UI,Arial;
 }
 
 /* ===== HOME ===== */
 #home{
-  flex:1;display:flex;align-items:center;justify-content:center;
-  pointer-events:auto;
+  flex:1;display:flex;justify-content:center;align-items:center;
 }
 #home input{
   width:420px;max-width:90%;
   padding:14px 18px;border-radius:999px;
-  background:#111;border:none;color:white;font-size:1.1rem;
-  outline:none;pointer-events:auto;
+  background:#111;border:none;color:white;
+  font-size:1.1rem;outline:none;
 }
 
 /* ===== HEADER ===== */
 header{padding:14px;background:var(--panel);text-align:center;font-size:2rem}
-nav{display:flex;gap:12px;justify-content:center;background:var(--panel);padding:8px}
-.nav-btn{padding:8px 16px;background:#111;border-radius:8px;cursor:pointer}
+nav{
+  display:flex;gap:12px;justify-content:center;
+  background:var(--panel);padding:8px;
+}
+.nav-btn{
+  padding:8px 16px;background:#111;border-radius:8px;
+  cursor:pointer;user-select:none;
+}
 .nav-btn:hover{background:#222}
 
-/* ===== OVERLAY ===== */
+/* ===== PROXY OVERLAY ===== */
 #proxyOverlay{
-  position:fixed;inset:0;background:var(--bg);
-  display:none;flex-direction:column;z-index:1000;
+  position:fixed;inset:0;
+  background:var(--bg);
+  display:none;flex-direction:column;
+  z-index:1000;
 }
 
 /* ===== TABS ===== */
@@ -57,84 +65,106 @@ nav{display:flex;gap:12px;justify-content:center;background:var(--panel);padding
 .tab{
   display:flex;align-items:center;gap:6px;
   padding:8px 26px 8px 10px;
-  background:var(--tab);border-radius:8px 8px 0 0;
-  cursor:pointer;position:relative;max-width:220px;
+  background:var(--tab);
+  border-radius:8px 8px 0 0;
+  cursor:pointer;max-width:220px;
+  position:relative;
 }
 .tab.active{background:var(--tab-active)}
 .tab img{width:16px;height:16px}
 .tab span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tab .close{
-  position:absolute;right:6px;top:4px;cursor:pointer
+  position:absolute;right:6px;top:4px;
+  cursor:pointer;
 }
-#newTabBtn{padding:8px 12px;background:#111;border-radius:8px;margin-left:6px;cursor:pointer}
-#closeOverlayBtn{margin-left:auto;padding:6px 12px;background:#111;border-radius:8px;cursor:pointer}
+#newTabBtn,#closeOverlayBtn{
+  padding:8px 12px;background:#111;
+  border-radius:8px;margin-left:6px;
+  cursor:pointer;
+}
 
-/* ===== BAR ===== */
+/* ===== BROWSER BAR ===== */
 #browserBar{
-  display:flex;gap:6px;align-items:center;
+  display:flex;align-items:center;gap:6px;
   background:var(--bar);padding:6px;
+  position:relative;z-index:2000;
 }
-.ctrl{padding:6px 10px;background:#111;border:none;color:white;cursor:pointer}
+.ctrl{
+  padding:6px 10px;background:#111;
+  border:none;color:white;cursor:pointer;
+}
 .ctrl:hover{background:#222}
 #urlWrap{position:relative;flex:1}
 #urlBar{
   width:100%;padding:6px 36px 6px 10px;
-  background:black;border:none;color:white;font-family:monospace;
+  background:black;border:none;color:white;
+  font-family:monospace;
 }
 #bookmarkStar{
   position:absolute;right:8px;top:50%;
-  transform:translateY(-50%);font-size:22px;cursor:pointer;
+  transform:translateY(-50%);
+  font-size:22px;cursor:pointer;
 }
 
-/* ===== 3 DOTS ===== */
+/* ===== 3 DOT MENU ===== */
 #menuWrap{position:relative}
-#menuBtn{font-size:20px}
 #menu{
   position:absolute;right:0;top:36px;
-  background:#111;border:1px solid var(--border);
-  display:none;flex-direction:column;min-width:160px;
+  background:#111;display:none;
+  flex-direction:column;min-width:170px;
+  z-index:3000;
 }
 #menu button{
-  background:none;border:none;color:white;
-  padding:10px;text-align:left;cursor:pointer;
+  padding:10px;background:none;border:none;
+  color:white;text-align:left;cursor:pointer;
 }
 #menu button:hover{background:#222}
-#menu .bottom{border-top:1px solid #222;margin-top:4px}
+#menu .bottom{border-top:1px solid #222}
 
 /* ===== BOOKMARK BAR ===== */
 #bookmarkBar{
-  display:flex;gap:6px;padding:6px;background:var(--panel);
+  display:flex;gap:6px;padding:6px;
+  background:var(--panel);
   overflow-x:auto;min-height:36px;
 }
 .bookmarkButton{
-  padding:6px 10px;background:#111;border-radius:6px;cursor:pointer;
-  white-space:nowrap;
+  padding:6px 10px;background:#111;
+  border-radius:6px;cursor:pointer;
 }
 .bookmarkButton:hover{background:#222}
 
-/* ===== FRAMES ===== */
+/* ===== FRAME AREA ===== */
 #frames{flex:1;position:relative}
-iframe{position:absolute;inset:0;width:100%;height:100%;border:none;display:none}
+iframe{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  border:none;display:none;
+}
 iframe.active{display:block}
 
-/* ===== INTERNAL PANELS ===== */
+/* ===== INTERNAL PANEL ===== */
 .internalPanel{
-  position:absolute;inset:0;background:#0b0b0b;
-  padding:24px;overflow:auto;
+  position:absolute;inset:0;
+  background:#0b0b0b;
+  padding:20px;overflow:auto;
+  z-index:1500;
 }
-.internalPanel h1{margin-bottom:16px}
-.internalPanel button{padding:8px 14px;background:#222;border:none;color:white}
 
 /* ===== MODALS ===== */
 .modal{
-  position:fixed;inset:0;background:rgba(0,0,0,.6);
-  display:none;align-items:center;justify-content:center;z-index:2000;
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.6);
+  display:none;align-items:center;justify-content:center;
+  z-index:4000;
 }
-.box{background:#111;padding:24px;border-radius:14px;display:flex;flex-direction:column;gap:12px}
+.box{
+  background:#111;padding:24px;
+  border-radius:14px;display:flex;
+  flex-direction:column;gap:12px;
+}
 .box input{padding:10px;background:black;border:none;color:white}
 .box button{padding:8px;background:#222;border:none;color:white}
 .deleteBtn{background:#660000}
-.deleteBtn:hover{background:#990000}
 </style>
 </head>
 
@@ -149,10 +179,11 @@ iframe.active{display:block}
 </nav>
 
 <div id="home">
-  <input id="homeSearch" placeholder="Search or enter URL" autofocus>
+  <input id="homeSearch" placeholder="Search or enter URL">
 </div>
 
 <div id="proxyOverlay">
+
   <div id="tabsBar">
     <div id="newTabBtn">＋</div>
     <div id="closeOverlayBtn">✕</div>
@@ -171,7 +202,7 @@ iframe.active{display:block}
     <button class="ctrl" onclick="injectDev()">&lt;/&gt;</button>
 
     <div id="menuWrap">
-      <button class="ctrl" id="menuBtn">⋮</button>
+      <button class="ctrl" onclick="toggleMenu()">⋮</button>
       <div id="menu">
         <button onclick="newTab()">New Tab</button>
         <button onclick="openInternal('History')">History</button>
@@ -191,7 +222,7 @@ iframe.active{display:block}
   <div class="box">
     <input id="bmNameC" placeholder="Name">
     <input id="bmCodeC" placeholder="URL or javascript:">
-    <button onclick="saveBMC()">Save</button>
+    <button onclick="saveBookmark()">Save</button>
     <button onclick="closeModal()">Cancel</button>
   </div>
 </div>
@@ -200,55 +231,64 @@ iframe.active{display:block}
   <div class="box">
     <input id="bmNameE">
     <input id="bmCodeE">
-    <button onclick="saveBME()">Save</button>
-    <button class="deleteBtn" onclick="deleteBME()">Delete</button>
+    <button onclick="saveEdit()">Save</button>
+    <button class="deleteBtn" onclick="deleteEdit()">Delete</button>
     <button onclick="closeModal()">Cancel</button>
   </div>
 </div>
 
 <script>
-/* ================= CORE STATE ================= */
+/* ===== STATE ===== */
 const home=document.getElementById("home");
 const overlay=document.getElementById("proxyOverlay");
 const homeSearch=document.getElementById("homeSearch");
 const frames=document.getElementById("frames");
-const tabsBar=document.getElementById("tabsBar");
 const urlBar=document.getElementById("urlBar");
 const star=document.getElementById("bookmarkStar");
 const bookmarkBar=document.getElementById("bookmarkBar");
+const menu=document.getElementById("menu");
 
 let tabs=[],active=null;
 let bookmarks=JSON.parse(localStorage.bookmarks||"{}");
 let historyLog=JSON.parse(localStorage.history||"[]");
-let editingURL=null,userTyping=false;
+let editing=null,userTyping=false;
 
-/* ================= MENU ================= */
-const menu=document.getElementById("menu");
-menuBtn.onclick=()=>menu.style.display="flex";
-menu.onmouseleave=()=>menu.style.display="none";
-
-/* ================= HOME ================= */
-homeSearch.onkeydown=e=>{
+/* ===== HOME ===== */
+homeSearch.addEventListener("keydown",e=>{
   if(e.key==="Enter") newTab(normalize(homeSearch.value));
-};
+});
 
-/* ================= UTILS ================= */
+/* ===== MENU ===== */
+function toggleMenu(){
+  menu.style.display=menu.style.display==="flex"?"none":"flex";
+}
+document.addEventListener("click",e=>{
+  if(!menu.contains(e.target)) menu.style.display="none";
+});
+
+/* ===== UTILS ===== */
 function normalize(v){
   if(!v.includes(".")) return "https://www.startpage.com/sp/search?q="+encodeURIComponent(v);
   if(!v.startsWith("http")) return "https://"+v;
   return v;
 }
 
-/* ================= TABS ================= */
+/* ===== TABS ===== */
 newTabBtn.onclick=()=>newTab();
+closeOverlayBtn.onclick=closeOverlay;
 
 function newTab(url="https://www.startpage.com"){
-  home.style.display="none";overlay.style.display="flex";
+  home.style.display="none";
+  overlay.style.display="flex";
+
   const iframe=document.createElement("iframe");
-  const tab=document.createElement("div");tab.className="tab";
+  const tab=document.createElement("div");
+  tab.className="tab";
   const icon=document.createElement("img");
-  const title=document.createElement("span");title.textContent="New Tab";
-  const close=document.createElement("span");close.textContent="✕";close.className="close";
+  const title=document.createElement("span");
+  title.textContent="New Tab";
+  const close=document.createElement("span");
+  close.textContent="✕";close.className="close";
   tab.append(icon,title,close);
   tabsBar.insertBefore(tab,newTabBtn);
   frames.appendChild(iframe);
@@ -272,14 +312,18 @@ function newTab(url="https://www.startpage.com"){
 }
 
 function activate(t){
-  tabs.forEach(x=>{x.tab.classList.remove("active");x.iframe.classList.remove("active")});
+  tabs.forEach(x=>{
+    x.tab.classList.remove("active");
+    x.iframe.classList.remove("active");
+  });
   active=t;
   t.tab.classList.add("active");
   t.iframe.classList.add("active");
 }
 
 function closeTab(t){
-  t.tab.remove();t.iframe.remove();
+  t.tab.remove();
+  t.iframe.remove();
   tabs=tabs.filter(x=>x!==t);
   if(tabs.length) activate(tabs.at(-1));
   else closeOverlay();
@@ -288,10 +332,15 @@ function closeTab(t){
 function closeOverlay(){
   overlay.style.display="none";
   home.style.display="flex";
-  setTimeout(()=>homeSearch.focus(),0);
+  homeSearch.focus();
 }
 
-/* ================= URL BAR ================= */
+/* ===== NAV ===== */
+function goBack(){active?.iframe.contentWindow.history.back()}
+function goForward(){active?.iframe.contentWindow.history.forward()}
+function reloadTab(){active?.iframe.contentWindow.location.reload()}
+
+/* ===== URL BAR ===== */
 urlBar.oninput=()=>userTyping=true;
 urlBar.onblur=()=>userTyping=false;
 urlBar.onkeydown=e=>{
@@ -315,16 +364,15 @@ function updateURL(){
 }
 requestAnimationFrame(updateURL);
 
-/* ================= HISTORY ================= */
+/* ===== HISTORY ===== */
 function logHistory(url){
   if(!url||url.startsWith("/?/"))return;
-  const last=historyLog[0];
-  if(last&&last.url===url)return;
+  if(historyLog[0]?.url===url)return;
   historyLog.unshift({url,time:new Date().toLocaleString()});
   localStorage.history=JSON.stringify(historyLog);
 }
 
-/* ================= INTERNAL PAGES ================= */
+/* ===== INTERNAL PAGES ===== */
 function openInternal(type){
   if(!active)return;
   const panel=document.createElement("div");
@@ -340,13 +388,10 @@ function openInternal(type){
       panel.innerHTML+=`<div>${b.name} — ${b.code}</div>`;
     });
   }
-  if(type==="Settings"){
-    panel.innerHTML+=`<div>Settings panel (future)</div>`;
-  }
   frames.appendChild(panel);
 }
 
-/* ================= DEVTOOLS ================= */
+/* ===== DEVTOOLS ===== */
 function injectDev(){
   try{
     active.iframe.contentWindow.eval(`
@@ -358,7 +403,7 @@ function injectDev(){
   }catch{}
 }
 
-/* ================= BOOKMARKS ================= */
+/* ===== BOOKMARKS ===== */
 bookmarkStar.onclick=()=>{
   if(bookmarks[active.url]) openEdit(active.url);
   else{
@@ -368,25 +413,25 @@ bookmarkStar.onclick=()=>{
   }
 };
 
-function saveBMC(){
+function saveBookmark(){
   bookmarks[bmCodeC.value]={name:bmNameC.value,code:bmCodeC.value};
   localStorage.bookmarks=JSON.stringify(bookmarks);
   closeModal();renderBookmarks();
 }
 function openEdit(url){
-  editingURL=url;
+  editing=url;
   bmEdit.style.display="flex";
   bmNameE.value=bookmarks[url].name;
   bmCodeE.value=bookmarks[url].code;
 }
-function saveBME(){
-  delete bookmarks[editingURL];
+function saveEdit(){
+  delete bookmarks[editing];
   bookmarks[bmCodeE.value]={name:bmNameE.value,code:bmCodeE.value};
   localStorage.bookmarks=JSON.stringify(bookmarks);
   closeModal();renderBookmarks();
 }
-function deleteBME(){
-  delete bookmarks[editingURL];
+function deleteEdit(){
+  delete bookmarks[editing];
   localStorage.bookmarks=JSON.stringify(bookmarks);
   closeModal();renderBookmarks();
 }
@@ -416,5 +461,6 @@ function renderBookmarks(){
 }
 renderBookmarks();
 </script>
+
 </body>
 </html>
