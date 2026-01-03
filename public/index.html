@@ -1,4 +1,3 @@
-<!-- Full proxy with auto-updating URL bar -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -55,6 +54,13 @@ iframe.active{display:block;}
 .bmBox button:hover{background:#333;}
 .bmBox .deleteBtn{background:#660000;}
 .bmBox .deleteBtn:hover{background:#990000;}
+
+/* ------------------ MENU ------------------ */
+#menuBtn{padding:6px 10px;background:#111;border:none;color:white;border-radius:6px;cursor:pointer;font-size:18px;position:relative;}
+#menuBtn:hover{background:#222;}
+#menuPanel{position:absolute;top:36px;right:0;background:#111;border:1px solid #333;border-radius:6px;display:none;flex-direction:column;min-width:140px;z-index:1002;}
+.menuItem{padding:8px 12px;color:white;cursor:pointer;}
+.menuItem:hover{background:#222;}
 </style>
 </head>
 <body>
@@ -76,21 +82,35 @@ iframe.active{display:block;}
     <div id="newTabBtn" onclick="newTab()">＋</div>
     <div id="closeOverlayBtn" onclick="closeOverlay()">✕</div>
   </div>
+
   <div id="browserBar">
     <button class="ctrl" onclick="goBack()">⟵</button>
     <button class="ctrl" onclick="goForward()">⟶</button>
     <button class="ctrl" onclick="reloadTab()">⟳</button>
+
     <div id="urlWrap">
       <input id="urlBar">
       <span id="bookmarkStar" onclick="toggleBookmark()">☆</span>
     </div>
-    <button class="ctrl" onclick="fullscreen()">⛶</button>
-    <button class="ctrl" onclick="injectDev()">&lt;/&gt;</button>
+
+    <!-- Menu button -->
+    <div id="menuContainer" style="position:relative;">
+      <button id="menuBtn">⋮</button>
+      <div id="menuPanel">
+        <div class="menuItem" onclick="newTab()">New Tab</div>
+        <div class="menuItem" onclick="alert('History not implemented yet')">History</div>
+        <div class="menuItem" onclick="alert('Bookmarks Panel opened');">Bookmarks</div>
+        <div class="menuItem" onclick="injectDev()">Dev Tools</div>
+        <div class="menuItem" onclick="alert('Settings Panel opened');">Settings</div>
+      </div>
+    </div>
+
   </div>
   <div id="bookmarkBar"></div>
   <div id="frames"></div>
 </div>
 
+<!-- Bookmark modals -->
 <div id="bmModalCreate">
   <div class="bmBox">
     <input id="bmNameCreate" placeholder="Bookmark Name">
@@ -111,6 +131,7 @@ iframe.active{display:block;}
 </div>
 
 <script>
+// ------------------ Proxy / Tabs / URL ------------------
 const home=document.getElementById("home");
 const homeSearch=document.getElementById("homeSearch");
 const overlay=document.getElementById("proxyOverlay");
@@ -128,6 +149,9 @@ const bmModalEdit=document.getElementById("bmModalEdit");
 const bmNameEdit=document.getElementById("bmNameEdit");
 const bmCodeEdit=document.getElementById("bmCodeEdit");
 
+const menuBtn=document.getElementById("menuBtn");
+const menuPanel=document.getElementById("menuPanel");
+
 let tabs=[], active=null;
 let bookmarks={};
 let editingURL=null;
@@ -138,7 +162,6 @@ function normalize(v){
   if(!v.startsWith("http")) return "https://"+v;
   return v;
 }
-
 homeSearch.onkeydown=e=>{if(e.key==="Enter") newTab(normalize(homeSearch.value));};
 
 function newTab(url="https://www.startpage.com"){
@@ -162,14 +185,13 @@ function newTab(url="https://www.startpage.com"){
 function activate(t){
   tabs.forEach(x=>{x.tab.classList.remove("active"); x.iframe.classList.remove("active");});
   active=t; t.tab.classList.add("active"); t.iframe.classList.add("active");
-  updateURLBar(); // immediately update
+  updateURLBar();
 }
 
-// Track if user is typing
+// ------------------ URL auto-update ------------------
 urlBar.addEventListener('input', ()=>{userEditingURL=true;});
 urlBar.addEventListener('blur', ()=>{userEditingURL=false;});
 
-// Auto-update the URL bar if not editing
 function updateURLBar(){
   if(active && !userEditingURL){
     try{
@@ -182,7 +204,7 @@ function updateURLBar(){
   requestAnimationFrame(updateURLBar);
 }
 
-// Browser controls
+// ------------------ Browser controls ------------------
 urlBar.onkeydown=e=>{if(e.key==="Enter"){active.url=normalize(urlBar.value); active.iframe.src=__uv$config.prefix+__uv$config.encodeUrl(active.url);}}
 function closeTab(t){t.tab.remove(); t.iframe.remove(); tabs=tabs.filter(x=>x!==t); if(tabs.length) activate(tabs[tabs.length-1]); else closeOverlay();}
 function closeOverlay(){tabs.forEach(t=>{t.tab.remove(); t.iframe.remove();}); tabs=[]; overlay.style.display="none"; home.style.display="flex";}
@@ -190,9 +212,14 @@ function goBack(){active?.iframe.contentWindow.history.back();}
 function goForward(){active?.iframe.contentWindow.history.forward();}
 function reloadTab(){active?.iframe.contentWindow.location.reload();}
 function fullscreen(){active?.iframe.requestFullscreen();}
-function injectDev(){try{active.iframe.contentWindow.eval(`var s=document.createElement('script');s.src='//cdn.jsdelivr.net/npm/eruda';document.body.appendChild(s);s.onload=()=>eruda.init();`);}catch{}}
+function injectDev(){try{const s=document.createElement('script');s.src='//cdn.jsdelivr.net/npm/eruda';active.iframe.contentDocument.body.appendChild(s);s.onload=()=>eruda.init();}catch{}}
 
-// Bookmarks and bookmarklets
+// ------------------ Menu ------------------
+menuBtn.addEventListener('mouseenter',()=>{menuPanel.style.display='flex';});
+menuBtn.addEventListener('mouseleave',()=>{setTimeout(()=>{if(!menuPanel.matches(':hover')) menuPanel.style.display='none';},150);});
+menuPanel.addEventListener('mouseleave',()=>{menuPanel.style.display='none';});
+
+// ------------------ Bookmarks ------------------
 function toggleBookmark(){
   if(!active) return;
   if(bookmarks[active.url]) openBMEdit(active.url);
@@ -211,29 +238,20 @@ function renderBookmarks(){
     const btn=document.createElement("div");
     btn.className="bookmarkButton";
     btn.textContent=bookmarks[url].name;
-
     let holdTimer;
     btn.onmousedown=()=>{holdTimer=setTimeout(()=>openBMEdit(url),600);}
     btn.onmouseup=btn.onmouseleave=()=>clearTimeout(holdTimer);
-
     btn.onclick=(e)=>{
       if(e.detail===1 && active){
         const code=bookmarks[url].code;
         if(code.startsWith("javascript:")){
-          try{
-            const script = active.iframe.contentDocument.createElement("script");
-            script.textContent = code.replace(/^javascript:/,"");
-            active.iframe.contentDocument.body.appendChild(script);
-          }catch(err){console.error("Bookmarklet injection failed", err);}
+          try{const script = active.iframe.contentDocument.createElement("script");script.textContent = code.replace(/^javascript:/,"");active.iframe.contentDocument.body.appendChild(script);}catch(err){console.error("Bookmarklet injection failed", err);}
         } else newTab(code);
       }
     }
-
     bookmarkBar.appendChild(btn);
   });
 }
-
-// Start URL auto-update loop
 requestAnimationFrame(updateURLBar);
 </script>
 </body>
