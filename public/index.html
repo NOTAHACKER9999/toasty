@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Glitch Hub Proxy Browser</title>
+<title>Glitch Hub</title>
 
-<!-- UV Proxy Scripts -->
+<!-- ===== UV PROXY ===== -->
 <script src="/uv/uv.bundle.js"></script>
 <script src="/uv/uv.config.js"></script>
 <script>
@@ -17,57 +17,59 @@ if ("serviceWorker" in navigator) {
 </script>
 
 <style>
-:root{
-  --bg:#0a0a0a; --panel:#121212; --border:#333; --accent:#fff; --text:#fff;
-  --urlbar-bg:#000; --btn-bg:#111; --btn-hover:#222; --active-tab:#121212;
+:root {
+  --bg:#050505; --panel:#0f0f0f; --border:#2a2a2a; --accent:#ff2d2d; --text:#e0e0e0;
+  --bubble-bg:#151515; --tab-bg:#111; --tab-active:#222; --bookmark-btn-bg:#111;
 }
-*{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
-header{background:var(--panel);padding:16px;text-align:center;font-size:2rem;font-weight:700;border-bottom:1px solid var(--border);}
-nav{display:flex;justify-content:center;gap:18px;padding:12px;background:var(--panel);border-bottom:1px solid var(--border);}
-.nav-btn{padding:10px 20px;background:var(--btn-bg);border:none;border-radius:8px;cursor:pointer;color:var(--text);transition:.3s;}
-.nav-btn:hover{background:var(--btn-hover);}
-#homeContent{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:20px;gap:20px;}
-#homeContent input{width:400px;max-width:90%;padding:14px 20px;border-radius:999px;background:var(--btn-bg);border:none;color:var(--text);font-size:1.1rem;outline:none;}
 
-/* Proxy Overlay */
+/* ===== RESET ===== */
+*{box-sizing:border-box;margin:0;padding:0;font-family:Segoe UI,Arial,sans-serif;}
+body{background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+button{cursor:pointer;}
+
+/* ===== HEADER ===== */
+header{padding:16px;text-align:center;font-size:2rem;font-weight:700;background:var(--panel);border-bottom:1px solid var(--border);}
+nav{display:flex;justify-content:center;gap:18px;padding:10px;background:var(--panel);border-bottom:1px solid var(--border);}
+.nav-btn{padding:10px 18px;border-radius:12px;background:var(--tab-bg);color:var(--text);transition:.3s;}
+.nav-btn:hover{background:var(--tab-active);}
+
+/* ===== MAIN SEARCH ===== */
+main{flex:1;display:flex;justify-content:center;align-items:center;padding:40px;}
+#searchInput{width:100%;max-width:600px;padding:16px 20px;background:#111;border:1px solid var(--border);color:var(--text);border-radius:999px;font-size:1.1rem;outline:none;}
+
+/* ===== FOOTER ===== */
+footer{padding:12px;text-align:center;background:var(--panel);border-top:1px solid var(--border);font-size:.85rem;color:#aaa;}
+
+/* ===== PROXY OVERLAY ===== */
 #proxyOverlay{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;z-index:9999;}
+#tabsBar{display:flex;gap:2px;padding:2px;background:var(--panel);border-bottom:1px solid var(--border);overflow-x:auto;}
+.tab{display:flex;align-items:center;gap:4px;padding:6px 10px;background:var(--tab-bg);border-radius:6px;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:relative;transition:.2s;}
+.tab.active{background:var(--tab-active);}
+.tab img{width:16px;height:16px;}
+.tab .close{position:absolute;right:2px;top:2px;color:#fff;font-weight:900;font-size:12px;cursor:pointer;}
 
-/* Tabs Bar */
-#tabsBar{display:flex;align-items:flex-end;gap:2px;padding:0;background:var(--panel);border-bottom:1px solid var(--border);position:relative;}
-.tab{position:relative;flex-shrink:0;max-width:200px;min-width:80px;padding:8px 30px 8px 8px;background:var(--btn-bg);color:var(--text);border-top-left-radius:6px;border-top-right-radius:6px;cursor:pointer;display:flex;align-items:center;gap:6px;justify-content:flex-start;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:.2s;}
-.tab.active{background:var(--active-tab);}
-.tab img{width:16px;height:16px;vertical-align:middle;}
-.tab .close{position:absolute;right:4px;top:50%;transform:translateY(-50%);font-weight:900;cursor:pointer;color:#fff;}
-#newTabBtn{flex-shrink:0;padding:0 12px;background:var(--btn-bg);border-radius:6px;cursor:pointer;color:var(--text);display:flex;align-items:center;justify-content:center;font-weight:700;transition:.2s;}
-#newTabBtn:hover{background:var(--btn-hover);}
-#closeProxyBtn{margin-left:auto;padding:6px 12px;cursor:pointer;color:#fff;background:var(--btn-bg);border:none;border-radius:4px;}
-#closeProxyBtn:hover{background:var(--btn-hover);}
+/* ===== BROWSER BAR ===== */
+#browserBar{display:flex;align-items:center;gap:8px;padding:8px;background:var(--panel);border-bottom:1px solid var(--border);}
+#urlBar{flex:1;padding:8px 16px;background:#111;border:1px solid #fff;border-radius:6px;font-family:monospace;font-size:.85rem;color:#fff;outline:none;}
+.bubble-btn{padding:6px 10px;border-radius:6px;background:var(--bubble-bg);color:#fff;border:none;transition:.3s;}
+.bubble-btn:hover{background:var(--tab-active);}
+#fullscreenBtn,#devBtn,#bookmarkStar{margin-left:4px;}
 
-/* Browser Bar */
-#browserBar{display:flex;align-items:center;gap:6px;padding:6px;background:var(--btn-bg);border-bottom:1px solid var(--border);}
-.bubble-btn{padding:6px 12px;border-radius:4px;background:var(--btn-bg);border:none;cursor:pointer;color:var(--text);}
-.bubble-btn:hover{background:var(--btn-hover);}
-#urlBar{flex:1;padding:6px 12px;background:var(--urlbar-bg);border:1px solid #fff;border-radius:4px;color:var(--text);outline:none;font-family:monospace;font-size:0.9rem;}
+/* ===== BOOKMARK BAR ===== */
+#bookmarkBar{display:flex;gap:4px;background:var(--panel);padding:4px 6px;border-bottom:1px solid var(--border);}
+.bookmark-btn{padding:6px 12px;background:var(--bookmark-btn-bg);border-radius:6px;color:#fff;display:flex;align-items:center;gap:4px;white-space:nowrap;cursor:pointer;}
+.bookmark-btn:hover{background:var(--tab-active);}
+.bookmark-btn button{margin-left:4px;background:transparent;border:none;color:#ff2d2d;font-weight:700;cursor:pointer;}
 
-/* Bookmark Star */
-#bookmarkStar{padding:6px 12px;margin-left:4px;border-radius:4px;background:var(--btn-bg);border:none;cursor:pointer;color:var(--text);font-weight:bold;}
-
-/* Bookmark Bar */
-#bookmarkBar{display:flex;gap:4px;padding:4px;background:var(--panel);border-bottom:1px solid var(--border);overflow-x:auto;min-height:32px;}
-.bookmark-btn{padding:4px 10px;background:var(--btn-bg);color:var(--text);border:none;border-radius:4px;cursor:pointer;font-size:0.85rem;}
-.bookmark-btn:hover{background:var(--btn-hover);}
-
-/* Frames */
+/* ===== FRAMES ===== */
 #frames{flex:1;position:relative;}
 .proxyFrame{position:absolute;inset:0;width:100%;height:100%;border:none;display:none;}
-.proxyFrame.active{display:block;}
+.proxyFrame.active{display:block}
 
-/* Bookmark Modal */
-#bookmarkModal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--panel);border:1px solid var(--border);padding:20px;border-radius:8px;display:none;flex-direction:column;gap:10px;z-index:10000;width:400px;max-width:90%;}
-#bookmarkModal input{padding:6px;border-radius:4px;background:var(--btn-bg);border:none;color:var(--text);}
-#bookmarkModal button{padding:6px 12px;background:var(--btn-bg);border:none;border-radius:4px;color:var(--text);cursor:pointer;}
-#bookmarkModal button:hover{background:var(--btn-hover);}
+/* ===== MODALS ===== */
+#bookmarkModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:10001;justify-content:center;align-items:center;}
+#bookmarkModal input{display:block;margin-bottom:10px;padding:8px;border-radius:6px;border:none;width:300px;outline:none;}
+#bookmarkModal button{padding:6px 10px;border-radius:6px;border:none;background:var(--accent);color:#000;font-weight:700;cursor:pointer;}
 </style>
 </head>
 <body>
@@ -75,234 +77,191 @@ nav{display:flex;justify-content:center;gap:18px;padding:12px;background:var(--p
 <header>Glitch Hub</header>
 
 <nav>
-  <div class="nav-btn" onclick="window.location.href='../games/app.html'">Games</div>
-  <div class="nav-btn" onclick="window.location.href='../movies/index.html'">Movies</div>
-  <div class="nav-btn" onclick="window.location.href='../ai/index.html'">AI</div>
-  <div class="nav-btn" onclick="window.location.href='../tools/index.html'">Tools</div>
+  <div class="nav-btn" onclick="openNav('../games/app.html')">Games</div>
+  <div class="nav-btn" onclick="openNav('../movies/index.html')">Movies</div>
+  <div class="nav-btn" onclick="openNav('../ai/index.html')">AI</div>
+  <div class="nav-btn" onclick="openNav('../tools/index.html')">Tools</div>
 </nav>
 
-<div id="homeContent">
-  <input id="homeSearch" placeholder="Search or enter a URL (press Enter)">
-</div>
+<main>
+  <input id="searchInput" placeholder="Search or enter URL (press Enter)">
+</main>
 
+<footer>© 2025 Glitch Override</footer>
+
+<!-- ===== PROXY OVERLAY ===== -->
 <div id="proxyOverlay">
-  <div id="tabsBar">
-    <div id="newTabBtn" onclick="newTab()">＋</div>
-    <button id="closeProxyBtn" onclick="closeOverlay()">✕</button>
-  </div>
-
+  <div id="tabsBar"><div class="tab" onclick="newTab()">＋</div></div>
   <div id="browserBar">
     <div class="bubble-btn" onclick="goBack()">⟵</div>
     <div class="bubble-btn" onclick="goForward()">⟶</div>
     <div class="bubble-btn" onclick="refreshTab()">⟳</div>
     <input id="urlBar" spellcheck="false">
-    <div class="bubble-btn" onclick="fullscreenTab()">⛶</div>
-    <div class="bubble-btn" onclick="injectCode()">&lt;/&gt;</div>
-    <div id="bookmarkStar" onclick="toggleBookmark()">☆</div>
+    <div class="bubble-btn" id="fullscreenBtn" onclick="fullscreenTab()">⛶</div>
+    <div class="bubble-btn" id="devBtn" onclick="injectCode()">&lt;/&gt;</div>
+    <div class="bubble-btn" id="bookmarkStar" onclick="toggleBookmark()">☆</div>
+    <div class="bubble-btn" onclick="closeOverlay()">✕</div>
   </div>
-
   <div id="bookmarkBar"></div>
   <div id="frames"></div>
 </div>
 
+<!-- ===== BOOKMARK MODAL ===== -->
 <div id="bookmarkModal">
-  <input type="text" id="bookmarkName" placeholder="Bookmark Name">
-  <input type="text" id="bookmarkCode" placeholder="Bookmarklet JS Code or URL">
-  <div style="display:flex;gap:10px;justify-content:flex-end;">
-    <button onclick="saveBookmark()">Save</button>
-    <button onclick="closeBookmarkModal()">Cancel</button>
+  <div style="background:#111;padding:20px;border-radius:10px;display:flex;flex-direction:column;align-items:center;">
+    <input type="text" id="bookmarkName" placeholder="Bookmark Name">
+    <input type="text" id="bookmarkCode" placeholder="Bookmarklet JS Code or URL">
+    <div style="display:flex;gap:10px;">
+      <button onclick="saveBookmark()">Save</button>
+      <button onclick="closeBookmarkModal()">Cancel</button>
+    </div>
   </div>
 </div>
 
 <script>
-const homeSearch = document.getElementById("homeSearch");
-const overlay = document.getElementById("proxyOverlay");
-const tabsBar = document.getElementById("tabsBar");
-const frames = document.getElementById("frames");
-const urlBar = document.getElementById("urlBar");
-const bookmarkBar = document.getElementById("bookmarkBar");
-const homeContent = document.getElementById("homeContent");
-const bookmarkStar = document.getElementById("bookmarkStar");
-const bookmarkModal = document.getElementById("bookmarkModal");
-const bookmarkNameInput = document.getElementById("bookmarkName");
-const bookmarkCodeInput = document.getElementById("bookmarkCode");
+const overlay=document.getElementById("proxyOverlay");
+const tabsBar=document.getElementById("tabsBar");
+const frames=document.getElementById("frames");
+const urlBar=document.getElementById("urlBar");
+const searchInput=document.getElementById("searchInput");
+const fullscreenBtn=document.getElementById("fullscreenBtn");
+const devBtn=document.getElementById("devBtn");
+const bookmarkStar=document.getElementById("bookmarkStar");
+const bookmarkBar=document.getElementById("bookmarkBar");
+const bookmarkModal=document.getElementById("bookmarkModal");
+const bookmarkNameInput=document.getElementById("bookmarkName");
+const bookmarkCodeInput=document.getElementById("bookmarkCode");
 
-let tabs=[], active=null;
-let bookmarks=[];
+let tabs=[],active=null,editingUrl=false,bookmarks=[];
 
-// Normalize input
-function normalize(input){
+// ===== URL NORMALIZER =====
+function normalize(input){ 
   if(!input.includes(".")) return "https://www.startpage.com/sp/search?q="+encodeURIComponent(input);
   if(!input.startsWith("http")) return "https://"+input;
   return input;
 }
 
-// Home search
-homeSearch.addEventListener("keydown", e=>{
-  if(e.key==="Enter") newTab(normalize(homeSearch.value.trim()));
+// ===== HOME SEARCH =====
+searchInput.addEventListener("keydown",e=>{
+  if(e.key==="Enter"){ newTab(normalize(searchInput.value.trim())); }
 });
 
-// Open new tab
-function newTab(url="https://www.startpage.com"){
-  homeContent.style.display="none";
-  const iframe = document.createElement("iframe");
+// ===== NAV BUTTONS =====
+function openNav(path){ newTab(location.origin+path.replace(/^.\//,"/")); }
+
+// ===== TABS =====
+function newTab(url=normalize("startpage.com")) {
+  const iframe=document.createElement("iframe");
   iframe.className="proxyFrame";
 
-  const tab = document.createElement("div");
+  const tab=document.createElement("div");
   tab.className="tab";
-  const title = document.createElement("span"); title.textContent="New Tab";
-  const favicon = document.createElement("img"); favicon.src="";
-  const closeBtn = document.createElement("span"); closeBtn.textContent="✕"; closeBtn.className="close";
-  closeBtn.onclick = e=>{e.stopPropagation(); closeTab(tabObj);};
-
-  const tabObj = {iframe, tab, title, url, favicon};
-  tab.onclick = ()=>activate(tabObj);
-  tab.append(favicon, title, closeBtn);
-  tabs.splice(tabs.length,0,tabObj);
-  tabsBar.insertBefore(tab, document.getElementById("newTabBtn"));
+  const icon=document.createElement("img"); icon.src="data:image/svg+xml;base64,PHN2Zy8+";
+  const title=document.createElement("span"); title.textContent="New Tab";
+  const close=document.createElement("span"); close.textContent="✕"; close.className="close";
+  const tabObj={iframe,tab,icon,title,url};
+  close.onclick=e=>{e.stopPropagation();closeTab(tabObj)};
+  tab.onclick=()=>activate(tabObj);
+  tab.append(icon,title,close);
+  tabs.splice(tabs.length-1,0,tabObj);
+  tabsBar.insertBefore(tab,tabsBar.lastElementChild);
   frames.appendChild(iframe);
-
-  iframe.src = __uv$config.prefix + __uv$config.encodeUrl(url);
   overlay.style.display="flex";
   activate(tabObj);
-
-  iframe.onload = () => {
-    try{
-      const w = iframe.contentWindow;
-      tabObj.title.textContent = w.document.title || "New Tab";
-      const linkIcon = w.document.querySelector("link[rel~='icon']");
-      if(linkIcon) tabObj.favicon.src = linkIcon.href;
-    } catch{}
-    updateBookmarkStar();
-  };
+  iframe.src=__uv$config.prefix+__uv$config.encodeUrl(url);
 }
 
-// Activate tab
+// ===== ACTIVATE TAB =====
 function activate(t){
   tabs.forEach(x=>{x.iframe.classList.remove("active"); x.tab.classList.remove("active");});
-  active = t;
-  t.iframe.classList.add("active");
-  t.tab.classList.add("active");
-  updateUrlBar();
+  active=t;
+  t.iframe.classList.add("active"); t.tab.classList.add("active");
+  urlBar.value=t.url;
   updateBookmarkStar();
 }
 
-// Close tab
+// ===== CLOSE TAB =====
 function closeTab(t){
   const i=tabs.indexOf(t);
-  if(i>-1){t.iframe.remove(); t.tab.remove(); tabs.splice(i,1); activate(tabs[i-1]||tabs[0]||null);}
-  if(tabs.length===0){overlay.style.display="none"; homeContent.style.display="flex";}
+  if(i>-1){ t.iframe.remove(); t.tab.remove(); tabs.splice(i,1); activate(tabs[i-1]||tabs[0]); }
 }
 
-// URL bar live
-function updateUrlBar(){
-  if(!active) return;
-  try{
-    const w = active.iframe.contentWindow;
-    let href = active.url;
-    if(w.location.href.includes(__uv$config.prefix)){
-      const encoded = w.location.href.split(__uv$config.prefix)[1];
-      href = __uv$config.decodeUrl(encoded.replace(/^\/+/,''));
-    }
-    urlBar.value = href;
-  } catch{ urlBar.value = active.url; }
-  requestAnimationFrame(updateUrlBar);
-}
-
-// Browser buttons
+// ===== NAV CONTROLS =====
 function goBack(){active?.iframe.contentWindow.history.back();}
 function goForward(){active?.iframe.contentWindow.history.forward();}
 function refreshTab(){active?.iframe.contentWindow.location.reload();}
 function fullscreenTab(){active?.iframe.requestFullscreen?.();}
 function injectCode(){
   if(!active) return;
-  const code=`javascript:(function () {
-    var script=document.createElement('script');
-    script.src="//cdn.jsdelivr.net/npm/eruda";
-    document.body.appendChild(script);
-    script.onload = function(){eruda.init();}
-  })();`;
+  const code=`javascript:(function(){var script=document.createElement('script');script.src="//cdn.jsdelivr.net/npm/eruda";document.body.appendChild(script);script.onload=function(){eruda.init();}})();`;
   active.iframe.contentWindow.eval(code);
 }
+function closeOverlay(){overlay.style.display="none";}
 
-// Bookmark functions
-function updateBookmarkStar(){
-  if(!active) return;
-  const current = urlBar.value;
-  const found = bookmarks.find(b=>b.code===current);
-  bookmarkStar.textContent = found ? "★" : "☆";
+// ===== URL BAR LIVE =====
+urlBar.addEventListener("keydown", e=>{
+  if(e.key==="Enter" && active){
+    e.preventDefault();
+    const newUrl=urlBar.value.trim();
+    active.url=newUrl;
+    active.iframe.src=__uv$config.prefix+__uv$config.encodeUrl(newUrl);
+    updateBookmarkStar();
+  }
+});
+
+// ===== BOOKMARKS =====
+function renderBookmarks(){
+  bookmarkBar.innerHTML="";
+  bookmarks.forEach((b, idx)=>{
+    const wrapper=document.createElement("div"); wrapper.style.display="flex"; wrapper.style.alignItems="center";
+    const btn=document.createElement("div"); btn.className="bookmark-btn"; btn.textContent=b.name;
+    btn.onclick=()=>{ newTab(b.code); };
+    let pressTimer;
+    btn.addEventListener("mousedown",()=>{ pressTimer=setTimeout(()=>{ openBookmarkModal(idx); },700); });
+    btn.addEventListener("mouseup",()=>{ clearTimeout(pressTimer); });
+    btn.addEventListener("mouseleave",()=>{ clearTimeout(pressTimer); });
+    const delBtn=document.createElement("button"); delBtn.textContent="✕";
+    delBtn.onclick=()=>{ bookmarks.splice(idx,1); renderBookmarks(); updateBookmarkStar(); };
+    wrapper.appendChild(btn); wrapper.appendChild(delBtn);
+    bookmarkBar.appendChild(wrapper);
+  });
 }
 
 function toggleBookmark(){
   if(!active) return;
-  const current = urlBar.value;
-  const foundIndex = bookmarks.findIndex(b=>b.code===current);
-  if(foundIndex>-1){
-    bookmarks.splice(foundIndex,1);
-    renderBookmarks();
-  }else{
-    suggestBookmark();
-  }
+  const existing=bookmarks.find(b=>b.code===active.url);
+  if(existing){ bookmarks=bookmarks.filter(b=>b.code!==active.url); renderBookmarks(); updateBookmarkStar(); return; }
+  bookmarkNameInput.value=active.iframe.contentDocument?.title||"New Bookmark";
+  bookmarkCodeInput.value=active.url;
+  openBookmarkModal();
 }
 
-function suggestBookmark(){
-  bookmarkNameInput.value = active.iframe.contentDocument.title || "New Bookmark";
-  bookmarkCodeInput.value = urlBar.value;
-  bookmarkModal.style.display="flex";
+function openBookmarkModal(idx=null){ 
+  bookmarkModal.style.display="flex"; 
+  if(idx!==null){ bookmarkModal.dataset.editIndex=idx; bookmarkNameInput.value=bookmarks[idx].name; bookmarkCodeInput.value=bookmarks[idx].code;}
+  else delete bookmarkModal.dataset.editIndex;
+}
+function saveBookmark(){
+  const name=bookmarkNameInput.value.trim(); const code=bookmarkCodeInput.value.trim();
+  if(!name||!code)return;
+  const editIndex=bookmarkModal.dataset.editIndex;
+  if(editIndex!==undefined){ bookmarks[editIndex]={name,code}; delete bookmarkModal.dataset.editIndex; }
+  else bookmarks.push({name,code});
+  bookmarkModal.style.display="none"; renderBookmarks(); updateBookmarkStar();
 }
 function closeBookmarkModal(){bookmarkModal.style.display="none";}
-function saveBookmark(){
-  const name = bookmarkNameInput.value.trim();
-  const code = bookmarkCodeInput.value.trim();
-  if(name && code){
-    const editIndex = bookmarkModal.dataset.editIndex;
-    if(editIndex!==undefined){ bookmarks[editIndex].name=name; bookmarks[editIndex].code=code; delete bookmarkModal.dataset.editIndex; }
-    else{ bookmarks.push({name,code}); }
-    renderBookmarks();
-  }
-  closeBookmarkModal();
+
+function updateBookmarkStar(){
+  if(!active){ bookmarkStar.textContent="☆"; return; }
+  const found=bookmarks.find(b=>b.code===active.url);
+  bookmarkStar.textContent=found?"★":"☆";
 }
 
-function renderBookmarks(){
-  bookmarkBar.innerHTML="";
-  bookmarks.forEach((b, idx)=>{
-    const btn = document.createElement("div");
-    btn.className="bookmark-btn"; 
-    btn.textContent=b.name;
+// ===== SEARCH BAR NAV =====
+searchInput.addEventListener("keydown", e=>{ if(e.key==="Enter") newTab(normalize(searchInput.value.trim())); });
 
-    let pressTimer;
-
-    // Open or run on click
-    btn.onclick = (e)=>{
-      if(!pressTimer) { // Only if not long-press
-        e.preventDefault();
-        newTab(b.code); // Open in proxy
-      }
-    }
-
-    // Long press for editing
-    btn.addEventListener("mousedown", (e)=>{
-      pressTimer = setTimeout(()=>{
-        bookmarkNameInput.value = b.name;
-        bookmarkCodeInput.value = b.code;
-        bookmarkModal.style.display="flex";
-        bookmarkModal.dataset.editIndex = idx;
-      }, 700); // 700ms hold triggers edit
-    });
-
-    btn.addEventListener("mouseup", ()=>{ clearTimeout(pressTimer); pressTimer=null; });
-    btn.addEventListener("mouseleave", ()=>{ clearTimeout(pressTimer); pressTimer=null; });
-
-    bookmarkBar.appendChild(btn);
-  });
-  updateBookmarkStar();
-}
-
-// Close overlay
-function closeOverlay(){
-  overlay.style.display="none";
-  homeContent.style.display="flex";
-}
+// ===== INITIAL TAB =====
+newTab(normalize("startpage.com"));
 </script>
 </body>
 </html>
