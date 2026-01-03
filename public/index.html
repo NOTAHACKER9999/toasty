@@ -15,68 +15,84 @@ if ("serviceWorker" in navigator) {
 
 <style>
 :root{
-  --bg:#0a0a0a; --panel:#121212; --bar:#0e0e0e;
-  --tab:#1a1a1a; --tab-active:#202020; --text:#fff;
+  --bg:#0a0a0a;--panel:#121212;--bar:#0e0e0e;
+  --tab:#1a1a1a;--tab-active:#202020;--text:#fff;
 }
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:Segoe UI,Arial;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+body{font-family:Segoe UI,Arial;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
 
-header{background:var(--panel);padding:14px;text-align:center;font-size:2rem;font-weight:700;}
-#home{flex:1;display:flex;justify-content:center;align-items:center;}
-#homeSearch{width:420px;padding:14px;border-radius:999px;background:#111;color:white;border:none;font-size:1.1rem;}
+/* HOME */
+header{background:var(--panel);padding:14px;text-align:center;font-size:2rem;font-weight:700}
+nav{display:flex;justify-content:center;gap:16px;background:var(--panel);padding:10px}
+.nav-btn{padding:8px 16px;background:#111;border-radius:8px;cursor:pointer}
+.nav-btn:hover{background:#222}
 
-#proxyOverlay{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;}
+#home{flex:1;display:flex;justify-content:center;align-items:center}
+#homeSearch{width:420px;padding:14px;border-radius:999px;background:#111;color:white;border:none;font-size:1.1rem}
 
-#tabsBar{display:flex;align-items:flex-end;background:var(--panel);padding:4px;}
-.tab{display:flex;align-items:center;gap:6px;padding:8px 26px 8px 10px;background:var(--tab);border-radius:8px 8px 0 0;cursor:pointer;max-width:200px;position:relative;}
-.tab.active{background:var(--tab-active);}
-.tab img{width:16px;height:16px;}
-.tab span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.tab .close{position:absolute;right:6px;cursor:pointer;}
+/* PROXY */
+#proxyOverlay{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column}
 
-#newTabBtn{padding:8px;background:#111;border-radius:8px;cursor:pointer;}
-#closeOverlayBtn{margin-left:auto;padding:8px;background:#111;border-radius:8px;cursor:pointer;}
+/* TABS */
+#tabsBar{display:flex;align-items:flex-end;background:var(--panel);padding:4px}
+.tab{display:flex;align-items:center;gap:6px;padding:8px 26px 8px 10px;background:var(--tab);border-radius:8px 8px 0 0;cursor:pointer;position:relative;max-width:200px}
+.tab.active{background:var(--tab-active)}
+.tab img{width:16px;height:16px}
+.tab span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tab .close{position:absolute;right:6px;cursor:pointer}
 
-#browserBar{display:flex;align-items:center;gap:6px;padding:6px;background:var(--bar);}
-.ctrl{padding:6px 10px;background:#111;border:none;color:white;cursor:pointer;border-radius:6px;}
+#newTabBtn{padding:8px;background:#111;border-radius:8px;cursor:pointer}
+#closeOverlayBtn{margin-left:auto;padding:8px;background:#111;border-radius:8px;cursor:pointer}
+
+/* BAR */
+#browserBar{display:flex;align-items:center;gap:6px;padding:6px;background:var(--bar)}
+.ctrl{padding:6px 10px;background:#111;border:none;color:white;border-radius:6px;cursor:pointer}
 .ctrl:hover{background:#222}
 
-#urlWrap{position:relative;flex:1;}
-#urlBar{width:100%;padding:8px 36px 8px 10px;background:black;border:none;color:white;font-family:monospace;}
-#bookmarkStar{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:22px;cursor:pointer;}
+#urlWrap{position:relative;flex:1}
+#urlBar{width:100%;padding:8px 36px 8px 10px;background:black;border:none;color:white;font-family:monospace}
+#bookmarkStar{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:22px;cursor:pointer}
 
-#menuBtn{font-size:22px;}
-
-#menuPanel{
-  position:absolute;top:42px;right:8px;
-  background:#111;border-radius:10px;
-  display:none;flex-direction:column;
-  min-width:160px;z-index:10000;
-}
-#menuPanel button{
-  padding:10px;background:none;border:none;color:white;text-align:left;cursor:pointer;
-}
+/* MENU */
+#menuBtn{font-size:22px}
+#menuPanel{position:absolute;top:42px;right:8px;background:#111;border-radius:10px;display:none;flex-direction:column;min-width:160px;z-index:10000}
+#menuPanel button{padding:10px;background:none;border:none;color:white;text-align:left;cursor:pointer}
 #menuPanel button:hover{background:#222}
 
-#bookmarkBar{display:flex;gap:6px;padding:6px;background:var(--panel);overflow-x:auto;}
-.bookmarkButton{padding:6px 10px;background:#111;border-radius:6px;cursor:pointer;}
+/* BOOKMARK BAR */
+#bookmarkBar{display:flex;gap:6px;padding:6px;background:var(--panel);overflow-x:auto}
+.bookmarkButton{padding:6px 10px;background:#111;border-radius:6px;cursor:pointer;white-space:nowrap}
+.bookmarkButton:hover{background:#222}
 
-#frames{flex:1;position:relative;}
-iframe,.customPage{position:absolute;inset:0;width:100%;height:100%;border:none;display:none;}
-iframe.active,.customPage.active{display:block;}
+/* CONTENT */
+#frames{flex:1;position:relative}
+iframe,.customPage{position:absolute;inset:0;width:100%;height:100%;border:none;display:none}
+iframe.active,.customPage.active{display:block}
 
-.customPage{background:#0b0b0b;padding:30px;overflow:auto;}
-.customHeader{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
-.customHeader h1{font-size:1.8rem;}
-.customHeader button{padding:8px 14px;background:#222;border:none;color:white;border-radius:6px;cursor:pointer;}
-.listItem{padding:12px;border-bottom:1px solid #222;}
+.customPage{background:#0b0b0b;padding:24px;overflow:auto}
+.customHeader{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.customHeader button{padding:8px 14px;background:#222;border:none;color:white;border-radius:6px;cursor:pointer}
+.listItem{padding:12px;border-bottom:1px solid #222}
 .listItem span{color:#aaa;font-size:.85rem}
+
+/* BOOKMARK MODALS */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:10001}
+.modalBox{background:#111;padding:24px;border-radius:14px;display:flex;flex-direction:column;gap:12px}
+.modalBox input{padding:10px;background:black;border:none;color:white}
+.modalBox button{padding:8px;background:#222;color:white;border:none;border-radius:6px;cursor:pointer}
+.deleteBtn{background:#660000}
 </style>
 </head>
 
 <body>
 
 <header>Glitch Hub</header>
+<nav>
+  <div class="nav-btn" onclick="location.href='../games/app.html'">Games</div>
+  <div class="nav-btn" onclick="location.href='../movies/index.html'">Movies</div>
+  <div class="nav-btn" onclick="location.href='../ai/index.html'">AI</div>
+  <div class="nav-btn" onclick="location.href='../tools/index.html'">Tools</div>
+</nav>
 
 <div id="home">
   <input id="homeSearch" placeholder="Search or enter URL">
@@ -113,6 +129,27 @@ iframe.active,.customPage.active{display:block;}
   <div id="frames"></div>
 </div>
 
+<!-- BOOKMARK CREATE -->
+<div id="bmCreate" class="modal">
+  <div class="modalBox">
+    <input id="bmCreateName" placeholder="Name">
+    <input id="bmCreateCode" placeholder="URL or javascript:">
+    <button onclick="saveBookmark()">Save</button>
+    <button onclick="closeBM()">Cancel</button>
+  </div>
+</div>
+
+<!-- BOOKMARK EDIT -->
+<div id="bmEdit" class="modal">
+  <div class="modalBox">
+    <input id="bmEditName">
+    <input id="bmEditCode">
+    <button onclick="saveEdit()">Save</button>
+    <button class="deleteBtn" onclick="deleteBM()">Delete</button>
+    <button onclick="closeBM()">Cancel</button>
+  </div>
+</div>
+
 <script>
 const home=document.getElementById("home");
 const overlay=document.getElementById("proxyOverlay");
@@ -120,10 +157,12 @@ const frames=document.getElementById("frames");
 const urlBar=document.getElementById("urlBar");
 const star=document.getElementById("bookmarkStar");
 const menu=document.getElementById("menuPanel");
+const bookmarkBar=document.getElementById("bookmarkBar");
 
 let tabs=[],active=null;
-let bookmarks={},historyLog=[];
-let userTyping=false;
+let bookmarks=JSON.parse(localStorage.getItem("bookmarks")||"{}");
+let historyLog=JSON.parse(localStorage.getItem("history")||"[]");
+let userTyping=false,editKey=null;
 
 menuBtn.onclick=()=>menu.style.display="flex";
 menu.onmouseleave=()=>menu.style.display="none";
@@ -138,8 +177,7 @@ function normalize(v){
 homeSearch.onkeydown=e=>e.key==="Enter"&&newTab(normalize(homeSearch.value));
 
 function newTab(url="https://www.startpage.com"){
-  home.style.display="none";
-  overlay.style.display="flex";
+  home.style.display="none";overlay.style.display="flex";
 
   const iframe=document.createElement("iframe");
   frames.appendChild(iframe);
@@ -153,7 +191,7 @@ function newTab(url="https://www.startpage.com"){
   tabs.push(t);
 
   tab.onclick=()=>activate(t);
-  tab.querySelector(".close").onclick=e=>{e.stopPropagation();closeTab(t)};
+  tab.querySelector(".close").onclick=e=>{e.stopPropagation();closeTab(t)}
 
   iframe.onload=()=>{
     try{
@@ -175,15 +213,14 @@ function activate(t){
   });
   active=t;
   t.tab.classList.add("active");
-  if(t.mode==="proxy") t.iframe.classList.add("active");
-  else t.custom.classList.add("active");
-  updateURLBar();
+  (t.mode==="proxy"?t.iframe:t.custom).classList.add("active");
+  updateURL();
 }
 
 urlBar.onfocus=()=>userTyping=true;
 urlBar.onblur=()=>userTyping=false;
 
-function updateURLBar(){
+function updateURL(){
   if(!active||userTyping) return;
   if(active.mode==="proxy"){
     try{
@@ -192,13 +229,9 @@ function updateURLBar(){
       urlBar.value=active.url;
       star.textContent=bookmarks[active.url]?"★":"☆";
     }catch{}
-  }else{
-    urlBar.value=active.url;
-    star.textContent="☆";
-  }
+  } else urlBar.value=active.url;
 }
-
-setInterval(updateURLBar,300);
+setInterval(updateURL,250);
 
 urlBar.onkeydown=e=>{
   if(e.key!=="Enter")return;
@@ -209,6 +242,7 @@ urlBar.onkeydown=e=>{
     active.url=v;
     active.iframe.src=__uv$config.prefix+__uv$config.encodeUrl(v);
     historyLog.push({url:v,time:new Date().toLocaleString()});
+    localStorage.setItem("history",JSON.stringify(historyLog));
   }
 };
 
@@ -225,6 +259,7 @@ function openCustom(path){
     page.innerHTML=`<div class="customHeader"><h1>History</h1><button onclick="closeCustom()">Close</button></div>`;
     historyLog.forEach(h=>page.innerHTML+=`<div class="listItem">${h.url}<br><span>${h.time}</span></div>`);
   }
+
   if(path==="/?/Bookmarks"){
     page.innerHTML=`<div class="customHeader"><h1>Bookmarks</h1><button onclick="closeCustom()">Close</button></div>`;
     Object.values(bookmarks).forEach(b=>page.innerHTML+=`<div class="listItem">${b.name}<br><span>${b.code}</span></div>`);
@@ -239,14 +274,72 @@ function closeCustom(){
   activate(active);
 }
 
+/* BOOKMARKS */
 function toggleBookmark(){
   if(!active||active.mode!=="proxy")return;
-  bookmarks[active.url]
-    ? delete bookmarks[active.url]
-    : bookmarks[active.url]={name:active.url,code:active.url};
-  star.textContent=bookmarks[active.url]?"★":"☆";
+  if(bookmarks[active.url]) openEdit(active.url);
+  else{
+    bmCreateName.value=active.url;
+    bmCreateCode.value=active.url;
+    bmCreate.style.display="flex";
+  }
 }
 
+function saveBookmark(){
+  bookmarks[bmCreateCode.value]={name:bmCreateName.value,code:bmCreateCode.value};
+  localStorage.setItem("bookmarks",JSON.stringify(bookmarks));
+  closeBM();renderBookmarks();
+}
+
+function openEdit(key){
+  editKey=key;
+  bmEditName.value=bookmarks[key].name;
+  bmEditCode.value=bookmarks[key].code;
+  bmEdit.style.display="flex";
+}
+
+function saveEdit(){
+  delete bookmarks[editKey];
+  bookmarks[bmEditCode.value]={name:bmEditName.value,code:bmEditCode.value};
+  localStorage.setItem("bookmarks",JSON.stringify(bookmarks));
+  closeBM();renderBookmarks();
+}
+
+function deleteBM(){
+  delete bookmarks[editKey];
+  localStorage.setItem("bookmarks",JSON.stringify(bookmarks));
+  closeBM();renderBookmarks();
+}
+
+function closeBM(){
+  bmCreate.style.display="none";
+  bmEdit.style.display="none";
+}
+
+function renderBookmarks(){
+  bookmarkBar.innerHTML="";
+  Object.keys(bookmarks).forEach(url=>{
+    const b=document.createElement("div");
+    b.className="bookmarkButton";
+    b.textContent=bookmarks[url].name;
+    let t;
+    b.onmousedown=()=>t=setTimeout(()=>openEdit(url),600);
+    b.onmouseup=b.onmouseleave=()=>clearTimeout(t);
+    b.onclick=()=>{
+      if(url.startsWith("javascript:")){
+        try{
+          const s=active.iframe.contentDocument.createElement("script");
+          s.textContent=url.replace("javascript:","");
+          active.iframe.contentDocument.body.appendChild(s);
+        }catch{}
+      } else newTab(url);
+    };
+    bookmarkBar.appendChild(b);
+  });
+}
+renderBookmarks();
+
+/* CONTROLS */
 function injectDev(){
   try{
     const d=active.iframe.contentDocument;
@@ -256,7 +349,6 @@ function injectDev(){
     d.body.appendChild(s);
   }catch{}
 }
-
 function goBack(){active?.iframe.contentWindow.history.back()}
 function goForward(){active?.iframe.contentWindow.history.forward()}
 function reloadTab(){active?.iframe.contentWindow.location.reload()}
@@ -264,9 +356,10 @@ function fullscreen(){active?.iframe.requestFullscreen()}
 function closeTab(t){
   t.tab.remove();t.iframe.remove();if(t.custom)t.custom.remove();
   tabs=tabs.filter(x=>x!==t);
-  tabs.length?activate(tabs[tabs.length-1]):closeOverlay();
+  tabs.length?activate(tabs.at(-1)):closeOverlay();
 }
 function closeOverlay(){overlay.style.display="none";home.style.display="flex"}
 </script>
+
 </body>
 </html>
