@@ -198,13 +198,14 @@ homeSearch.addEventListener("keydown", e=>{
     } else {
       url = browserSearchURLs[defaultBrowser]+encodeURIComponent(query);
     }
-    newTab(normalize(url));
+    newTab(url);
     homeSearch.value="";
   }
 });
 
 // TABS AND PROXY FUNCTIONS
-function newTab(url="https://www.startpage.com"){
+function newTab(url){
+  if(!url) url = browserSearchURLs[defaultBrowser]; // Ensure default search engine used
   home.style.display="none";overlay.style.display="flex";
   const iframe=document.createElement("iframe");
   frames.appendChild(iframe);
@@ -232,6 +233,7 @@ function newTab(url="https://www.startpage.com"){
   activate(t);
 }
 
+// Activate tab
 function activate(t){
   tabs.forEach(x=>{
     x.tab.classList.remove("active");
@@ -271,6 +273,7 @@ function updateURL(){
 }
 setInterval(updateURL,400);
 
+// URL Bar Enter
 urlBar.onkeydown=e=>{
   if(e.key!=="Enter")return;
   const v=normalize(urlBar.value);
@@ -302,7 +305,7 @@ function openCustom(path){
   if(path==="/?/Settings"){
     page.innerHTML=`<div class="customHeader"><h1>Settings</h1><button onclick="closeCustom()">Close</button></div>
     <div class="customBody">
-      <label for="browserSelect">Default Browser for Home Search:</label>
+      <label for="browserSelect">Default Browser for Search:</label>
       <select id="browserSelect">
         <option>Startpage</option>
         <option>Google</option>
@@ -323,7 +326,7 @@ function openCustom(path){
 
 function closeCustom(){if(active.custom) active.custom.remove();active.custom=null;active.mode="proxy"}
 
-// BOOKMARK FUNCTIONS
+// Bookmarks
 function toggleBookmark(){if(bookmarks[active.url]) openEdit(active.url); else {bmCreateName.value=active.url;bmCreateCode.value=active.url;bmCreate.style.display="flex"}}
 function saveBookmark(){bookmarks[bmCreateCode.value]={name:bmCreateName.value,code:bmCreateCode.value};localStorage.setItem("bookmarks",JSON.stringify(bookmarks));closeBM();renderBookmarks()}
 function openEdit(key){editKey=key;bmEditName.value=bookmarks[key].name;bmEditCode.value=bookmarks[key].code;bmEdit.style.display="flex"}
@@ -349,10 +352,10 @@ function renderBookmarks(){
 }
 renderBookmarks();
 
-// DEV TOOLS INJECTION
+// Dev tools
 function injectDev(){try{const d=active.iframe.contentDocument;const s=d.createElement("script");s.src="//cdn.jsdelivr.net/npm/eruda";s.onload=()=>{const i=d.createElement("script");i.textContent="eruda.init();";d.body.appendChild(i)};d.body.appendChild(s)}catch{}}
 
-// BROWSER CONTROLS
+// Browser controls
 function goBack(){active?.iframe.contentWindow.history.back()}
 function goForward(){active?.iframe.contentWindow.history.forward()}
 function reloadTab(){active?.iframe.contentWindow.location.reload()}
