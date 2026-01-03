@@ -1,4 +1,4 @@
-<!-- Full HTML with Eruda-style bookmarklet injection -->
+<!-- Full proxy with auto-updating URL bar -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,12 +16,7 @@ if ("serviceWorker" in navigator) {
 
 <style>
 :root{
-  --bg:#0a0a0a;
-  --panel:#121212;
-  --bar:#0e0e0e;
-  --tab:#1a1a1a;
-  --tab-active:#121212;
-  --text:#ffffff;
+  --bg:#0a0a0a; --panel:#121212; --bar:#0e0e0e; --tab:#1a1a1a; --tab-active:#121212; --text:#ffffff;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:Segoe UI,Arial;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
@@ -136,6 +131,7 @@ const bmCodeEdit=document.getElementById("bmCodeEdit");
 let tabs=[], active=null;
 let bookmarks={};
 let editingURL=null;
+let userEditingURL=false;
 
 function normalize(v){
   if(!v.includes(".")) return "https://www.startpage.com/sp/search?q="+encodeURIComponent(v);
@@ -166,10 +162,27 @@ function newTab(url="https://www.startpage.com"){
 function activate(t){
   tabs.forEach(x=>{x.tab.classList.remove("active"); x.iframe.classList.remove("active");});
   active=t; t.tab.classList.add("active"); t.iframe.classList.add("active");
-  urlBar.value=t.url;
-  star.textContent=bookmarks[t.url]?"★":"☆";
+  updateURLBar(); // immediately update
 }
 
+// Track if user is typing
+urlBar.addEventListener('input', ()=>{userEditingURL=true;});
+urlBar.addEventListener('blur', ()=>{userEditingURL=false;});
+
+// Auto-update the URL bar if not editing
+function updateURLBar(){
+  if(active && !userEditingURL){
+    try{
+      const enc = active.iframe.contentWindow.location.href.split(__uv$config.prefix)[1];
+      active.url = __uv$config.decodeUrl(enc?.replace(/^\/+/, '') || active.url);
+    }catch{}
+    urlBar.value = active.url;
+    star.textContent = bookmarks[active.url]?"★":"☆";
+  }
+  requestAnimationFrame(updateURLBar);
+}
+
+// Browser controls
 urlBar.onkeydown=e=>{if(e.key==="Enter"){active.url=normalize(urlBar.value); active.iframe.src=__uv$config.prefix+__uv$config.encodeUrl(active.url);}}
 function closeTab(t){t.tab.remove(); t.iframe.remove(); tabs=tabs.filter(x=>x!==t); if(tabs.length) activate(tabs[tabs.length-1]); else closeOverlay();}
 function closeOverlay(){tabs.forEach(t=>{t.tab.remove(); t.iframe.remove();}); tabs=[]; overlay.style.display="none"; home.style.display="flex";}
@@ -179,24 +192,13 @@ function reloadTab(){active?.iframe.contentWindow.location.reload();}
 function fullscreen(){active?.iframe.requestFullscreen();}
 function injectDev(){try{active.iframe.contentWindow.eval(`var s=document.createElement('script');s.src='//cdn.jsdelivr.net/npm/eruda';document.body.appendChild(s);s.onload=()=>eruda.init();`);}catch{}}
 
+// Bookmarks and bookmarklets
 function toggleBookmark(){
   if(!active) return;
-  if(bookmarks[active.url]){
-    openBMEdit(active.url);
-  } else {
-    bmNameCreate.value=active.tab.querySelector("span").textContent;
-    bmCodeCreate.value=active.url;
-    bmModalCreate.style.display="flex";
-  }
+  if(bookmarks[active.url]) openBMEdit(active.url);
+  else {bmNameCreate.value=active.tab.querySelector("span").textContent; bmCodeCreate.value=active.url; bmModalCreate.style.display="flex";}
 }
-
-function saveBookmarkCreate(){
-  const n=bmNameCreate.value.trim(), c=bmCodeCreate.value.trim();
-  if(!n || !c) return;
-  bookmarks[c]={name:n,code:c};
-  bmModalCreate.style.display="none";
-  renderBookmarks();
-}
+function saveBookmarkCreate(){const n=bmNameCreate.value.trim(),c=bmCodeCreate.value.trim();if(!n||!c)return;bookmarks[c]={name:n,code:c}; bmModalCreate.style.display="none"; renderBookmarks();}
 function closeBMCreate(){bmModalCreate.style.display="none";}
 function openBMEdit(url){editingURL=url; bmNameEdit.value=bookmarks[url].name; bmCodeEdit.value=bookmarks[url].code; bmModalEdit.style.display="flex";}
 function saveBookmarkEdit(){const n=bmNameEdit.value.trim(),c=bmCodeEdit.value.trim();if(!n||!c)return;delete bookmarks[editingURL]; bookmarks[c]={name:n,code:c}; bmModalEdit.style.display="none"; editingURL=null; renderBookmarks();}
@@ -218,21 +220,21 @@ function renderBookmarks(){
       if(e.detail===1 && active){
         const code=bookmarks[url].code;
         if(code.startsWith("javascript:")){
-          // Inject like Eruda: create <script> in proxied page
           try{
             const script = active.iframe.contentDocument.createElement("script");
             script.textContent = code.replace(/^javascript:/,"");
             active.iframe.contentDocument.body.appendChild(script);
           }catch(err){console.error("Bookmarklet injection failed", err);}
-        } else {
-          newTab(code);
-        }
+        } else newTab(code);
       }
     }
 
     bookmarkBar.appendChild(btn);
   });
 }
+
+// Start URL auto-update loop
+requestAnimationFrame(updateURLBar);
 </script>
 </body>
 </html>
