@@ -45,9 +45,8 @@ nav{display:flex;justify-content:center;gap:18px;padding:10px;background:var(--p
 .bookmarkButton{padding:6px 10px;background:#111;color:white;border-radius:6px;font-size:0.9rem;cursor:pointer;white-space:nowrap;}
 .bookmarkButton:hover{background:#222;}
 #frames{flex:1;position:relative;}
-iframe{position:absolute;inset:0;width:100%;height:100%;border:none;display:none;}
-iframe.active{display:block;}
-.customFrame{position:absolute;inset:0;width:100%;height:100%;background:#0a0a0a;color:white;display:none;overflow:auto;padding:20px;}
+iframe, .customFrame{position:absolute;inset:0;width:100%;height:100%;border:none;display:none;}
+iframe.active, .customFrame.active{display:block;}
 #bmModalCreate,#bmModalEdit{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:10001;}
 .bmBox{background:#111;padding:24px;border-radius:14px;display:flex;flex-direction:column;gap:12px;}
 .bmBox input{padding:10px;background:black;border:none;color:white;font-size:1rem;}
@@ -171,20 +170,22 @@ homeSearch.addEventListener('keydown', e=>{if(e.key==="Enter") newTab(normalize(
 function newTab(url="https://www.startpage.com"){
   home.style.display="none"; overlay.style.display="flex";
 
+  // Handle /?/ pages
   if(url.startsWith("/?/")) { openCustomPage(url); return; }
 
   const iframe=document.createElement("iframe");
   frames.appendChild(iframe);
 
   const tab=document.createElement("div"); tab.className="tab";
+  const icon=document.createElement("img"); icon.src=""; // will fill later
   const span=document.createElement("span"); span.textContent=url;
   const close=document.createElement("span"); close.className="close"; close.textContent="✕";
   close.onclick=e=>{ e.stopPropagation(); closeTab(tab,iframe); };
   tab.onclick=()=>activateTab(tab,iframe);
-  tab.append(span,close);
+  tab.append(icon,span,close);
   tabsBar.insertBefore(tab,document.getElementById("newTabBtn"));
 
-  tabs.push({tab,iframe,url});
+  tabs.push({tab,iframe,url,icon});
   activateTab(tab,iframe);
 
   iframe.src=__uv$config.prefix+__uv$config.encodeUrl(url);
@@ -193,6 +194,8 @@ function newTab(url="https://www.startpage.com"){
   iframe.onload=()=>{
     try{
       span.textContent=iframe.contentDocument.title||url;
+      const ico=iframe.contentDocument.querySelector("link[rel~='icon']");
+      if(ico) icon.src=ico.href;
     }catch{}
   };
 }
@@ -218,10 +221,10 @@ function closeOverlay(){
   customFrame.style.display='none';
 }
 
-// Show iframe or custom frame
+// Show iframe or custom frame in same area
 function showFrame(frame){
   Array.from(frames.children).forEach(f=>f.style.display='none');
-  customFrame.style.display='none';
+  Array.from(document.getElementsByClassName('customFrame')).forEach(f=>f.style.display='none');
   if(frame) frame.style.display='block';
 }
 
@@ -232,6 +235,18 @@ function openCustomPage(url){
   customFrame.innerHTML="";
   urlBar.value=url;
 
+  // Update active tab to reflect this
+  if(active) active.url=url;
+  else{
+    const dummyTab=document.createElement("div"); dummyTab.className="tab active";
+    const icon=document.createElement("img"); icon.src="";
+    const span=document.createElement("span"); span.textContent=url;
+    dummyTab.append(icon,span);
+    tabsBar.insertBefore(dummyTab, document.getElementById("newTabBtn"));
+    tabs.push({tab:dummyTab,iframe:null,url,icon});
+    active=tabs[tabs.length-1];
+  }
+
   if(url==="/?/History"){
     const h1=document.createElement("h1"); h1.textContent="History"; customFrame.appendChild(h1);
     historyList.forEach(hd=>{
@@ -239,32 +254,36 @@ function openCustomPage(url){
       div.style.cursor="pointer"; div.onclick=()=>newTab(hd.url);
       customFrame.appendChild(div);
     });
-    const clr=document.createElement("button"); clr.textContent="Clear History"; clr.onclick=()=>{historyList=[]; customFrame.innerHTML="<h1>History</h1>";}; customFrame.appendChild(clr);
+    const clr=document.createElement("button"); clr.textContent="Clear History";
+    clr.onclick=()=>{historyList=[]; customFrame.innerHTML="<h1>History</h1>";};
+    customFrame.appendChild(clr);
   }
 }
 
 // URL bar auto-update
 urlBar.addEventListener('input', ()=>{userEditingURL=true;});
 urlBar.addEventListener('blur', ()=>{userEditingURL=false;});
-
 function updateURLBar(){
   if(active && !userEditingURL){
-    try{
-      const enc = active.iframe.contentWindow.location.href.split(__uv$config.prefix)[1];
-      active.url = __uv$config.decodeUrl(enc?.replace(/^\/+/,"")||active.url);
-    }catch{}
-    urlBar.value=active.url;
-    star.textContent=bookmarks[active.url]?"★":"☆";
+    if(active.url.startsWith("/?/")) urlBar.value=active.url;
+    else{
+      try{
+        const enc = active.iframe.contentWindow.location.href.split(__uv$config.prefix)[1];
+        active.url = __uv$config.decodeUrl(enc?.replace(/^\/+/,"")||active.url);
+      }catch{}
+      urlBar.value=active.url;
+    }
+    star.textContent = bookmarks[active.url]?"★":"☆";
   }
   requestAnimationFrame(updateURLBar);
 }
 
 // Browser controls
-urlBar.onkeydown=e=>{if(e.key==="Enter"){active.url=normalize(urlBar.value); active.iframe.src=__uv$config.prefix+__uv$config.encodeUrl(active.url); addHistory(active.url);}}
-function goBack(){active?.iframe.contentWindow.history.back();}
-function goForward(){active?.iframe.contentWindow.history.forward();}
-function reloadTab(){active?.iframe.contentWindow.location.reload();}
-function fullscreen(){active?.iframe.requestFullscreen();}
+urlBar.onkeydown=e=>{if(e.key==="Enter"){active.url=normalize(urlBar.value); if(active.url.startsWith("/?/")) openCustomPage(active.url); else active.iframe.src=__uv$config.prefix+__uv$config.encodeUrl(active.url); addHistory(active.url);}}
+function goBack(){active?.iframe?.contentWindow.history.back();}
+function goForward(){active?.iframe?.contentWindow.history.forward();}
+function reloadTab(){active?.iframe?.contentWindow.location.reload();}
+function fullscreen(){active?.iframe?.requestFullscreen();}
 function injectDev(){try{const s=document.createElement('script');s.src='//cdn.jsdelivr.net/npm/eruda';active.iframe.contentDocument.body.appendChild(s);s.onload=()=>eruda.init();}catch{}}
 function addHistory(url){historyList.push({url,time:new Date().toLocaleString()});}
 
@@ -273,7 +292,7 @@ menuBtn.addEventListener('mouseenter',()=>{menuPanel.style.display='flex';});
 menuBtn.addEventListener('mouseleave',()=>{setTimeout(()=>{if(!menuPanel.matches(':hover')) menuPanel.style.display='none';},150);});
 menuPanel.addEventListener('mouseleave',()=>{menuPanel.style.display='none';});
 
-// Bookmarks (same as your code)
+// Bookmarks
 function toggleBookmark(){
   if(!active) return;
   if(bookmarks[active.url]) openBMEdit(active.url);
@@ -304,7 +323,6 @@ function renderBookmarks(){
   });
 }
 
-// Start URL auto-update loop
 requestAnimationFrame(updateURLBar);
 </script>
 </body>
