@@ -5,12 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Glitch Hub Proxy</title>
 
-<!-- Ultraviolet -->
 <script src="/uv/uv.bundle.js"></script>
 <script src="/uv/uv.config.js"></script>
 <script>
-if("serviceWorker" in navigator){
-  navigator.serviceWorker.register("/uv/sw.js",{scope:__uv$config.prefix});
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/uv/sw.js", { scope: __uv$config.prefix });
 }
 </script>
 
@@ -48,6 +47,10 @@ nav{display:flex;justify-content:center;gap:18px;padding:10px;background:var(--p
 #frames{flex:1;position:relative;}
 iframe{position:absolute;inset:0;width:100%;height:100%;border:none;display:none;}
 iframe.active{display:block;}
+#customFrame{position:absolute;inset:0;width:100%;height:100%;border:none;display:none;}
+#threeDotsMenu{position:absolute;right:6px;top:6px;background:#111;color:white;padding:6px;border-radius:6px;display:none;flex-direction:column;gap:4px;z-index:10000;}
+#threeDotsMenu button{background:#111;color:white;border:none;padding:4px 6px;border-radius:4px;cursor:pointer;}
+#threeDotsMenu button:hover{background:#222;}
 #bmModalCreate,#bmModalEdit{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:10001;}
 .bmBox{background:#111;padding:24px;border-radius:14px;display:flex;flex-direction:column;gap:12px;}
 .bmBox input{padding:10px;background:black;border:none;color:white;font-size:1rem;}
@@ -76,6 +79,7 @@ iframe.active{display:block;}
     <div id="newTabBtn" onclick="newTab()">＋</div>
     <div id="closeOverlayBtn" onclick="closeOverlay()">✕</div>
   </div>
+
   <div id="browserBar">
     <button class="ctrl" onclick="goBack()">⟵</button>
     <button class="ctrl" onclick="goForward()">⟶</button>
@@ -87,11 +91,38 @@ iframe.active{display:block;}
     <button class="ctrl" onclick="fullscreen()">⛶</button>
     <button class="ctrl" id="threeDotsBtn">⋮</button>
   </div>
+
+  <div id="threeDotsMenu">
+    <button onclick="newTab()">New Tab</button>
+    <button onclick="openHistory()">History</button>
+    <button onclick="alert('Bookmarks panel')">Bookmarks</button>
+    <button onclick="injectDev()">Dev Tools</button>
+    <button onclick="alert('Settings')">Settings</button>
+  </div>
+
   <div id="bookmarkBar"></div>
   <div id="frames"></div>
+  <iframe id="customFrame"></iframe>
 </div>
 
-<!-- Bookmark modals omitted for brevity (same as previous code) -->
+<div id="bmModalCreate">
+  <div class="bmBox">
+    <input id="bmNameCreate" placeholder="Bookmark Name">
+    <input id="bmCodeCreate" placeholder="Bookmark URL / JavaScript">
+    <button onclick="saveBookmarkCreate()">Save</button>
+    <button onclick="closeBMCreate()">Cancel</button>
+  </div>
+</div>
+
+<div id="bmModalEdit">
+  <div class="bmBox">
+    <input id="bmNameEdit" placeholder="Bookmark Name">
+    <input id="bmCodeEdit" placeholder="Bookmark URL / JavaScript">
+    <button onclick="saveBookmarkEdit()">Save</button>
+    <button class="deleteBtn" onclick="deleteBookmarkEdit()">Delete</button>
+    <button onclick="closeBMEdit()">Cancel</button>
+  </div>
+</div>
 
 <script>
 const home=document.getElementById("home");
@@ -99,25 +130,30 @@ const homeSearch=document.getElementById("homeSearch");
 const overlay=document.getElementById("proxyOverlay");
 const tabsBar=document.getElementById("tabsBar");
 const frames=document.getElementById("frames");
+const customFrame=document.getElementById("customFrame");
 const urlBar=document.getElementById("urlBar");
 const star=document.getElementById("bookmarkStar");
 const bookmarkBar=document.getElementById("bookmarkBar");
+const threeDotsBtn=document.getElementById("threeDotsBtn");
+const threeDotsMenu=document.getElementById("threeDotsMenu");
+
+const bmModalCreate=document.getElementById("bmModalCreate");
+const bmNameCreate=document.getElementById("bmNameCreate");
+const bmCodeCreate=document.getElementById("bmCodeCreate");
+
+const bmModalEdit=document.getElementById("bmModalEdit");
+const bmNameEdit=document.getElementById("bmNameEdit");
+const bmCodeEdit=document.getElementById("bmCodeEdit");
 
 let tabs=[], active=null;
 let bookmarks={};
-let historyList=[]; // store user history
-let customFrame=null; // iframe for /?/ pages
+let editingURL=null;
 let userEditingURL=false;
+let historyList=[];
 
-// create a special iframe for /?/ pages
-customFrame=document.createElement("iframe");
-customFrame.style.position='absolute';
-customFrame.style.inset='0';
-customFrame.style.width='100%';
-customFrame.style.height='100%';
-customFrame.style.border='none';
-customFrame.style.display='none';
-frames.appendChild(customFrame);
+// 3-dot menu toggle
+threeDotsBtn.onclick=()=>threeDotsMenu.style.display='flex';
+threeDotsMenu.onmouseleave=()=>threeDotsMenu.style.display='none';
 
 function normalize(v){
   if(!v.includes(".")) return "https://www.startpage.com/sp/search?q="+encodeURIComponent(v);
@@ -125,138 +161,187 @@ function normalize(v){
   return v;
 }
 
-homeSearch.onkeydown=e=>{if(e.key==="Enter") newTab(normalize(homeSearch.value));};
-
+// New tab function
 function newTab(url="https://www.startpage.com"){
+  home.style.display="none";
+  overlay.style.display="flex";
+
   if(url.startsWith("/?/")){
     openCustomPage(url);
     return;
   }
-  home.style.display="none"; overlay.style.display="flex";
+
+  customFrame.style.display="none";
+
   const iframe=document.createElement("iframe");
-  const tab=document.createElement("div"); tab.className="tab";
+  const tab=document.createElement("div");
+  tab.className="tab";
   const icon=document.createElement("img");
   const title=document.createElement("span"); title.textContent="New Tab";
   const close=document.createElement("span"); close.className="close"; close.textContent="✕";
   tab.append(icon,title,close);
-  tabsBar.insertBefore(tab, document.getElementById("newTabBtn"));
+  tabsBar.insertBefore(tab,document.getElementById("newTabBtn"));
   frames.appendChild(iframe);
-  const obj={iframe, tab, url}; tabs.push(obj);
+  const obj={iframe,tab,url};
+  tabs.push(obj);
+
   close.onclick=e=>{e.stopPropagation(); closeTab(obj);};
   tab.onclick=()=>activate(obj);
+
   iframe.src=__uv$config.prefix+__uv$config.encodeUrl(url);
   activate(obj);
-  iframe.onload=()=>{
-    try{
-      title.textContent=iframe.contentDocument.title||url;
-      const ico=iframe.contentDocument.querySelector("link[rel~='icon']");
-      if(ico) icon.src=ico.href;
-    }catch{}
-  };
+
+  iframe.onload=()=>{try{
+    title.textContent=iframe.contentDocument.title||url;
+    const ico=iframe.contentDocument.querySelector("link[rel~='icon']");
+    if(ico) icon.src=ico.href;
+  }catch{}};
+  // Add to history
+  historyList.push({url,time:new Date().toLocaleString()});
 }
 
 // Activate tab
 function activate(t){
-  tabs.forEach(x=>{x.tab.classList.remove("active"); if(x.iframe) x.iframe.classList.remove("active");});
-  active=t; if(t.iframe) t.iframe.classList.add("active");
+  tabs.forEach(x=>{if(x.tab)x.tab.classList.remove("active"); if(x.iframe)x.iframe.classList.remove("active");});
+  active=t;
+  if(t.tab) t.tab.classList.add("active");
+  if(t.iframe) t.iframe.classList.add("active");
   updateURLBar();
-  if(t.iframe) customFrame.style.display='none';
 }
 
-// URL bar auto-update
+// URL auto-update
 urlBar.addEventListener('input', ()=>{userEditingURL=true;});
 urlBar.addEventListener('blur', ()=>{userEditingURL=false;});
 
 function updateURLBar(){
   if(active && !userEditingURL){
-    if(active.iframe){
-      try{
+    try{
+      if(active.iframe){
         const enc = active.iframe.contentWindow.location.href.split(__uv$config.prefix)[1];
         active.url = __uv$config.decodeUrl(enc?.replace(/^\/+/, '') || active.url);
-      }catch{}
-    }
+      }
+    }catch{}
     urlBar.value = active.url;
     star.textContent = bookmarks[active.url]?"★":"☆";
   }
   requestAnimationFrame(updateURLBar);
 }
 
+urlBar.onkeydown=e=>{if(e.key==="Enter"){active.url=normalize(urlBar.value); if(active.iframe) active.iframe.src=__uv$config.prefix+__uv$config.encodeUrl(active.url); else openCustomPage(active.url);}}
+
 // Browser controls
-urlBar.onkeydown=e=>{
-  if(e.key==="Enter"){
-    if(active) active.url=urlBar.value;
-    if(active.url.startsWith("/?/")){
-      openCustomPage(active.url);
-    } else {
-      active.iframe.src=__uv$config.prefix+__uv$config.encodeUrl(normalize(active.url));
-    }
-  }
-}
-function closeTab(t){t.tab.remove(); if(t.iframe)t.iframe.remove(); tabs=tabs.filter(x=>x!==t); if(tabs.length) activate(tabs[tabs.length-1]); else closeOverlay();}
-function closeOverlay(){tabs.forEach(t=>{if(t.iframe)t.iframe.remove(); t.tab.remove();}); tabs=[]; overlay.style.display="none"; home.style.display="flex";}
+function closeTab(t){t.tab?.remove(); t.iframe?.remove(); tabs=tabs.filter(x=>x!==t); if(tabs.length) activate(tabs[tabs.length-1]); else closeOverlay();}
+function closeOverlay(){tabs.forEach(t=>{t.tab?.remove(); t.iframe?.remove();}); tabs=[]; overlay.style.display="none"; home.style.display="flex";}
 function goBack(){active?.iframe?.contentWindow.history.back();}
 function goForward(){active?.iframe?.contentWindow.history.forward();}
 function reloadTab(){active?.iframe?.contentWindow.location.reload();}
 function fullscreen(){active?.iframe?.requestFullscreen();}
 
-// Eruda injection
+// Inject Eruda into proxyed iframe
 function injectDev(){
   if(!active?.iframe) return;
-  const doc = active.iframe.contentDocument;
-  if(!doc) return;
-  const s = doc.createElement('script');
-  s.src='https://cdn.jsdelivr.net/npm/eruda';
-  s.onload=()=>{try{active.iframe.contentWindow.eruda.init();}catch{}};
-  doc.body.appendChild(s);
+  const win = active.iframe.contentWindow;
+  if(!win.eruda){
+    const s = win.document.createElement('script');
+    s.src = '//cdn.jsdelivr.net/npm/eruda';
+    win.document.body.appendChild(s);
+    s.onload=()=>win.eruda.init();
+  } else win.eruda.show();
 }
 
-// Handle /?/ custom pages
+// Bookmarks
+function toggleBookmark(){
+  if(!active) return;
+  if(bookmarks[active.url]) openBMEdit(active.url);
+  else {bmNameCreate.value=active.tab?.querySelector("span")?.textContent || active.url; bmCodeCreate.value=active.url; bmModalCreate.style.display="flex";}
+}
+function saveBookmarkCreate(){const n=bmNameCreate.value.trim(),c=bmCodeCreate.value.trim();if(!n||!c)return;bookmarks[c]={name:n,code:c}; bmModalCreate.style.display="none"; renderBookmarks();}
+function closeBMCreate(){bmModalCreate.style.display="none";}
+function openBMEdit(url){editingURL=url; bmNameEdit.value=bookmarks[url].name; bmCodeEdit.value=bookmarks[url].code; bmModalEdit.style.display="flex";}
+function saveBookmarkEdit(){const n=bmNameEdit.value.trim(),c=bmCodeEdit.value.trim();if(!n||!c)return;delete bookmarks[editingURL]; bookmarks[c]={name:n,code:c}; bmModalEdit.style.display="none"; editingURL=null; renderBookmarks();}
+function deleteBookmarkEdit(){delete bookmarks[editingURL]; bmModalEdit.style.display="none"; editingURL=null; renderBookmarks();}
+function closeBMEdit(){bmModalEdit.style.display="none"; editingURL=null;}
+
+function renderBookmarks(){
+  bookmarkBar.innerHTML="";
+  Object.keys(bookmarks).forEach(url=>{
+    const btn=document.createElement("div");
+    btn.className="bookmarkButton";
+    btn.textContent=bookmarks[url].name;
+
+    let holdTimer;
+    btn.onmousedown=()=>{holdTimer=setTimeout(()=>openBMEdit(url),600);}
+    btn.onmouseup=btn.onmouseleave=()=>clearTimeout(holdTimer);
+
+    btn.onclick=(e)=>{
+      if(e.detail===1 && active){
+        const code=bookmarks[url].code;
+        if(code.startsWith("javascript:")){
+          try{
+            const script = active.iframe?.contentDocument.createElement("script");
+            script.textContent = code.replace(/^javascript:/,"");
+            active.iframe?.contentDocument.body.appendChild(script);
+          }catch(err){console.error(err);}
+        } else newTab(code);
+      }
+    }
+
+    bookmarkBar.appendChild(btn);
+  });
+}
+
+// Custom page for /?/ URLs
 function openCustomPage(url){
-  if(!customFrame) return;
-  Array.from(frames.children).forEach(f=>{if(f!==customFrame) f.style.display='none';});
+  Array.from(frames.children).forEach(f=>f.style.display='none');
+  if(active?.iframe) active.iframe.style.display='none';
   customFrame.style.display='block';
-  customFrame.src='about:blank';
   const doc = customFrame.contentDocument || customFrame.contentWindow.document;
   doc.open();
-  if(url==="/?/History"){
-    doc.write(`
-      <html>
-      <head><title>History</title>
+  if(url.startsWith("/?/History")){
+    doc.write(`<html><head><title>History</title>
       <style>
       body{background:#0a0a0a;color:white;font-family:Segoe UI,Arial;padding:10px;}
-      h1{margin-top:0;} .entry{padding:4px 6px;margin:2px 0;background:#111;border-radius:4px;cursor:pointer;}
-      .entry:hover{background:#222;} button{background:#660000;color:white;padding:6px;border:none;border-radius:6px;cursor:pointer;}
+      h1{margin-top:0;}
+      .historyEntry{padding:4px 6px;margin:2px 0;border-radius:4px;cursor:pointer;background:#111;}
+      .historyEntry:hover{background:#222;}
+      button{background:#660000;color:white;padding:6px;border:none;border-radius:6px;cursor:pointer;}
       button:hover{background:#990000;}
       </style>
-      </head>
-      <body>
-        <h1>History</h1>
-        <button id="clearBtn">Clear History</button>
-        <div id="historyList"></div>
-        <script>
-          const listDiv = document.getElementById('historyList');
-          const clearBtn = document.getElementById('clearBtn');
-          function render(){
-            listDiv.innerHTML='';
-            const hist = parent.historyList || [];
-            hist.forEach(h=>{
-              const div=document.createElement('div');
-              div.className='entry';
-              div.textContent='['+h.time+'] '+h.url;
-              div.onclick=()=>parent.newTab(h.url);
-              listDiv.appendChild(div);
-            });
-          }
-          clearBtn.onclick=()=>{parent.historyList=[]; render();};
-          render();
-          setInterval(render,1000);
-        </script>
-      </body>
-      </html>
-    `);
+      </head><body>
+      <h1>History</h1>
+      <button onclick="parent.historyList=[];renderHistory();">Clear History</button>
+      <div id="historyList"></div>
+      <script>
+      const historyListDiv = document.getElementById('historyList');
+      function renderHistory(){
+        historyListDiv.innerHTML='';
+        (parent.historyList||[]).forEach(h=>{
+          const div=document.createElement('div');
+          div.className='historyEntry';
+          div.textContent='['+h.time+'] '+h.url;
+          div.onclick=()=>parent.newTab(h.url);
+          historyListDiv.appendChild(div);
+        });
+      }
+      renderHistory();
+      setInterval(renderHistory,1000);
+      </script>
+      </body></html>`);
+  } else {
+    doc.write(`<html><body><h1>${url}</h1></body></html>`);
   }
   doc.close();
 }
+
+// Open history via menu
+function openHistory(){
+  newTab("/?/History");
+}
+
+// Handle home search enter
+homeSearch.onkeydown=e=>{if(e.key==="Enter") newTab(normalize(homeSearch.value));};
+
+requestAnimationFrame(updateURLBar);
 </script>
 </body>
 </html>
