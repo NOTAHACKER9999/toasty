@@ -19,7 +19,7 @@ if ("serviceWorker" in navigator) {
 <style>
 :root {
   --bg:#050505; --panel:#0f0f0f; --border:#2a2a2a; --accent:#ff2d2d; --text:#e0e0e0;
-  --bubble-bg:#151515; --tab-bg:#111; --tab-active:#222; --bookmark-btn-bg:#111;
+  --tab-bg:#111; --tab-active:#222; --bookmark-btn-bg:#111;
 }
 
 /* ===== RESET ===== */
@@ -35,29 +35,36 @@ nav{display:flex;justify-content:center;gap:18px;padding:10px;background:var(--p
 
 /* ===== MAIN SEARCH ===== */
 main{flex:1;display:flex;justify-content:center;align-items:center;padding:40px;}
-#searchInput{width:100%;max-width:600px;padding:16px 20px;background:#111;border:1px solid var(--border);color:var(--text);border-radius:999px;font-size:1.1rem;outline:none;}
+#searchInput{width:100%;max-width:600px;padding:16px 20px;background:#111;border:1px solid var(--border);color:var(--text);border-radius:999px;font-size:1.1rem;outline:none;text-align:center;}
 
 /* ===== FOOTER ===== */
 footer{padding:12px;text-align:center;background:var(--panel);border-top:1px solid var(--border);font-size:.85rem;color:#aaa;}
 
 /* ===== PROXY OVERLAY ===== */
 #proxyOverlay{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;z-index:9999;}
-#tabsBar{display:flex;gap:2px;padding:2px;background:var(--panel);border-bottom:1px solid var(--border);overflow-x:auto;}
-.tab{display:flex;align-items:center;gap:4px;padding:6px 10px;background:var(--tab-bg);border-radius:6px;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:relative;transition:.2s;}
+#tabsBar{display:flex;gap:2px;padding:2px;background:var(--panel);border-bottom:1px solid var(--border);overflow-x:auto;align-items:center;position:relative;}
+.tab{display:flex;align-items:center;gap:4px;padding:6px 12px;background:var(--tab-bg);border-radius:6px;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:relative;transition:.2s;}
 .tab.active{background:var(--tab-active);}
 .tab img{width:16px;height:16px;}
 .tab .close{position:absolute;right:2px;top:2px;color:#fff;font-weight:900;font-size:12px;cursor:pointer;}
 
+/* ===== CLOSE OVERLAY BUTTON ===== */
+#closeOverlayBtn{position:absolute;right:2px;top:2px;color:#fff;font-weight:900;font-size:16px;cursor:pointer;}
+
 /* ===== BROWSER BAR ===== */
 #browserBar{display:flex;align-items:center;gap:8px;padding:8px;background:var(--panel);border-bottom:1px solid var(--border);}
-#urlBar{flex:1;padding:8px 16px;background:#111;border:1px solid #fff;border-radius:6px;font-family:monospace;font-size:.85rem;color:#fff;outline:none;}
-.bubble-btn{padding:6px 10px;border-radius:6px;background:var(--bubble-bg);color:#fff;border:none;transition:.3s;}
+#urlWrapper{flex:1;position:relative;}
+#urlBar{width:100%;padding:8px 16px;background:#111;border:1px solid #fff;border-radius:6px;font-family:monospace;font-size:.85rem;color:#fff;outline:none;}
+#bookmarkStar{position:absolute;right:4px;top:50%;transform:translateY(-50%);padding:0 4px;background:none;border:none;color:#fff;font-size:16px;cursor:pointer;}
+
+/* ===== NAV BUTTONS ===== */
+.bubble-btn{padding:6px 10px;border-radius:6px;background:var(--tab-bg);color:#fff;border:none;transition:.3s;}
 .bubble-btn:hover{background:var(--tab-active);}
-#fullscreenBtn,#devBtn,#bookmarkStar{margin-left:4px;}
+#fullscreenBtn,#devBtn{margin-left:4px;}
 
 /* ===== BOOKMARK BAR ===== */
-#bookmarkBar{display:flex;gap:4px;background:var(--panel);padding:4px 6px;border-bottom:1px solid var(--border);}
-.bookmark-btn{padding:6px 12px;background:var(--bookmark-btn-bg);border-radius:6px;color:#fff;display:flex;align-items:center;gap:4px;white-space:nowrap;cursor:pointer;}
+#bookmarkBar{display:flex;gap:4px;background:var(--panel);padding:4px 6px;border-bottom:1px solid var(--border);min-height:40px;}
+.bookmark-btn{padding:6px 12px;background:var(--tab-bg);border-radius:6px;color:#fff;display:flex;align-items:center;gap:4px;white-space:nowrap;cursor:pointer;}
 .bookmark-btn:hover{background:var(--tab-active);}
 .bookmark-btn button{margin-left:4px;background:transparent;border:none;color:#ff2d2d;font-weight:700;cursor:pointer;}
 
@@ -76,31 +83,35 @@ footer{padding:12px;text-align:center;background:var(--panel);border-top:1px sol
 
 <header>Glitch Hub</header>
 
-<nav>
-  <div class="nav-btn" onclick="openNav('../games/app.html')">Games</div>
-  <div class="nav-btn" onclick="openNav('../movies/index.html')">Movies</div>
-  <div class="nav-btn" onclick="openNav('../ai/index.html')">AI</div>
-  <div class="nav-btn" onclick="openNav('../tools/index.html')">Tools</div>
-</nav>
-
-<main>
-  <input id="searchInput" placeholder="Search or enter URL (press Enter)">
+<!-- HOME PAGE -->
+<main id="homePage">
+  <div style="display:flex;flex-direction:column;align-items:center;gap:20px;">
+    <div class="nav-btn" onclick="openNav('../games/app.html')">Games</div>
+    <div class="nav-btn" onclick="openNav('../movies/index.html')">Movies</div>
+    <div class="nav-btn" onclick="openNav('../ai/index.html')">AI</div>
+    <div class="nav-btn" onclick="openNav('../tools/index.html')">Tools</div>
+    <input id="searchInput" placeholder="Search or enter URL (press Enter)">
+  </div>
 </main>
 
 <footer>© 2025 Glitch Override</footer>
 
 <!-- ===== PROXY OVERLAY ===== -->
 <div id="proxyOverlay">
-  <div id="tabsBar"><div class="tab" onclick="newTab()">＋</div></div>
+  <div id="tabsBar">
+    <div class="tab" onclick="newTab()">＋</div>
+    <div id="closeOverlayBtn" onclick="closeOverlay()">✕</div>
+  </div>
   <div id="browserBar">
     <div class="bubble-btn" onclick="goBack()">⟵</div>
     <div class="bubble-btn" onclick="goForward()">⟶</div>
     <div class="bubble-btn" onclick="refreshTab()">⟳</div>
-    <input id="urlBar" spellcheck="false">
+    <div id="urlWrapper">
+      <input id="urlBar" spellcheck="false">
+      <button id="bookmarkStar" onclick="toggleBookmark()">☆</button>
+    </div>
     <div class="bubble-btn" id="fullscreenBtn" onclick="fullscreenTab()">⛶</div>
     <div class="bubble-btn" id="devBtn" onclick="injectCode()">&lt;/&gt;</div>
-    <div class="bubble-btn" id="bookmarkStar" onclick="toggleBookmark()">☆</div>
-    <div class="bubble-btn" onclick="closeOverlay()">✕</div>
   </div>
   <div id="bookmarkBar"></div>
   <div id="frames"></div>
@@ -131,6 +142,7 @@ const bookmarkBar=document.getElementById("bookmarkBar");
 const bookmarkModal=document.getElementById("bookmarkModal");
 const bookmarkNameInput=document.getElementById("bookmarkName");
 const bookmarkCodeInput=document.getElementById("bookmarkCode");
+const homePage=document.getElementById("homePage");
 
 let tabs=[],active=null,editingUrl=false,bookmarks=[];
 
@@ -151,6 +163,7 @@ function openNav(path){ newTab(location.origin+path.replace(/^.\//,"/")); }
 
 // ===== TABS =====
 function newTab(url=normalize("startpage.com")) {
+  homePage.style.display="none";
   const iframe=document.createElement("iframe");
   iframe.className="proxyFrame";
 
@@ -164,7 +177,7 @@ function newTab(url=normalize("startpage.com")) {
   tab.onclick=()=>activate(tabObj);
   tab.append(icon,title,close);
   tabs.splice(tabs.length-1,0,tabObj);
-  tabsBar.insertBefore(tab,tabsBar.lastElementChild);
+  tabsBar.insertBefore(tab,tabsBar.firstElementChild.nextSibling);
   frames.appendChild(iframe);
   overlay.style.display="flex";
   activate(tabObj);
@@ -184,6 +197,7 @@ function activate(t){
 function closeTab(t){
   const i=tabs.indexOf(t);
   if(i>-1){ t.iframe.remove(); t.tab.remove(); tabs.splice(i,1); activate(tabs[i-1]||tabs[0]); }
+  if(tabs.length===0){ overlay.style.display="none"; homePage.style.display="flex"; }
 }
 
 // ===== NAV CONTROLS =====
@@ -196,7 +210,6 @@ function injectCode(){
   const code=`javascript:(function(){var script=document.createElement('script');script.src="//cdn.jsdelivr.net/npm/eruda";document.body.appendChild(script);script.onload=function(){eruda.init();}})();`;
   active.iframe.contentWindow.eval(code);
 }
-function closeOverlay(){overlay.style.display="none";}
 
 // ===== URL BAR LIVE =====
 urlBar.addEventListener("keydown", e=>{
@@ -256,12 +269,6 @@ function updateBookmarkStar(){
   const found=bookmarks.find(b=>b.code===active.url);
   bookmarkStar.textContent=found?"★":"☆";
 }
-
-// ===== SEARCH BAR NAV =====
-searchInput.addEventListener("keydown", e=>{ if(e.key==="Enter") newTab(normalize(searchInput.value.trim())); });
-
-// ===== INITIAL TAB =====
-newTab(normalize("startpage.com"));
 </script>
 </body>
 </html>
