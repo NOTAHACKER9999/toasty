@@ -67,6 +67,9 @@ iframe.active,.customPage.active{display:block}
 .customHeader button{padding:8px 14px;background:#222;border:none;color:white;border-radius:6px}
 .listItem{padding:12px;border-bottom:1px solid #222}
 .listItem span{color:#aaa;font-size:.85rem}
+.customBody{display:flex;flex-direction:column;gap:12px;margin-top:12px}
+.customBody label{font-weight:600;margin-bottom:6px}
+.customBody select{padding:8px;background:#111;color:white;border:none;border-radius:6px;width:200px}
 
 /* MODALS */
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:10001}
@@ -115,7 +118,7 @@ iframe.active,.customPage.active{display:block}
       <button onclick="openCustom('/?/History')">History</button>
       <button onclick="openCustom('/?/Bookmarks')">Bookmarks</button>
       <button onclick="injectDev()">Dev Tools</button>
-      <button onclick="openSettings()">Settings</button>
+      <button onclick="openCustom('/?/Settings')">Settings</button>
     </div>
   </div>
 
@@ -159,6 +162,7 @@ let bookmarks=JSON.parse(localStorage.getItem("bookmarks")||"{}");
 let historyLog=JSON.parse(localStorage.getItem("history")||"[]");
 let lastURL=null;
 let userTyping=false,editKey=null;
+let defaultBrowser=localStorage.getItem("defaultBrowser") || "Chrome";
 
 menuBtn.onclick=()=>menu.style.display="flex";
 menu.onmouseleave=()=>menu.style.display="none";
@@ -280,10 +284,35 @@ function openCustom(path){
     page.innerHTML=`<div class="customHeader"><h1>Bookmarks</h1><button onclick="closeCustom()">Close</button></div>`;
     Object.values(bookmarks).forEach(b=>page.innerHTML+=`<div class="listItem">${b.name}<br><span>${b.code}</span></div>`);
   }
+  if(path==="/?/Settings"){
+    page.innerHTML=`<div class="customHeader"><h1>Settings</h1><button onclick="closeCustom()">Close</button></div>
+    <div class="customBody">
+      <label for="browserSelect">Default Browser:</label>
+      <select id="browserSelect">
+        <option value="Chrome">Chrome</option>
+        <option value="Edge">Edge</option>
+        <option value="Firefox">Firefox</option>
+        <option value="Opera">Opera</option>
+        <option value="Safari">Safari</option>
+        <option value="Brave">Brave</option>
+        <option value="Vivaldi">Vivaldi</option>
+        <option value="Tor">Tor</option>
+        <option value="Internet Explorer">Internet Explorer</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>`;
+    const sel = document.getElementById("browserSelect");
+    sel.value = defaultBrowser;
+    sel.onchange = () => {
+      defaultBrowser = sel.value;
+      localStorage.setItem("defaultBrowser", defaultBrowser);
+      alert("Default browser set to: " + defaultBrowser);
+    }
+  }
 }
 
 function closeCustom(){
-  active.custom.remove();
+  if(active.custom) active.custom.remove();
   active.custom=null;
   active.mode="proxy";
 }
@@ -343,11 +372,6 @@ function reloadTab(){active?.iframe.contentWindow.location.reload()}
 function fullscreen(){active?.iframe.requestFullscreen()}
 function closeTab(t){t.tab.remove();t.iframe.remove();if(t.custom)t.custom.remove();tabs=tabs.filter(x=>x!==t);tabs.length?activate(tabs.at(-1)):closeOverlay()}
 function closeOverlay(){overlay.style.display="none";home.style.display="flex"}
-
-// SETTINGS BUTTON FUNCTION
-function openSettings(){
-  alert("Settings page coming soon!");
-}
 </script>
 </body>
 </html>
