@@ -138,7 +138,7 @@ nav{
 #urlBar{width:100%;padding:6px 36px 6px 10px;background:black;border:none;color:white;font-family:monospace;outline:none;}
 #bookmarkStar{position:absolute;right:8px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:24px;user-select:none;}
 
-/* Bookmark Panel */
+/* Bookmark Panel overlay */
 #bookmarkBackdrop{
   position:fixed;
   inset:0;
@@ -146,7 +146,7 @@ nav{
   z-index:9999;
   display:none;
 }
-#bookmarkPanel{
+.bookmarkPanel{
   position:fixed;
   top:60px;
   left:50%;
@@ -175,19 +175,40 @@ nav{
 .bookmarkItem:hover{background:#333;}
 .bookmarkName{flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:500; font-size:1rem;}
 
+/* Bottom Bookmark BAR */
+#bookmarkBar{
+  display:flex;
+  flex-wrap:nowrap;
+  gap:6px;
+  padding:6px;
+  background:var(--panel);
+  overflow-x:auto;
+  min-height:36px;
+}
+.bookmarkButton{
+  padding:6px 10px;
+  background:#111;
+  color:white;
+  border-radius:6px;
+  font-size:0.9rem;
+  cursor:pointer;
+  white-space:nowrap;
+}
+.bookmarkButton:hover{background:#222;}
+
 /* Frames */
 #frames{flex:1; position:relative;}
 iframe{position:absolute; inset:0;width:100%;height:100%;border:none;display:none;}
 iframe.active{display:block;}
 
-/* Bookmark Modal */
-#bmModal{
+/* Create/Edit Bookmark Modals */
+#bmModalCreate, #bmModalEdit{
   position:fixed; inset:0;
   background:rgba(0,0,0,.6);
   display:none; justify-content:center; align-items:center;
   z-index:10001;
 }
-#bmBox{
+.bmBox{
   background:#111;
   padding:24px;
   border-radius:14px;
@@ -195,9 +216,11 @@ iframe.active{display:block;}
   flex-direction:column;
   gap:12px;
 }
-#bmBox input{padding:10px;background:black;border:none;color:white;font-size:1rem;}
-#bmBox button{padding:8px;background:#222;color:white;border:none;border-radius:6px;cursor:pointer;}
-#bmBox button:hover{background:#333;}
+.bmBox input{padding:10px;background:black;border:none;color:white;font-size:1rem;}
+.bmBox button{padding:8px;background:#222;color:white;border:none;border-radius:6px;cursor:pointer;}
+.bmBox button:hover{background:#333;}
+.bmBox .deleteBtn{background:#660000;}
+.bmBox .deleteBtn:hover{background:#990000;}
 </style>
 </head>
 <body>
@@ -231,20 +254,34 @@ iframe.active{display:block;}
     <button class="ctrl" onclick="fullscreen()">⛶</button>
     <button class="ctrl" onclick="injectDev()">&lt;/&gt;</button>
   </div>
+
+  <!-- Bottom bookmark bar -->
+  <div id="bookmarkBar"></div>
+
   <div id="frames"></div>
 </div>
 
-<!-- Bookmark Panel -->
+<!-- Bookmark Panel Overlay -->
 <div id="bookmarkBackdrop"></div>
-<div id="bookmarkPanel"></div>
 
-<!-- Bookmark Modal -->
-<div id="bmModal">
-  <div id="bmBox">
-    <input id="bmName" placeholder="Bookmark Name">
-    <input id="bmCode" placeholder="Bookmark URL / JavaScript">
-    <button onclick="saveBookmark()">Save</button>
-    <button onclick="closeBM()">Cancel</button>
+<!-- CREATE BOOKMARK MODAL -->
+<div id="bmModalCreate">
+  <div class="bmBox">
+    <input id="bmNameCreate" placeholder="Bookmark Name">
+    <input id="bmCodeCreate" placeholder="Bookmark URL / JavaScript">
+    <button onclick="saveBookmarkCreate()">Save</button>
+    <button onclick="closeBMCreate()">Cancel</button>
+  </div>
+</div>
+
+<!-- EDIT BOOKMARK MODAL -->
+<div id="bmModalEdit">
+  <div class="bmBox">
+    <input id="bmNameEdit" placeholder="Bookmark Name">
+    <input id="bmCodeEdit" placeholder="Bookmark URL / JavaScript">
+    <button onclick="saveBookmarkEdit()">Save</button>
+    <button class="deleteBtn" onclick="deleteBookmarkEdit()">Delete</button>
+    <button onclick="closeBMEdit()">Cancel</button>
   </div>
 </div>
 
@@ -256,14 +293,19 @@ const tabsBar=document.getElementById("tabsBar");
 const frames=document.getElementById("frames");
 const urlBar=document.getElementById("urlBar");
 const star=document.getElementById("bookmarkStar");
-const bookmarkPanel=document.getElementById("bookmarkPanel");
-const bookmarkBackdrop=document.getElementById("bookmarkBackdrop");
-const bmModal=document.getElementById("bmModal");
-const bmName=document.getElementById("bmName");
-const bmCode=document.getElementById("bmCode");
+const bookmarkBar=document.getElementById("bookmarkBar");
+
+const bmModalCreate=document.getElementById("bmModalCreate");
+const bmNameCreate=document.getElementById("bmNameCreate");
+const bmCodeCreate=document.getElementById("bmCodeCreate");
+
+const bmModalEdit=document.getElementById("bmModalEdit");
+const bmNameEdit=document.getElementById("bmNameEdit");
+const bmCodeEdit=document.getElementById("bmCodeEdit");
 
 let tabs=[], active=null;
 let bookmarks={};
+let editingURL=null;
 
 function normalize(v){
   if(!v.includes(".")) return "https://www.startpage.com/sp/search?q="+encodeURIComponent(v);
@@ -298,52 +340,71 @@ function activate(t){
   star.textContent=bookmarks[t.url]?"★":"☆";
 }
 
+// Browser controls
 urlBar.onkeydown=e=>{if(e.key==="Enter"){active.url=normalize(urlBar.value); active.iframe.src=__uv$config.prefix+__uv$config.encodeUrl(active.url);}}
-
 function closeTab(t){t.tab.remove(); t.iframe.remove(); tabs=tabs.filter(x=>x!==t); if(tabs.length) activate(tabs[tabs.length-1]); else closeOverlay();}
 function closeOverlay(){tabs.forEach(t=>{t.tab.remove(); t.iframe.remove();}); tabs=[]; overlay.style.display="none"; home.style.display="flex";}
-
-function toggleBookmark(){
-  if(!active) return;
-  if(bookmarks[active.url]) delete bookmarks[active.url];
-  else {bmName.value=active.tab.querySelector("span").textContent; bmCode.value=active.url; bmModal.style.display="flex";}
-  renderBookmarks();
-}
-
-function saveBookmark(){
-  const name=bmName.value.trim(); const code=bmCode.value.trim();
-  if(!name || !code) return;
-  bookmarks[code]={name,code};
-  bmModal.style.display="none";
-  star.textContent="★";
-  renderBookmarks();
-}
-
-function closeBM(){bmModal.style.display="none";}
-
-function renderBookmarks(){
-  bookmarkPanel.innerHTML="";
-  const keys=Object.keys(bookmarks);
-  if(keys.length===0){bookmarkPanel.style.display="none"; bookmarkBackdrop.style.display="none"; return;}
-  keys.forEach(url=>{
-    const item=document.createElement("div"); item.className="bookmarkItem";
-    const nameSpan=document.createElement("span"); nameSpan.className="bookmarkName"; nameSpan.textContent=bookmarks[url].name;
-    item.appendChild(nameSpan);
-    let holdTimer;
-    item.onclick=()=>{if(url.startsWith("javascript:")){active.iframe.contentWindow.eval(url.replace(/^javascript:/,""));}else newTab(url);}
-    item.onmousedown=()=>{holdTimer=setTimeout(()=>{bmName.value=bookmarks[url].name; bmCode.value=bookmarks[url].code; bmModal.style.display="flex"; const oldClose=bmModal.querySelector("button:nth-child(3)"); oldClose.onclick=()=>{delete bookmarks[url]; closeBM(); renderBookmarks();}},600);}
-    item.onmouseup=item.onmouseleave=()=>clearTimeout(holdTimer);
-    bookmarkPanel.appendChild(item);
-  });
-  bookmarkPanel.style.display="flex"; bookmarkBackdrop.style.display="block";
-}
-
-// Browser controls
 function goBack(){active?.iframe.contentWindow.history.back();}
 function goForward(){active?.iframe.contentWindow.history.forward();}
 function reloadTab(){active?.iframe.contentWindow.location.reload();}
 function fullscreen(){active?.iframe.requestFullscreen();}
 function injectDev(){try{active.iframe.contentWindow.eval(`var s=document.createElement('script');s.src='//cdn.jsdelivr.net/npm/eruda';document.body.appendChild(s);s.onload=()=>eruda.init();`);}catch{}}
+
+// Toggle bookmark (open CREATE panel if new)
+function toggleBookmark(){
+  if(!active) return;
+  if(bookmarks[active.url]){
+    openBMEdit(active.url);
+  } else {
+    bmNameCreate.value=active.tab.querySelector("span").textContent;
+    bmCodeCreate.value=active.url;
+    bmModalCreate.style.display="flex";
+  }
+}
+
+// CREATE bookmark
+function saveBookmarkCreate(){
+  const n=bmNameCreate.value.trim(), c=bmCodeCreate.value.trim();
+  if(!n || !c) return;
+  bookmarks[c]={name:n,code:c};
+  bmModalCreate.style.display="none";
+  renderBookmarks();
+}
+function closeBMCreate(){bmModalCreate.style.display="none";}
+
+// EDIT bookmark
+function openBMEdit(url){
+  editingURL=url;
+  bmNameEdit.value=bookmarks[url].name;
+  bmCodeEdit.value=bookmarks[url].code;
+  bmModalEdit.style.display="flex";
+}
+function saveBookmarkEdit(){
+  const n=bmNameEdit.value.trim(), c=bmCodeEdit.value.trim();
+  if(!n || !c) return;
+  delete bookmarks[editingURL];
+  bookmarks[c]={name:n, code:c};
+  bmModalEdit.style.display="none";
+  editingURL=null;
+  renderBookmarks();
+}
+function deleteBookmarkEdit(){
+  delete bookmarks[editingURL];
+  bmModalEdit.style.display="none";
+  editingURL=null;
+  renderBookmarks();
+}
+function closeBMEdit(){bmModalEdit.style.display="none"; editingURL=null;}
+
+// Render bookmarks (bottom bar)
+function renderBookmarks(){
+  bookmarkBar.innerHTML="";
+  Object.keys(bookmarks).forEach(url=>{
+    const btn=document.createElement("div"); btn.className="bookmarkButton"; btn.textContent=bookmarks[url].name;
+    btn.onclick=()=>{if(url.startsWith("javascript:")){active.iframe.contentWindow.eval(url.replace(/^javascript:/,""));}else newTab(url);}
+    bookmarkBar.appendChild(btn);
+  });
+}
 </script>
 </body>
 </html>
