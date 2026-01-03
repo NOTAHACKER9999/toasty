@@ -2,199 +2,200 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Override Browser</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glitch Hub</title>
 
-<!-- ================= ULTRAVIOLET ================= -->
+<!-- ============ UV PROXY ============ -->
 <script src="/uv/uv.bundle.js"></script>
 <script src="/uv/uv.config.js"></script>
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/uv/sw.js", { scope: __uv$config.prefix });
+}
+</script>
 
 <style>
 :root{
-  --bg:#0b0b0c;
-  --bar:#111;
-  --bar2:#141414;
-  --tab:#1a1a1a;
-  --active:#1f1f1f;
+  --bg:#050505;
+  --panel:#0f0f0f;
   --border:#2a2a2a;
-  --text:#fff;
-  --muted:#aaa;
+  --accent:#ff2d2d;
+  --text:#e0e0e0;
+  --bubble:#151515;
 }
 
-*{box-sizing:border-box;font-family:system-ui}
-
+/* ===== RESET ===== */
+*{margin:0;padding:0;box-sizing:border-box}
 body{
-  margin:0;
+  font-family:Segoe UI,Arial;
   background:var(--bg);
   color:var(--text);
-  height:100vh;
-  overflow:hidden;
-}
-
-/* ===== HOME ===== */
-#home{
-  height:100vh;
+  min-height:100vh;
   display:flex;
-  align-items:center;
-  justify-content:center;
   flex-direction:column;
-  gap:20px;
 }
 
-#home h1{
-  color:#f00;
-  letter-spacing:2px;
+/* ===== HEADER ===== */
+header{
+  background:var(--panel);
+  padding:16px;
+  text-align:center;
+  font-size:2rem;
+  font-weight:700;
+  border-bottom:1px solid var(--border);
 }
 
-#home input{
-  width:420px;
-  padding:14px;
-  background:#000;
-  color:#fff;
-  border:1px solid var(--border);
-}
-
-#home .buttons{
+/* ===== NAV ===== */
+nav{
   display:flex;
-  gap:16px;
+  justify-content:center;
+  gap:18px;
+  padding:10px;
+  background:var(--panel);
+  border-bottom:1px solid var(--border);
 }
-
-#home button{
-  padding:12px 24px;
-  background:#000;
-  color:#fff;
-  border:1px solid #fff;
+.nav-btn{
+  padding:10px 18px;
+  border-radius:14px;
+  background:#141414;
   cursor:pointer;
 }
+.nav-btn:hover{box-shadow:0 0 10px var(--accent)}
 
-/* ===== OVERLAY ===== */
-#overlay{
+/* ===== HOME SEARCH ===== */
+main{
+  flex:1;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+#homeSearch{
+  width:100%;
+  max-width:600px;
+  padding:16px 20px;
+  background:#111;
+  border:1px solid var(--border);
+  color:var(--text);
+  border-radius:999px;
+  font-size:1.1rem;
+}
+
+/* ===== FOOTER ===== */
+footer{
+  padding:12px;
+  text-align:center;
+  background:var(--panel);
+  border-top:1px solid var(--border);
+  font-size:.85rem;
+  color:#aaa;
+}
+
+/* ===== PROXY OVERLAY ===== */
+#proxyOverlay{
   position:fixed;
   inset:0;
+  background:var(--bg);
   display:none;
   flex-direction:column;
-  background:var(--bg);
+  z-index:9999;
 }
 
 /* ===== TABS ===== */
 #tabsBar{
   display:flex;
-  align-items:flex-end;
-  background:var(--bar);
+  gap:6px;
+  padding:6px;
+  background:var(--panel);
   border-bottom:1px solid var(--border);
-  padding-left:6px;
+  overflow:hidden;
 }
-
 .tab{
   display:flex;
   align-items:center;
   gap:6px;
-  background:var(--tab);
-  padding:8px 10px;
+  padding:6px 10px;
+  background:#141414;
+  border-radius:14px;
   max-width:2in;
   min-width:90px;
-  overflow:hidden;
   cursor:pointer;
-  border-right:1px solid var(--border);
 }
-
 .tab.active{
-  background:var(--active);
+  background:#1f1f1f;
 }
-
-.tab img{
-  width:14px;
-  height:14px;
-}
-
+.tab img{width:14px;height:14px}
 .tab span{
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
-  font-size:13px;
+  font-size:.8rem;
 }
-
 .tab .close{
   margin-left:auto;
   color:#fff;
   cursor:pointer;
 }
+#newTabBtn{padding:6px 12px;cursor:pointer}
 
-#newTab{
-  padding:8px 12px;
-  cursor:pointer;
-  color:#fff;
-}
-
-/* ===== NAV BAR ===== */
-#navBar{
+/* ===== BROWSER BAR ===== */
+#browserBar{
   display:flex;
   align-items:center;
-  gap:6px;
-  padding:6px;
-  background:var(--bar2);
+  gap:8px;
+  padding:8px;
+  background:#111;
 }
-
-#navBar button{
-  background:none;
-  border:none;
-  color:#fff;
+.bubble-btn{
+  padding:8px 14px;
+  border-radius:999px;
+  background:var(--bubble);
   cursor:pointer;
 }
-
 #urlWrap{
   flex:1;
   display:flex;
   align-items:center;
   background:#000;
   border:1px solid #fff;
+  border-radius:999px;
 }
-
-#url{
+#urlBar{
   flex:1;
-  padding:6px;
+  padding:8px 14px;
   background:none;
-  color:#fff;
   border:none;
+  color:#fff;
   outline:none;
+  font-family:monospace;
 }
-
 #star{
-  padding:0 10px;
+  padding:0 12px;
   cursor:pointer;
   font-size:18px;
 }
 
 /* ===== BOOKMARK BAR ===== */
-#bookmarks{
+#bookmarkBar{
   position:absolute;
-  top:74px;
+  top:96px;
   left:0;
   right:0;
   background:#000;
   border-bottom:1px solid var(--border);
-  display:flex;
-  gap:16px;
   padding:10px;
+  display:flex;
+  gap:14px;
   z-index:10;
 }
-
 .bookmark{
-  font-size:13px;
+  font-size:.8rem;
   cursor:pointer;
 }
-
-.bookmark[contenteditable]{
-  outline:1px dashed #555;
-}
+.bookmark[contenteditable]{outline:1px dashed #555}
 
 /* ===== FRAMES ===== */
-#frames{
-  flex:1;
-  position:relative;
-}
-
-iframe{
+#frames{flex:1;position:relative}
+.proxyFrame{
   position:absolute;
   inset:0;
   width:100%;
@@ -202,130 +203,99 @@ iframe{
   border:none;
   display:none;
 }
-
-iframe.active{
-  display:block;
-}
-
-/* ===== CLOSE ===== */
-#closeOverlay{
-  position:absolute;
-  top:6px;
-  right:10px;
-  cursor:pointer;
-  color:#fff;
-  z-index:20;
-}
+.proxyFrame.active{display:block}
 </style>
 </head>
 
 <body>
 
-<!-- ================= HOME ================= -->
-<div id="home">
-  <h1>WELCOME</h1>
+<header>Glitch Hub</header>
 
-  <input id="homeSearch" placeholder="Search or enter URL">
+<nav>
+  <div class="nav-btn" onclick="location.href='../games/index.html'">Games</div>
+  <div class="nav-btn" onclick="location.href='../movies/index.html'">Movies</div>
+  <div class="nav-btn" onclick="location.href='../ai/index.html'">AI</div>
+  <div class="nav-btn" onclick="location.href='../tools/index.html'">Tools</div>
+</nav>
 
-  <div class="buttons">
-    <button onclick="openBrowser()">Browser</button>
-    <button onclick="location.href='../games/index.html'">Games</button>
-  </div>
-</div>
+<main>
+  <input id="homeSearch" placeholder="Search or enter URL (Enter)">
+</main>
 
-<!-- ================= BROWSER ================= -->
-<div id="overlay">
-  <div id="closeOverlay">✕</div>
+<footer>© 2025 Glitch Override</footer>
 
+<!-- ===== PROXY ===== -->
+<div id="proxyOverlay">
   <div id="tabsBar">
-    <div id="newTab">+</div>
+    <div id="newTabBtn">＋</div>
   </div>
 
-  <div id="navBar">
-    <button id="back">←</button>
-    <button id="forward">→</button>
-    <button id="reload">⟳</button>
+  <div id="browserBar">
+    <div class="bubble-btn" onclick="goBack()">⟵</div>
+    <div class="bubble-btn" onclick="goForward()">⟶</div>
+    <div class="bubble-btn" onclick="reloadTab()">⟳</div>
 
     <div id="urlWrap">
-      <input id="url">
+      <input id="urlBar">
       <div id="star">☆</div>
     </div>
 
-    <button id="dev">&lt;/&gt;</button>
-    <button id="fs">⛶</button>
+    <div class="bubble-btn" onclick="injectDev()">&lt;/&gt;</div>
+    <div class="bubble-btn" onclick="toggleFS()">⛶</div>
+    <div class="bubble-btn" onclick="closeOverlay()">✕</div>
   </div>
 
-  <div id="bookmarks"></div>
+  <div id="bookmarkBar"></div>
   <div id="frames"></div>
 </div>
 
 <script>
-/* ===== ELEMENTS ===== */
-const home=document.getElementById("home");
-const overlay=document.getElementById("overlay");
+const overlay=document.getElementById("proxyOverlay");
 const frames=document.getElementById("frames");
 const tabsBar=document.getElementById("tabsBar");
-const newTabBtn=document.getElementById("newTab");
-const urlBar=document.getElementById("url");
+const urlBar=document.getElementById("urlBar");
 const star=document.getElementById("star");
-const bookmarksBar=document.getElementById("bookmarks");
+const bookmarkBar=document.getElementById("bookmarkBar");
 
-let tabs=[], active=null;
-let bookmarks=JSON.parse(localStorage.getItem("bm")||"{}");
+let tabs=[],active=null;
+let bookmarks=JSON.parse(localStorage.getItem("bookmarks")||"{}");
 
-/* ===== HELPERS ===== */
+/* ===== URL ===== */
 function normalize(input){
-  if(!input) return "";
   if(input.startsWith("javascript:")) return input;
   if(!input.includes(".")) return "https://www.startpage.com/sp/search?q="+encodeURIComponent(input);
   if(!input.startsWith("http")) return "https://"+input;
   return input;
 }
 
-function navigate(tab,raw){
-  const url=normalize(raw);
-  tab.url=url;
-  if(url.startsWith("javascript:")){
-    tab.iframe.contentWindow.eval(url.slice(11));
-    return;
-  }
-  tab.iframe.src=__uv$config.prefix+__uv$config.encodeUrl(url);
-}
-
 /* ===== TABS ===== */
-function openBrowser(){
-  overlay.style.display="flex";
-  home.style.display="none";
-  if(!tabs.length) newTab();
-}
-
 function newTab(url=""){
   const iframe=document.createElement("iframe");
+  iframe.className="proxyFrame";
   frames.appendChild(iframe);
 
   const tab=document.createElement("div");
   tab.className="tab";
-
-  const ico=document.createElement("img");
+  const icon=document.createElement("img");
   const title=document.createElement("span");
   title.textContent="New Tab";
   const close=document.createElement("span");
   close.textContent="✕";
   close.className="close";
 
-  tab.append(ico,title,close);
-  tabsBar.insertBefore(tab,newTabBtn);
+  tab.append(icon,title,close);
+  tabsBar.insertBefore(tab,document.getElementById("newTabBtn"));
 
-  const obj={iframe,tab,title,ico,url:""};
+  const obj={iframe,tab,title,icon,url:""};
   tabs.push(obj);
 
   tab.onclick=()=>activate(obj);
   close.onclick=e=>{
     e.stopPropagation();
-    tabs=tabs.filter(t=>t!==obj);
     frames.removeChild(iframe);
     tabsBar.removeChild(tab);
-    if(active===obj && tabs[0]) activate(tabs[0]);
+    tabs=tabs.filter(t=>t!==obj);
+    activate(tabs[0]);
   };
 
   iframe.onload=()=>{
@@ -333,7 +303,7 @@ function newTab(url=""){
       const d=iframe.contentDocument;
       title.textContent=d.title||"Tab";
       const f=d.querySelector("link[rel~='icon']");
-      if(f) ico.src=f.href;
+      if(f) icon.src=f.href;
     }catch{}
   };
 
@@ -341,26 +311,35 @@ function newTab(url=""){
   if(url) navigate(obj,url);
 }
 
-function activate(tab){
-  tabs.forEach(t=>{
-    t.iframe.classList.remove("active");
-    t.tab.classList.remove("active");
+function activate(t){
+  tabs.forEach(x=>{
+    x.iframe.classList.remove("active");
+    x.tab.classList.remove("active");
   });
-  active=tab;
-  tab.iframe.classList.add("active");
-  tab.tab.classList.add("active");
-  urlBar.value=tab.url||"";
+  active=t;
+  t.iframe.classList.add("active");
+  t.tab.classList.add("active");
+  urlBar.value=t.url||"";
   updateStar();
+}
+
+function navigate(t,raw){
+  const url=normalize(raw);
+  t.url=url;
+  if(url.startsWith("javascript:")){
+    t.iframe.contentWindow.eval(url.slice(11));
+    return;
+  }
+  t.iframe.src=__uv$config.prefix+__uv$config.encodeUrl(url);
 }
 
 /* ===== BOOKMARKS ===== */
 function renderBookmarks(){
-  bookmarksBar.innerHTML="";
+  bookmarkBar.innerHTML="";
   for(const url in bookmarks){
     const b=document.createElement("div");
     b.className="bookmark";
     b.textContent=bookmarks[url];
-
     b.onclick=()=>navigate(active,url);
     b.ondblclick=()=>{
       b.contentEditable=true;
@@ -369,64 +348,59 @@ function renderBookmarks(){
     b.onblur=()=>{
       b.contentEditable=false;
       bookmarks[url]=b.textContent.trim();
-      localStorage.setItem("bm",JSON.stringify(bookmarks));
+      localStorage.setItem("bookmarks",JSON.stringify(bookmarks));
     };
-    bookmarksBar.appendChild(b);
+    bookmarkBar.appendChild(b);
   }
 }
-
 function updateStar(){
-  star.textContent=(active && bookmarks[active.url])?"★":"☆";
+  star.textContent=active&&bookmarks[active.url]?"★":"☆";
 }
-
 star.onclick=()=>{
   if(!active||!active.url) return;
   if(bookmarks[active.url]) delete bookmarks[active.url];
   else bookmarks[active.url]=active.url;
-  localStorage.setItem("bm",JSON.stringify(bookmarks));
+  localStorage.setItem("bookmarks",JSON.stringify(bookmarks));
   renderBookmarks();
   updateStar();
 };
 
 /* ===== CONTROLS ===== */
+function goBack(){active?.iframe.contentWindow.history.back()}
+function goForward(){active?.iframe.contentWindow.history.forward()}
+function reloadTab(){active?.iframe.contentWindow.location.reload()}
+function toggleFS(){document.fullscreenElement?document.exitFullscreen():document.body.requestFullscreen()}
+function injectDev(){
+  active?.iframe.contentWindow.eval(`(function(){
+    var s=document.createElement('script');
+    s.src='//cdn.jsdelivr.net/npm/eruda';
+    document.body.appendChild(s);
+    s.onload=()=>eruda.init();
+  })()`);
+}
+function closeOverlay(){overlay.style.display="none"}
+
+document.getElementById("newTabBtn").onclick=()=>newTab();
+document.getElementById("homeSearch").onkeydown=e=>{
+  if(e.key==="Enter"){
+    overlay.style.display="flex";
+    newTab(e.target.value);
+  }
+};
 urlBar.onkeydown=e=>{
   if(e.key==="Enter"&&active) navigate(active,urlBar.value);
 };
 
-homeSearch.onkeydown=e=>{
-  if(e.key==="Enter"){
-    openBrowser();
-    newTab(homeSearch.value);
-  }
-};
-
-document.getElementById("reload").onclick=()=>active&&active.iframe.contentWindow.location.reload();
-document.getElementById("back").onclick=()=>active&&active.iframe.contentWindow.history.back();
-document.getElementById("forward").onclick=()=>active&&active.iframe.contentWindow.history.forward();
-
-document.getElementById("fs").onclick=()=>{
-  if(!document.fullscreenElement) document.body.requestFullscreen();
-  else document.exitFullscreen();
-};
-
-document.getElementById("closeOverlay").onclick=()=>{
-  overlay.style.display="none";
-  home.style.display="flex";
-};
-
-newTabBtn.onclick=()=>newTab();
-
-/* ===== URL DECODE LOOP ===== */
+/* ===== LIVE DECODE ===== */
 setInterval(()=>{
   if(!active) return;
   try{
     const h=active.iframe.contentWindow.location.href;
-    if(!h.includes(__uv$config.prefix)) return;
-    const enc=h.split(__uv$config.prefix)[1];
-    const dec=__uv$config.decodeUrl(enc.replace(/^\/+/,""));
-    if(dec && document.activeElement!==urlBar){
+    if(h.includes(__uv$config.prefix)){
+      const enc=h.split(__uv$config.prefix)[1];
+      const dec=__uv$config.decodeUrl(enc.replace(/^\/+/,""));
       active.url=dec;
-      urlBar.value=dec;
+      if(document.activeElement!==urlBar) urlBar.value=dec;
       updateStar();
     }
   }catch{}
