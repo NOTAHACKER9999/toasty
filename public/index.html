@@ -18,24 +18,24 @@ if ("serviceWorker" in navigator) {
 :root{
   --bg:#050505;
   --panel:#0f0f0f;
+  --bar:#111;
+  --tab:#1a1a1a;
+  --active:#111;
   --border:#2a2a2a;
-  --accent:#ff2d2d;
   --text:#e0e0e0;
-  --bubble:#151515;
 }
 
-/* ===== RESET ===== */
-*{margin:0;padding:0;box-sizing:border-box}
+*{box-sizing:border-box;margin:0;padding:0}
 body{
   font-family:Segoe UI,Arial;
   background:var(--bg);
   color:var(--text);
-  min-height:100vh;
+  height:100vh;
   display:flex;
   flex-direction:column;
 }
 
-/* ===== HEADER ===== */
+/* ===== HEADER / HOME ===== */
 header{
   background:var(--panel);
   padding:16px;
@@ -44,8 +44,6 @@ header{
   font-weight:700;
   border-bottom:1px solid var(--border);
 }
-
-/* ===== NAV ===== */
 nav{
   display:flex;
   justify-content:center;
@@ -56,13 +54,10 @@ nav{
 }
 .nav-btn{
   padding:10px 18px;
-  border-radius:14px;
   background:#141414;
+  border-radius:14px;
   cursor:pointer;
 }
-.nav-btn:hover{box-shadow:0 0 10px var(--accent)}
-
-/* ===== HOME SEARCH ===== */
 main{
   flex:1;
   display:flex;
@@ -70,24 +65,12 @@ main{
   align-items:center;
 }
 #homeSearch{
-  width:100%;
-  max-width:600px;
-  padding:16px 20px;
+  width:600px;
+  padding:16px;
   background:#111;
   border:1px solid var(--border);
-  color:var(--text);
+  color:#fff;
   border-radius:999px;
-  font-size:1.1rem;
-}
-
-/* ===== FOOTER ===== */
-footer{
-  padding:12px;
-  text-align:center;
-  background:var(--panel);
-  border-top:1px solid var(--border);
-  font-size:.85rem;
-  color:#aaa;
 }
 
 /* ===== PROXY OVERLAY ===== */
@@ -100,42 +83,52 @@ footer{
   z-index:9999;
 }
 
-/* ===== TABS ===== */
+/* ===== TAB BAR (CONNECTED) ===== */
 #tabsBar{
   display:flex;
-  gap:6px;
-  padding:6px;
+  align-items:flex-end;
   background:var(--panel);
   border-bottom:1px solid var(--border);
-  overflow:hidden;
 }
 .tab{
   display:flex;
   align-items:center;
   gap:6px;
-  padding:6px 10px;
-  background:#141414;
-  border-radius:14px;
+  padding:8px 12px;
+  background:var(--tab);
+  border-right:1px solid var(--border);
   max-width:2in;
-  min-width:90px;
+  min-width:100px;
   cursor:pointer;
 }
 .tab.active{
-  background:#1f1f1f;
+  background:var(--active);
+  border-bottom:1px solid var(--active);
 }
 .tab img{width:14px;height:14px}
 .tab span{
   white-space:nowrap;
   overflow:hidden;
   text-overflow:ellipsis;
-  font-size:.8rem;
+  font-size:.85rem;
 }
 .tab .close{
   margin-left:auto;
   color:#fff;
   cursor:pointer;
 }
-#newTabBtn{padding:6px 12px;cursor:pointer}
+#newTabBtn{
+  padding:8px 14px;
+  cursor:pointer;
+}
+
+/* ===== CLOSE OVERLAY (SAME LEVEL AS TABS) ===== */
+#closeProxy{
+  margin-left:auto;
+  padding:8px 14px;
+  cursor:pointer;
+  color:#fff;
+}
 
 /* ===== BROWSER BAR ===== */
 #browserBar{
@@ -143,13 +136,14 @@ footer{
   align-items:center;
   gap:8px;
   padding:8px;
-  background:#111;
+  background:var(--bar);
 }
-.bubble-btn{
-  padding:8px 14px;
-  border-radius:999px;
-  background:var(--bubble);
+.btn{
+  background:none;
+  border:none;
+  color:#fff;
   cursor:pointer;
+  font-size:14px;
 }
 #urlWrap{
   flex:1;
@@ -166,7 +160,6 @@ footer{
   border:none;
   color:#fff;
   outline:none;
-  font-family:monospace;
 }
 #star{
   padding:0 12px;
@@ -174,24 +167,49 @@ footer{
   font-size:18px;
 }
 
-/* ===== BOOKMARK BAR ===== */
+/* ===== BOOKMARK BAR (ALWAYS VISIBLE) ===== */
 #bookmarkBar{
-  position:absolute;
-  top:96px;
-  left:0;
-  right:0;
   background:#000;
   border-bottom:1px solid var(--border);
   padding:10px;
   display:flex;
   gap:14px;
-  z-index:10;
+  min-height:38px;
 }
 .bookmark{
   font-size:.8rem;
   cursor:pointer;
 }
 .bookmark[contenteditable]{outline:1px dashed #555}
+
+/* ===== BOOKMARK PANEL ===== */
+#bookmarkPanel{
+  position:absolute;
+  top:120px;
+  left:50%;
+  transform:translateX(-50%);
+  width:420px;
+  background:#111;
+  border:1px solid var(--border);
+  padding:16px;
+  display:none;
+  z-index:20;
+}
+#bookmarkPanel input{
+  width:100%;
+  padding:8px;
+  margin-bottom:10px;
+  background:#000;
+  border:1px solid var(--border);
+  color:#fff;
+}
+#bookmarkPanel button{
+  padding:8px 14px;
+  background:#000;
+  color:#fff;
+  border:1px solid #fff;
+  cursor:pointer;
+}
 
 /* ===== FRAMES ===== */
 #frames{flex:1;position:relative}
@@ -210,7 +228,6 @@ footer{
 <body>
 
 <header>Glitch Hub</header>
-
 <nav>
   <div class="nav-btn" onclick="location.href='../games/index.html'">Games</div>
   <div class="nav-btn" onclick="location.href='../movies/index.html'">Movies</div>
@@ -219,34 +236,40 @@ footer{
 </nav>
 
 <main>
-  <input id="homeSearch" placeholder="Search or enter URL (Enter)">
+  <input id="homeSearch" placeholder="Search or enter URL">
 </main>
-
-<footer>© 2025 Glitch Override</footer>
 
 <!-- ===== PROXY ===== -->
 <div id="proxyOverlay">
+
   <div id="tabsBar">
     <div id="newTabBtn">＋</div>
+    <div id="closeProxy">✕</div>
   </div>
 
   <div id="browserBar">
-    <div class="bubble-btn" onclick="goBack()">⟵</div>
-    <div class="bubble-btn" onclick="goForward()">⟶</div>
-    <div class="bubble-btn" onclick="reloadTab()">⟳</div>
+    <button class="btn" onclick="goBack()">⟵</button>
+    <button class="btn" onclick="goForward()">⟶</button>
+    <button class="btn" onclick="reloadTab()">⟳</button>
 
     <div id="urlWrap">
       <input id="urlBar">
       <div id="star">☆</div>
     </div>
 
-    <div class="bubble-btn" onclick="injectDev()">&lt;/&gt;</div>
-    <div class="bubble-btn" onclick="toggleFS()">⛶</div>
-    <div class="bubble-btn" onclick="closeOverlay()">✕</div>
+    <button class="btn" onclick="injectDev()">&lt;/&gt;</button>
+    <button class="btn" onclick="toggleFS()">⛶</button>
   </div>
 
   <div id="bookmarkBar"></div>
   <div id="frames"></div>
+
+  <div id="bookmarkPanel">
+    <input id="bmName" placeholder="Bookmark name">
+    <input id="bmUrl" placeholder="URL or javascript:">
+    <button onclick="saveBookmark()">Save</button>
+  </div>
+
 </div>
 
 <script>
@@ -256,6 +279,7 @@ const tabsBar=document.getElementById("tabsBar");
 const urlBar=document.getElementById("urlBar");
 const star=document.getElementById("star");
 const bookmarkBar=document.getElementById("bookmarkBar");
+const bookmarkPanel=document.getElementById("bookmarkPanel");
 
 let tabs=[],active=null;
 let bookmarks=JSON.parse(localStorage.getItem("bookmarks")||"{}");
@@ -295,7 +319,7 @@ function newTab(url=""){
     frames.removeChild(iframe);
     tabsBar.removeChild(tab);
     tabs=tabs.filter(t=>t!==obj);
-    activate(tabs[0]);
+    if(tabs[0]) activate(tabs[0]);
   };
 
   iframe.onload=()=>{
@@ -353,17 +377,36 @@ function renderBookmarks(){
     bookmarkBar.appendChild(b);
   }
 }
+
 function updateStar(){
   star.textContent=active&&bookmarks[active.url]?"★":"☆";
 }
+
 star.onclick=()=>{
-  if(!active||!active.url) return;
-  if(bookmarks[active.url]) delete bookmarks[active.url];
-  else bookmarks[active.url]=active.url;
+  if(!active) return;
+  if(bookmarks[active.url]){
+    delete bookmarks[active.url];
+  }else{
+    document.getElementById("bmName").value=active.url;
+    document.getElementById("bmUrl").value=active.url;
+    bookmarkPanel.style.display="block";
+    return;
+  }
   localStorage.setItem("bookmarks",JSON.stringify(bookmarks));
   renderBookmarks();
   updateStar();
 };
+
+function saveBookmark(){
+  const name=document.getElementById("bmName").value.trim();
+  const url=document.getElementById("bmUrl").value.trim();
+  if(!name||!url) return;
+  bookmarks[url]=name;
+  localStorage.setItem("bookmarks",JSON.stringify(bookmarks));
+  bookmarkPanel.style.display="none";
+  renderBookmarks();
+  updateStar();
+}
 
 /* ===== CONTROLS ===== */
 function goBack(){active?.iframe.contentWindow.history.back()}
@@ -378,8 +421,9 @@ function injectDev(){
     s.onload=()=>eruda.init();
   })()`);
 }
-function closeOverlay(){overlay.style.display="none"}
-
+document.getElementById("closeProxy").onclick=()=>{
+  overlay.style.display="none";
+};
 document.getElementById("newTabBtn").onclick=()=>newTab();
 document.getElementById("homeSearch").onkeydown=e=>{
   if(e.key==="Enter"){
