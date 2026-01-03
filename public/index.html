@@ -47,6 +47,8 @@ nav{display:flex;justify-content:center;gap:18px;padding:10px;background:var(--p
 #frames{flex:1;position:relative;}
 iframe{position:absolute;inset:0;width:100%;height:100%;border:none;display:none;}
 iframe.active{display:block;}
+.customFrame{position:absolute;inset:0;width:100%;height:100%;background:#0a0a0a;color:white;display:none;overflow:auto;padding:20px;}
+.customFrame h1{margin-bottom:10px;}
 #bmModalCreate,#bmModalEdit{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:10001;}
 .bmBox{background:#111;padding:24px;border-radius:14px;display:flex;flex-direction:column;gap:12px;}
 .bmBox input{padding:10px;background:black;border:none;color:white;font-size:1rem;}
@@ -61,15 +63,6 @@ iframe.active{display:block;}
 #menuPanel{position:absolute;top:36px;right:0;background:#111;border:1px solid #333;border-radius:6px;display:none;flex-direction:column;min-width:140px;z-index:1002;}
 .menuItem{padding:8px 12px;color:white;cursor:pointer;}
 .menuItem:hover{background:#222;}
-
-/* History page */
-#historyPage{position:absolute;inset:0;background:#0a0a0a;color:white;display:none;flex-direction:column;overflow:auto;z-index:10005;}
-#historyHeader{padding:16px;font-size:1.5rem;font-weight:bold;border-bottom:1px solid #333;display:flex;justify-content:space-between;align-items:center;}
-#historyList{flex:1;padding:16px;display:flex;flex-direction:column;gap:6px;}
-.historyItem{padding:10px;background:#111;border-radius:8px;display:flex;justify-content:space-between;align-items:center;}
-.historyItem span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-#clearHistoryBtn{padding:6px 12px;background:#660000;border:none;color:white;border-radius:6px;cursor:pointer;}
-#clearHistoryBtn:hover{background:#990000;}
 </style>
 </head>
 <body>
@@ -115,6 +108,9 @@ iframe.active{display:block;}
   </div>
   <div id="bookmarkBar"></div>
   <div id="frames"></div>
+
+  <!-- Custom frame for /?/ pages -->
+  <div id="customFrame" class="customFrame"></div>
 </div>
 
 <!-- Bookmark modals -->
@@ -136,154 +132,66 @@ iframe.active{display:block;}
   </div>
 </div>
 
-<!-- History Page -->
-<div id="historyPage">
-  <div id="historyHeader">
-    <span>History</span>
-    <button id="clearHistoryBtn">Clear History & Cookies</button>
-  </div>
-  <div id="historyList"></div>
-</div>
-
 <script>
-// ------------------ Data & Variables ------------------
+// ------------------ Variables ------------------
 const home=document.getElementById("home");
 const homeSearch=document.getElementById("homeSearch");
 const overlay=document.getElementById("proxyOverlay");
-const tabsBar=document.getElementById("tabsBar");
 const frames=document.getElementById("frames");
+const customFrame=document.getElementById("customFrame");
 const urlBar=document.getElementById("urlBar");
-const star=document.getElementById("bookmarkStar");
-const bookmarkBar=document.getElementById("bookmarkBar");
-
-const bmModalCreate=document.getElementById("bmModalCreate");
-const bmNameCreate=document.getElementById("bmNameCreate");
-const bmCodeCreate=document.getElementById("bmCodeCreate");
-
-const bmModalEdit=document.getElementById("bmModalEdit");
-const bmNameEdit=document.getElementById("bmNameEdit");
-const bmCodeEdit=document.getElementById("bmCodeEdit");
-
-const menuBtn=document.getElementById("menuBtn");
-const menuPanel=document.getElementById("menuPanel");
-
-const historyPage=document.getElementById("historyPage");
-const historyList=document.getElementById("historyList");
-const clearHistoryBtn=document.getElementById("clearHistoryBtn");
 
 let tabs=[], active=null;
-let bookmarks={};
-let editingURL=null;
+let bookmarks={}, editingURL=null;
 let userEditingURL=false;
-let historyData = JSON.parse(localStorage.getItem('proxyHistory') || '[]');
 
-// ------------------ Utility ------------------
+// ------------------ Tabs ------------------
+homeSearch.onkeydown=e=>{
+  if(e.key==="Enter") newTab(normalize(homeSearch.value));
+};
+
 function normalize(v){
   if(!v.includes(".")) return "https://www.startpage.com/sp/search?q="+encodeURIComponent(v);
   if(!v.startsWith("http")) return "https://"+v;
   return v;
 }
 
-// ------------------ Tabs ------------------
-homeSearch.onkeydown=e=>{
-  if(e.key==="Enter") newTab(normalize(homeSearch.value));
-  addToHistory(normalize(homeSearch.value));
-};
-
 function newTab(url="https://www.startpage.com"){
+  home.style.display="none"; overlay.style.display="flex";
+
   if(url.startsWith("/?/")) { openCustomPage(url); return; }
 
-  home.style.display="none"; overlay.style.display="flex";
   const iframe=document.createElement("iframe");
-  const tab=document.createElement("div"); tab.className="tab";
-  const icon=document.createElement("img");
-  const title=document.createElement("span"); title.textContent="New Tab";
-  const close=document.createElement("span"); close.className="close"; close.textContent="✕";
-  tab.append(icon,title,close);
-  tabsBar.insertBefore(tab, document.getElementById("newTabBtn"));
   frames.appendChild(iframe);
-  const obj={iframe, tab, url}; tabs.push(obj);
-  close.onclick=e=>{e.stopPropagation(); closeTab(obj);};
-  tab.onclick=()=>activate(obj);
   iframe.src=__uv$config.prefix+__uv$config.encodeUrl(url);
-  activate(obj);
-  iframe.onload=()=>{try{title.textContent=iframe.contentDocument.title||url; const ico=iframe.contentDocument.querySelector("link[rel~='icon']"); if(ico) icon.src=ico.href;}catch{}};
+  showFrame(iframe);
 }
 
-function activate(t){
-  tabs.forEach(x=>{x.tab.classList.remove("active"); x.iframe.classList.remove("active");});
-  active=t; t.tab.classList.add("active"); t.iframe.classList.add("active");
-  updateURLBar();
+function showFrame(frame){
+  // Hide iframe and custom frame
+  Array.from(frames.children).forEach(f=>f.style.display='none');
+  customFrame.style.display='none';
+  frame.style.display='block';
 }
 
-// ------------------ URL bar ------------------
-urlBar.addEventListener('input', ()=>{userEditingURL=true;});
-urlBar.addEventListener('blur', ()=>{userEditingURL=false;});
-function updateURLBar(){
-  if(active && !userEditingURL){
-    try{
-      const enc = active.iframe.contentWindow.location.href.split(__uv$config.prefix)[1];
-      active.url = __uv$config.decodeUrl(enc?.replace(/^\/+/, '') || active.url);
-    }catch{}
-    urlBar.value = active.url;
-    star.textContent = bookmarks[active.url]?"★":"☆";
-  }
-  requestAnimationFrame(updateURLBar);
-}
-
-urlBar.onkeydown=e=>{if(e.key==="Enter"){active.url=normalize(urlBar.value); active.iframe.src=__uv$config.prefix+__uv$config.encodeUrl(active.url); addToHistory(active.url);}}
-function closeTab(t){t.tab.remove(); t.iframe.remove(); tabs=tabs.filter(x=>x!==t); if(tabs.length) activate(tabs[tabs.length-1]); else closeOverlay();}
-function closeOverlay(){tabs.forEach(t=>{t.tab.remove(); t.iframe.remove();}); tabs=[]; overlay.style.display="none"; home.style.display="flex";}
-function goBack(){active?.iframe.contentWindow.history.back();}
-function goForward(){active?.iframe.contentWindow.history.forward();}
-function reloadTab(){active?.iframe.contentWindow.location.reload();}
-function fullscreen(){active?.iframe.requestFullscreen();}
-function injectDev(){
-  try{
-    const s=document.createElement('script');
-    s.src='//cdn.jsdelivr.net/npm/eruda';
-    active.iframe.contentDocument.body.appendChild(s);
-    s.onload=()=>eruda.init();
-  }catch{}
-}
-
-// ------------------ Menu ------------------
-menuBtn.addEventListener('mouseenter',()=>{menuPanel.style.display='flex';});
-menuBtn.addEventListener('mouseleave',()=>{setTimeout(()=>{if(!menuPanel.matches(':hover')) menuPanel.style.display='none';},150);});
-menuPanel.addEventListener('mouseleave',()=>{menuPanel.style.display='none';});
-
-// ------------------ History ------------------
-function addToHistory(url){
-  historyData.push({url,date:new Date().toLocaleString()});
-  localStorage.setItem('proxyHistory', JSON.stringify(historyData));
-}
-function openHistory(){
-  overlay.style.display='none';
-  historyPage.style.display='flex';
-  renderHistory();
-}
-function renderHistory(){
-  historyList.innerHTML="";
-  historyData.slice().reverse().forEach(entry=>{
-    const div=document.createElement('div');
-    div.className='historyItem';
-    const span=document.createElement('span'); span.textContent=`[${entry.date}] ${entry.url}`;
-    div.appendChild(span);
-    historyList.appendChild(div);
-  });
-}
-clearHistoryBtn.onclick=()=>{
-  historyData=[]; localStorage.removeItem('proxyHistory');
-  // clear cookies
-  document.cookie.split(";").forEach(c=>{document.cookie=c.replace(/^ +/,"").replace(/=.*/,"=;expires="+new Date().toUTCString()+";path=/");});
-  renderHistory();
-}
-
-// ------------------ Custom Pages ------------------
+// ------------------ Custom /?/ Pages ------------------
 function openCustomPage(url){
-  if(url.startsWith("/?/History")) return openHistory();
+  Array.from(frames.children).forEach(f=>f.style.display='none');
+  customFrame.style.display='block';
+  customFrame.innerHTML="";
+
+  if(url.startsWith("/?/History")){
+    const h = document.createElement('h1'); h.textContent="History Page";
+    customFrame.appendChild(h);
+    const p = document.createElement('p'); p.textContent="Your custom history would go here.";
+    customFrame.appendChild(p);
+  } else {
+    const h = document.createElement('h1'); h.textContent="Custom Page";
+    customFrame.appendChild(h);
+    const p = document.createElement('p'); p.textContent="Custom content for "+url;
+    customFrame.appendChild(p);
+  }
 }
-requestAnimationFrame(updateURLBar);
 </script>
 </body>
 </html>
