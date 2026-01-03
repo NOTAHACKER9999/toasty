@@ -14,10 +14,7 @@ if ("serviceWorker" in navigator) {
 </script>
 
 <style>
-:root{
-  --bg:#0a0a0a;--panel:#121212;--bar:#0e0e0e;
-  --tab:#1a1a1a;--tab-active:#202020;--text:#fff;
-}
+:root{--bg:#0a0a0a;--panel:#121212;--bar:#0e0e0e;--tab:#1a1a1a;--tab-active:#202020;--text:#fff}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:Segoe UI,Arial;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
 
@@ -26,7 +23,6 @@ header{background:var(--panel);padding:14px;text-align:center;font-size:2rem;fon
 nav{display:flex;justify-content:center;gap:16px;background:var(--panel);padding:10px}
 .nav-btn{padding:8px 16px;background:#111;border-radius:8px;cursor:pointer}
 .nav-btn:hover{background:#222}
-
 #home{flex:1;display:flex;justify-content:center;align-items:center}
 #homeSearch{width:420px;padding:14px;border-radius:999px;background:#111;color:white;border:none;font-size:1.1rem}
 
@@ -40,15 +36,13 @@ nav{display:flex;justify-content:center;gap:16px;background:var(--panel);padding
 .tab img{width:16px;height:16px}
 .tab span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tab .close{position:absolute;right:6px;cursor:pointer}
-
-#newTabBtn{padding:8px;background:#111;border-radius:8px;cursor:pointer}
-#closeOverlayBtn{margin-left:auto;padding:8px;background:#111;border-radius:8px;cursor:pointer}
+#newTabBtn,#closeOverlayBtn{padding:8px;background:#111;border-radius:8px;cursor:pointer}
+#closeOverlayBtn{margin-left:auto}
 
 /* BAR */
 #browserBar{display:flex;align-items:center;gap:6px;padding:6px;background:var(--bar)}
 .ctrl{padding:6px 10px;background:#111;border:none;color:white;border-radius:6px;cursor:pointer}
 .ctrl:hover{background:#222}
-
 #urlWrap{position:relative;flex:1}
 #urlBar{width:100%;padding:8px 36px 8px 10px;background:black;border:none;color:white;font-family:monospace}
 #bookmarkStar{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:22px;cursor:pointer}
@@ -68,18 +62,17 @@ nav{display:flex;justify-content:center;gap:16px;background:var(--panel);padding
 #frames{flex:1;position:relative}
 iframe,.customPage{position:absolute;inset:0;width:100%;height:100%;border:none;display:none}
 iframe.active,.customPage.active{display:block}
-
 .customPage{background:#0b0b0b;padding:24px;overflow:auto}
 .customHeader{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
-.customHeader button{padding:8px 14px;background:#222;border:none;color:white;border-radius:6px;cursor:pointer}
+.customHeader button{padding:8px 14px;background:#222;border:none;color:white;border-radius:6px}
 .listItem{padding:12px;border-bottom:1px solid #222}
 .listItem span{color:#aaa;font-size:.85rem}
 
-/* BOOKMARK MODALS */
+/* MODALS */
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:10001}
 .modalBox{background:#111;padding:24px;border-radius:14px;display:flex;flex-direction:column;gap:12px}
 .modalBox input{padding:10px;background:black;border:none;color:white}
-.modalBox button{padding:8px;background:#222;color:white;border:none;border-radius:6px;cursor:pointer}
+.modalBox button{padding:8px;background:#222;color:white;border:none;border-radius:6px}
 .deleteBtn{background:#660000}
 </style>
 </head>
@@ -129,17 +122,16 @@ iframe.active,.customPage.active{display:block}
   <div id="frames"></div>
 </div>
 
-<!-- BOOKMARK CREATE -->
+<!-- BOOKMARK MODALS -->
 <div id="bmCreate" class="modal">
   <div class="modalBox">
-    <input id="bmCreateName" placeholder="Name">
-    <input id="bmCreateCode" placeholder="URL or javascript:">
+    <input id="bmCreateName">
+    <input id="bmCreateCode">
     <button onclick="saveBookmark()">Save</button>
     <button onclick="closeBM()">Cancel</button>
   </div>
 </div>
 
-<!-- BOOKMARK EDIT -->
 <div id="bmEdit" class="modal">
   <div class="modalBox">
     <input id="bmEditName">
@@ -162,6 +154,7 @@ const bookmarkBar=document.getElementById("bookmarkBar");
 let tabs=[],active=null;
 let bookmarks=JSON.parse(localStorage.getItem("bookmarks")||"{}");
 let historyLog=JSON.parse(localStorage.getItem("history")||"[]");
+let lastURL=null;
 let userTyping=false,editKey=null;
 
 menuBtn.onclick=()=>menu.style.display="flex";
@@ -178,10 +171,8 @@ homeSearch.onkeydown=e=>e.key==="Enter"&&newTab(normalize(homeSearch.value));
 
 function newTab(url="https://www.startpage.com"){
   home.style.display="none";overlay.style.display="flex";
-
   const iframe=document.createElement("iframe");
   frames.appendChild(iframe);
-
   const tab=document.createElement("div");
   tab.className="tab";
   tab.innerHTML=`<img><span>New Tab</span><span class="close">✕</span>`;
@@ -191,7 +182,7 @@ function newTab(url="https://www.startpage.com"){
   tabs.push(t);
 
   tab.onclick=()=>activate(t);
-  tab.querySelector(".close").onclick=e=>{e.stopPropagation();closeTab(t)}
+  tab.querySelector(".close").onclick=e=>{e.stopPropagation();closeTab(t)};
 
   iframe.onload=()=>{
     try{
@@ -214,24 +205,35 @@ function activate(t){
   active=t;
   t.tab.classList.add("active");
   (t.mode==="proxy"?t.iframe:t.custom).classList.add("active");
-  updateURL();
 }
 
 urlBar.onfocus=()=>userTyping=true;
 urlBar.onblur=()=>userTyping=false;
 
+function trackHistory(url){
+  if(!url || url===lastURL || url.startsWith("/?/")) return;
+  lastURL=url;
+  historyLog.push({url,time:new Date().toLocaleString()});
+  localStorage.setItem("history",JSON.stringify(historyLog));
+}
+
 function updateURL(){
-  if(!active||userTyping) return;
+  if(!active || userTyping) return;
+
   if(active.mode==="proxy"){
     try{
-      const enc=active.iframe.contentWindow.location.href.split(__uv$config.prefix)[1];
-      active.url=__uv$config.decodeUrl(enc.replace(/^\/+/,""));
-      urlBar.value=active.url;
-      star.textContent=bookmarks[active.url]?"★":"☆";
+      const raw=active.iframe.contentWindow.location.href;
+      if(!raw.includes(__uv$config.prefix)) return;
+      const enc=raw.split(__uv$config.prefix)[1];
+      const decoded=__uv$config.decodeUrl(enc.replace(/^\/+/,""));
+      active.url=decoded;
+      urlBar.value=decoded;
+      star.textContent=bookmarks[decoded]?"★":"☆";
+      trackHistory(decoded);
     }catch{}
   } else urlBar.value=active.url;
 }
-setInterval(updateURL,250);
+setInterval(updateURL,400);
 
 urlBar.onkeydown=e=>{
   if(e.key!=="Enter")return;
@@ -239,10 +241,7 @@ urlBar.onkeydown=e=>{
   if(v.startsWith("/?/")) openCustom(v);
   else{
     active.mode="proxy";
-    active.url=v;
     active.iframe.src=__uv$config.prefix+__uv$config.encodeUrl(v);
-    historyLog.push({url:v,time:new Date().toLocaleString()});
-    localStorage.setItem("history",JSON.stringify(historyLog));
   }
 };
 
@@ -259,24 +258,19 @@ function openCustom(path){
     page.innerHTML=`<div class="customHeader"><h1>History</h1><button onclick="closeCustom()">Close</button></div>`;
     historyLog.forEach(h=>page.innerHTML+=`<div class="listItem">${h.url}<br><span>${h.time}</span></div>`);
   }
-
   if(path==="/?/Bookmarks"){
     page.innerHTML=`<div class="customHeader"><h1>Bookmarks</h1><button onclick="closeCustom()">Close</button></div>`;
     Object.values(bookmarks).forEach(b=>page.innerHTML+=`<div class="listItem">${b.name}<br><span>${b.code}</span></div>`);
   }
-  activate(active);
 }
 
 function closeCustom(){
   active.custom.remove();
   active.custom=null;
   active.mode="proxy";
-  activate(active);
 }
 
-/* BOOKMARKS */
 function toggleBookmark(){
-  if(!active||active.mode!=="proxy")return;
   if(bookmarks[active.url]) openEdit(active.url);
   else{
     bmCreateName.value=active.url;
@@ -339,7 +333,6 @@ function renderBookmarks(){
 }
 renderBookmarks();
 
-/* CONTROLS */
 function injectDev(){
   try{
     const d=active.iframe.contentDocument;
@@ -349,6 +342,7 @@ function injectDev(){
     d.body.appendChild(s);
   }catch{}
 }
+
 function goBack(){active?.iframe.contentWindow.history.back()}
 function goForward(){active?.iframe.contentWindow.history.forward()}
 function reloadTab(){active?.iframe.contentWindow.location.reload()}
@@ -360,6 +354,5 @@ function closeTab(t){
 }
 function closeOverlay(){overlay.style.display="none";home.style.display="flex"}
 </script>
-
 </body>
 </html>
