@@ -309,7 +309,7 @@ iframe.active{display:block}
 <div id="bmModal">
   <div id="bmBox">
     <input id="bmName" placeholder="Bookmark Name">
-    <input id="bmCode" placeholder="Bookmark URL">
+    <input id="bmCode" placeholder="Bookmark URL / JavaScript">
     <button onclick="saveBookmark()">Save</button>
     <button onclick="closeBM()">Cancel</button>
   </div>
@@ -324,8 +324,13 @@ const frames = document.getElementById("frames");
 const urlBar = document.getElementById("urlBar");
 const star = document.getElementById("bookmarkStar");
 const bookmarkBar = document.getElementById("bookmarkBar");
+const bmModal = document.getElementById("bmModal");
+const bmName = document.getElementById("bmName");
+const bmCode = document.getElementById("bmCode");
 
 let tabs = [], active = null;
+
+// Bookmark structure: {url: {name, code}}
 let bookmarks = {};
 
 function normalize(v){
@@ -334,9 +339,7 @@ function normalize(v){
   return v;
 }
 
-homeSearch.onkeydown = e => {
-  if(e.key === "Enter") newTab(normalize(homeSearch.value));
-};
+homeSearch.onkeydown = e => { if(e.key==="Enter") newTab(normalize(homeSearch.value)); };
 
 function newTab(url="https://www.startpage.com"){
   home.style.display = "none";
@@ -369,18 +372,15 @@ function newTab(url="https://www.startpage.com"){
 
   iframe.onload = () => {
     try {
-      title.textContent = iframe.contentDocument.title || "New Tab";
+      title.textContent = iframe.contentDocument.title || url;
       const ico = iframe.contentDocument.querySelector("link[rel~='icon']");
       if(ico) icon.src = ico.href;
-    } catch {}
+    } catch{}
   };
 }
 
 function activate(t){
-  tabs.forEach(x => {
-    x.tab.classList.remove("active");
-    x.iframe.classList.remove("active");
-  });
+  tabs.forEach(x=>{ x.tab.classList.remove("active"); x.iframe.classList.remove("active"); });
   active = t;
   t.tab.classList.add("active");
   t.iframe.classList.add("active");
@@ -389,7 +389,7 @@ function activate(t){
 }
 
 urlBar.onkeydown = e => {
-  if(e.key === "Enter"){
+  if(e.key==="Enter"){
     active.url = normalize(urlBar.value);
     active.iframe.src = __uv$config.prefix + __uv$config.encodeUrl(active.url);
   }
@@ -398,49 +398,68 @@ urlBar.onkeydown = e => {
 function closeTab(t){
   t.tab.remove();
   t.iframe.remove();
-  tabs = tabs.filter(x => x !== t);
+  tabs = tabs.filter(x=>x!==t);
   if(tabs.length) activate(tabs[tabs.length-1]);
   else closeOverlay();
 }
 
 function closeOverlay(){
-  tabs.forEach(t => {
-    t.tab.remove();
-    t.iframe.remove();
-  });
+  tabs.forEach(t=>{ t.tab.remove(); t.iframe.remove(); });
   tabs = [];
   overlay.style.display = "none";
   home.style.display = "flex";
 }
 
 function toggleBookmark(){
+  if(!active) return;
   if(bookmarks[active.url]){
     delete bookmarks[active.url];
     star.textContent = "☆";
+    renderBookmarks();
   } else {
-    document.getElementById("bmName").value = active.tab.querySelector("span").textContent;
-    document.getElementById("bmCode").value = active.url;
-    document.getElementById("bmModal").style.display = "flex";
+    bmName.value = active.tab.querySelector("span").textContent;
+    bmCode.value = active.url;
+    bmModal.style.display = "flex";
   }
 }
 
 function saveBookmark(){
-  const n = bmName.value;
-  const c = bmCode.value;
-  bookmarks[c] = true;
-  const b = document.createElement("div");
-  b.className = "bookmark";
-  b.textContent = n;
-  b.onclick = () => newTab(c);
-  bookmarkBar.appendChild(b);
-  closeBM();
+  const name = bmName.value.trim();
+  const code = bmCode.value.trim();
+  if(!name || !code) return;
+  bookmarks[code] = {name, code};
+  bmModal.style.display = "none";
+  star.textContent = "★";
+  renderBookmarks();
 }
-function closeBM(){bmModal.style.display="none"}
 
-function goBack(){active?.iframe.contentWindow.history.back()}
-function goForward(){active?.iframe.contentWindow.history.forward()}
-function reloadTab(){active?.iframe.contentWindow.location.reload()}
-function fullscreen(){active?.iframe.requestFullscreen()}
+function closeBM(){ bmModal.style.display = "none"; }
+
+function renderBookmarks(){
+  bookmarkBar.innerHTML = "";
+  for(const url in bookmarks){
+    const b = document.createElement("div");
+    b.className = "bookmark";
+    b.textContent = bookmarks[url].name;
+
+    b.onclick = () => {
+      if(url.startsWith("javascript:")){
+        // Inject bookmarklet
+        try { active.iframe.contentWindow.eval(url.replace(/^javascript:/,"")); } catch {}
+      } else {
+        newTab(url);
+      }
+    };
+
+    bookmarkBar.appendChild(b);
+  }
+}
+
+// Browser controls
+function goBack(){ active?.iframe.contentWindow.history.back() }
+function goForward(){ active?.iframe.contentWindow.history.forward() }
+function reloadTab(){ active?.iframe.contentWindow.location.reload() }
+function fullscreen(){ active?.iframe.requestFullscreen() }
 function injectDev(){
   try{
     active.iframe.contentWindow.eval(`
