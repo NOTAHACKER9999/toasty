@@ -115,6 +115,7 @@ iframe.active,.customPage.active{display:block}
       <button onclick="openCustom('/?/History')">History</button>
       <button onclick="openCustom('/?/Bookmarks')">Bookmarks</button>
       <button onclick="injectDev()">Dev Tools</button>
+      <button onclick="openSettings()">Settings</button>
     </div>
   </div>
 
@@ -150,6 +151,8 @@ const urlBar=document.getElementById("urlBar");
 const star=document.getElementById("bookmarkStar");
 const menu=document.getElementById("menuPanel");
 const bookmarkBar=document.getElementById("bookmarkBar");
+const homeSearch=document.getElementById("homeSearch");
+const menuBtn=document.getElementById("menuBtn");
 
 let tabs=[],active=null;
 let bookmarks=JSON.parse(localStorage.getItem("bookmarks")||"{}");
@@ -160,6 +163,10 @@ let userTyping=false,editKey=null;
 menuBtn.onclick=()=>menu.style.display="flex";
 menu.onmouseleave=()=>menu.style.display="none";
 
+// Focus search bar automatically
+homeSearch.focus();
+
+// Normalize input for search or URL
 function normalize(v){
   if(v.startsWith("/?/")) return v;
   if(!v.includes(".")) return "https://www.startpage.com/sp/search?q="+encodeURIComponent(v);
@@ -167,8 +174,17 @@ function normalize(v){
   return v;
 }
 
-homeSearch.onkeydown=e=>e.key==="Enter"&&newTab(normalize(homeSearch.value));
+// Home search bar Enter
+homeSearch.addEventListener("keydown", e=>{
+  if(e.key==="Enter"){
+    const query=homeSearch.value.trim();
+    if(!query) return;
+    newTab(normalize(query));
+    homeSearch.value="";
+  }
+});
 
+// TABS AND PROXY FUNCTIONS
 function newTab(url="https://www.startpage.com"){
   home.style.display="none";overlay.style.display="flex";
   const iframe=document.createElement("iframe");
@@ -176,7 +192,8 @@ function newTab(url="https://www.startpage.com"){
   const tab=document.createElement("div");
   tab.className="tab";
   tab.innerHTML=`<img><span>New Tab</span><span class="close">✕</span>`;
-  tabsBar.insertBefore(tab,newTabBtn);
+  const tabsBar=document.getElementById("tabsBar");
+  tabsBar.insertBefore(tab,document.getElementById("newTabBtn"));
 
   const t={iframe,tab,url,mode:"proxy",custom:null};
   tabs.push(t);
@@ -200,7 +217,7 @@ function activate(t){
   tabs.forEach(x=>{
     x.tab.classList.remove("active");
     x.iframe.classList.remove("active");
-    if(x.custom) x.custom.classList.remove("active");
+    if(x.custom)x.custom.classList.remove("active");
   });
   active=t;
   t.tab.classList.add("active");
@@ -211,19 +228,19 @@ urlBar.onfocus=()=>userTyping=true;
 urlBar.onblur=()=>userTyping=false;
 
 function trackHistory(url){
-  if(!url || url===lastURL || url.startsWith("/?/")) return;
+  if(!url||url===lastURL||url.startsWith("/?/"))return;
   lastURL=url;
   historyLog.push({url,time:new Date().toLocaleString()});
   localStorage.setItem("history",JSON.stringify(historyLog));
 }
 
 function updateURL(){
-  if(!active || userTyping) return;
+  if(!active||userTyping)return;
 
   if(active.mode==="proxy"){
     try{
       const raw=active.iframe.contentWindow.location.href;
-      if(!raw.includes(__uv$config.prefix)) return;
+      if(!raw.includes(__uv$config.prefix))return;
       const enc=raw.split(__uv$config.prefix)[1];
       const decoded=__uv$config.decodeUrl(enc.replace(/^\/+/,""));
       active.url=decoded;
@@ -245,6 +262,7 @@ urlBar.onkeydown=e=>{
   }
 };
 
+// CUSTOM PAGES
 function openCustom(path){
   if(active.custom) active.custom.remove();
   const page=document.createElement("div");
@@ -270,6 +288,7 @@ function closeCustom(){
   active.mode="proxy";
 }
 
+// BOOKMARK FUNCTIONS
 function toggleBookmark(){
   if(bookmarks[active.url]) openEdit(active.url);
   else{
@@ -278,38 +297,11 @@ function toggleBookmark(){
     bmCreate.style.display="flex";
   }
 }
-
-function saveBookmark(){
-  bookmarks[bmCreateCode.value]={name:bmCreateName.value,code:bmCreateCode.value};
-  localStorage.setItem("bookmarks",JSON.stringify(bookmarks));
-  closeBM();renderBookmarks();
-}
-
-function openEdit(key){
-  editKey=key;
-  bmEditName.value=bookmarks[key].name;
-  bmEditCode.value=bookmarks[key].code;
-  bmEdit.style.display="flex";
-}
-
-function saveEdit(){
-  delete bookmarks[editKey];
-  bookmarks[bmEditCode.value]={name:bmEditName.value,code:bmEditCode.value};
-  localStorage.setItem("bookmarks",JSON.stringify(bookmarks));
-  closeBM();renderBookmarks();
-}
-
-function deleteBM(){
-  delete bookmarks[editKey];
-  localStorage.setItem("bookmarks",JSON.stringify(bookmarks));
-  closeBM();renderBookmarks();
-}
-
-function closeBM(){
-  bmCreate.style.display="none";
-  bmEdit.style.display="none";
-}
-
+function saveBookmark(){bookmarks[bmCreateCode.value]={name:bmCreateName.value,code:bmCreateCode.value};localStorage.setItem("bookmarks",JSON.stringify(bookmarks));closeBM();renderBookmarks()}
+function openEdit(key){editKey=key;bmEditName.value=bookmarks[key].name;bmEditCode.value=bookmarks[key].code;bmEdit.style.display="flex"}
+function saveEdit(){delete bookmarks[editKey];bookmarks[bmEditCode.value]={name:bmEditName.value,code:bmEditCode.value};localStorage.setItem("bookmarks",JSON.stringify(bookmarks));closeBM();renderBookmarks()}
+function deleteBM(){delete bookmarks[editKey];localStorage.setItem("bookmarks",JSON.stringify(bookmarks));closeBM();renderBookmarks()}
+function closeBM(){bmCreate.style.display="none";bmEdit.style.display="none"}
 function renderBookmarks(){
   bookmarkBar.innerHTML="";
   Object.keys(bookmarks).forEach(url=>{
@@ -333,6 +325,7 @@ function renderBookmarks(){
 }
 renderBookmarks();
 
+// DEV TOOLS INJECTION
 function injectDev(){
   try{
     const d=active.iframe.contentDocument;
@@ -343,16 +336,18 @@ function injectDev(){
   }catch{}
 }
 
+// BROWSER CONTROLS
 function goBack(){active?.iframe.contentWindow.history.back()}
 function goForward(){active?.iframe.contentWindow.history.forward()}
 function reloadTab(){active?.iframe.contentWindow.location.reload()}
 function fullscreen(){active?.iframe.requestFullscreen()}
-function closeTab(t){
-  t.tab.remove();t.iframe.remove();if(t.custom)t.custom.remove();
-  tabs=tabs.filter(x=>x!==t);
-  tabs.length?activate(tabs.at(-1)):closeOverlay();
-}
+function closeTab(t){t.tab.remove();t.iframe.remove();if(t.custom)t.custom.remove();tabs=tabs.filter(x=>x!==t);tabs.length?activate(tabs.at(-1)):closeOverlay()}
 function closeOverlay(){overlay.style.display="none";home.style.display="flex"}
+
+// SETTINGS BUTTON FUNCTION
+function openSettings(){
+  alert("Settings page coming soon!");
+}
 </script>
 </body>
 </html>
