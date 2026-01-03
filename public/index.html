@@ -163,18 +163,13 @@ let historyLog=JSON.parse(localStorage.getItem("history")||"[]");
 let lastURL=null,userTyping=false,editKey=null;
 
 // Default browser for search queries
-let defaultBrowser = localStorage.getItem("defaultBrowser") || "Chrome";
+let defaultBrowser = localStorage.getItem("defaultBrowser") || "Startpage";
 const browserSearchURLs = {
-  "Chrome": "https://www.google.com/search?q=",
-  "Edge": "https://www.bing.com/search?q=",
-  "Firefox": "https://search.mozilla.org/?q=",
-  "Opera": "https://www.google.com/search?q=",
-  "Safari": "https://www.google.com/search?q=",
+  "Startpage": "https://www.startpage.com/sp/search?q=",
+  "Google": "https://www.google.com/search?q=",
+  "DuckDuckGo": "https://duckduckgo.com/?q=",
   "Brave": "https://search.brave.com/search?q=",
-  "Vivaldi": "https://vivaldi.com/search/?q=",
-  "Tor": "https://duckduckgo.com/?q=",
-  "Internet Explorer": "https://www.bing.com/search?q=",
-  "Other": "https://www.google.com/search?q="
+  "Bing": "https://www.bing.com/search?q="
 };
 
 menuBtn.onclick=()=>menu.style.display="flex";
@@ -309,16 +304,11 @@ function openCustom(path){
     <div class="customBody">
       <label for="browserSelect">Default Browser for Home Search:</label>
       <select id="browserSelect">
-        <option>Chrome</option>
-        <option>Edge</option>
-        <option>Firefox</option>
-        <option>Opera</option>
-        <option>Safari</option>
+        <option>Startpage</option>
+        <option>Google</option>
+        <option>DuckDuckGo</option>
         <option>Brave</option>
-        <option>Vivaldi</option>
-        <option>Tor</option>
-        <option>Internet Explorer</option>
-        <option>Other</option>
+        <option>Bing</option>
       </select>
     </div>`;
     const sel=document.getElementById("browserSelect");
