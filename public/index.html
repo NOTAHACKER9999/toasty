@@ -22,7 +22,6 @@ if ("serviceWorker" in navigator) {
   --tab:#1a1a1a;
   --tab-active:#121212;
   --text:#ffffff;
-  --hover:#222;
 }
 
 /* Reset */
@@ -137,35 +136,44 @@ nav{
 .ctrl:hover{background:#222}
 #urlWrap{position:relative;flex:1;}
 #urlBar{width:100%;padding:6px 36px 6px 10px;background:black;border:none;color:white;font-family:monospace;outline:none;}
-#bookmarkStar{position:absolute;right:8px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:20px;user-select:none;}
+#bookmarkStar{position:absolute;right:8px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:24px;user-select:none;}
 
 /* Bookmark Panel */
+#bookmarkBackdrop{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.5);
+  z-index:9999;
+  display:none;
+}
 #bookmarkPanel{
   position:fixed;
-  top:80px; left:50%;
+  top:60px;
+  left:50%;
   transform:translateX(-50%);
-  width:720px;
+  width:800px;
   max-width:95%;
-  max-height:400px;
+  max-height:500px;
   background:#111;
   border:2px solid #444;
-  border-radius:12px;
-  display:flex; flex-direction:column; gap:8px;
-  padding:12px; overflow-y:auto;
-  z-index:1001;
+  border-radius:14px;
+  display:flex; flex-direction:column; gap:10px;
+  padding:16px;
+  overflow-y:auto;
+  z-index:10000;
   display:none;
-  box-shadow:0 0 20px rgba(0,0,0,0.7);
+  box-shadow:0 0 30px rgba(0,0,0,0.8);
 }
 .bookmarkItem{
   background:#222;
-  padding:10px 14px;
+  padding:12px 16px;
   border-radius:8px;
   cursor:pointer;
   display:flex; justify-content:space-between; align-items:center;
   transition:0.2s;
 }
 .bookmarkItem:hover{background:#333;}
-.bookmarkName{flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.bookmarkName{flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:500; font-size:1rem;}
 
 /* Frames */
 #frames{flex:1; position:relative;}
@@ -177,16 +185,19 @@ iframe.active{display:block;}
   position:fixed; inset:0;
   background:rgba(0,0,0,.6);
   display:none; justify-content:center; align-items:center;
+  z-index:10001;
 }
 #bmBox{
   background:#111;
-  padding:20px;
-  border-radius:12px;
+  padding:24px;
+  border-radius:14px;
   display:flex;
   flex-direction:column;
-  gap:10px;
+  gap:12px;
 }
-#bmBox input{padding:8px;background:black;border:none;color:white;}
+#bmBox input{padding:10px;background:black;border:none;color:white;font-size:1rem;}
+#bmBox button{padding:8px;background:#222;color:white;border:none;border-radius:6px;cursor:pointer;}
+#bmBox button:hover{background:#333;}
 </style>
 </head>
 <body>
@@ -224,6 +235,7 @@ iframe.active{display:block;}
 </div>
 
 <!-- Bookmark Panel -->
+<div id="bookmarkBackdrop"></div>
 <div id="bookmarkPanel"></div>
 
 <!-- Bookmark Modal -->
@@ -245,6 +257,7 @@ const frames=document.getElementById("frames");
 const urlBar=document.getElementById("urlBar");
 const star=document.getElementById("bookmarkStar");
 const bookmarkPanel=document.getElementById("bookmarkPanel");
+const bookmarkBackdrop=document.getElementById("bookmarkBackdrop");
 const bmModal=document.getElementById("bmModal");
 const bmName=document.getElementById("bmName");
 const bmCode=document.getElementById("bmCode");
@@ -252,7 +265,11 @@ const bmCode=document.getElementById("bmCode");
 let tabs=[], active=null;
 let bookmarks={};
 
-function normalize(v){if(!v.includes("."))return "https://www.startpage.com/sp/search?q="+encodeURIComponent(v); if(!v.startsWith("http"))return "https://"+v; return v;}
+function normalize(v){
+  if(!v.includes(".")) return "https://www.startpage.com/sp/search?q="+encodeURIComponent(v);
+  if(!v.startsWith("http")) return "https://"+v;
+  return v;
+}
 
 homeSearch.onkeydown=e=>{if(e.key==="Enter") newTab(normalize(homeSearch.value));};
 
@@ -274,7 +291,12 @@ function newTab(url="https://www.startpage.com"){
   iframe.onload=()=>{try{title.textContent=iframe.contentDocument.title||url; const ico=iframe.contentDocument.querySelector("link[rel~='icon']"); if(ico) icon.src=ico.href;}catch{}};
 }
 
-function activate(t){tabs.forEach(x=>{x.tab.classList.remove("active"); x.iframe.classList.remove("active");}); active=t; t.tab.classList.add("active"); t.iframe.classList.add("active"); urlBar.value=t.url; star.textContent=bookmarks[t.url]?"★":"☆";}
+function activate(t){
+  tabs.forEach(x=>{x.tab.classList.remove("active"); x.iframe.classList.remove("active");});
+  active=t; t.tab.classList.add("active"); t.iframe.classList.add("active");
+  urlBar.value=t.url;
+  star.textContent=bookmarks[t.url]?"★":"☆";
+}
 
 urlBar.onkeydown=e=>{if(e.key==="Enter"){active.url=normalize(urlBar.value); active.iframe.src=__uv$config.prefix+__uv$config.encodeUrl(active.url);}}
 
@@ -288,22 +310,32 @@ function toggleBookmark(){
   renderBookmarks();
 }
 
-function saveBookmark(){const name=bmName.value.trim(); const code=bmCode.value.trim(); if(!name||!code) return; bookmarks[code]={name,code}; bmModal.style.display="none"; star.textContent="★"; renderBookmarks();}
+function saveBookmark(){
+  const name=bmName.value.trim(); const code=bmCode.value.trim();
+  if(!name || !code) return;
+  bookmarks[code]={name,code};
+  bmModal.style.display="none";
+  star.textContent="★";
+  renderBookmarks();
+}
+
 function closeBM(){bmModal.style.display="none";}
 
 function renderBookmarks(){
   bookmarkPanel.innerHTML="";
-  for(const url in bookmarks){
+  const keys=Object.keys(bookmarks);
+  if(keys.length===0){bookmarkPanel.style.display="none"; bookmarkBackdrop.style.display="none"; return;}
+  keys.forEach(url=>{
     const item=document.createElement("div"); item.className="bookmarkItem";
     const nameSpan=document.createElement("span"); nameSpan.className="bookmarkName"; nameSpan.textContent=bookmarks[url].name;
     item.appendChild(nameSpan);
     let holdTimer;
-    item.onclick=()=>{if(url.startsWith("javascript:")){try{active.iframe.contentWindow.eval(url.replace(/^javascript:/,""));}catch{}}else newTab(url);}
-    item.onmousedown=e=>{holdTimer=setTimeout(()=>{bmName.value=bookmarks[url].name; bmCode.value=bookmarks[url].code; bmModal.style.display="flex"; const oldClose=bmModal.querySelector("button:nth-child(3)"); oldClose.onclick=()=>{delete bookmarks[url]; closeBM(); renderBookmarks();}},600);}
+    item.onclick=()=>{if(url.startsWith("javascript:")){active.iframe.contentWindow.eval(url.replace(/^javascript:/,""));}else newTab(url);}
+    item.onmousedown=()=>{holdTimer=setTimeout(()=>{bmName.value=bookmarks[url].name; bmCode.value=bookmarks[url].code; bmModal.style.display="flex"; const oldClose=bmModal.querySelector("button:nth-child(3)"); oldClose.onclick=()=>{delete bookmarks[url]; closeBM(); renderBookmarks();}},600);}
     item.onmouseup=item.onmouseleave=()=>clearTimeout(holdTimer);
     bookmarkPanel.appendChild(item);
-  }
-  bookmarkPanel.style.display=Object.keys(bookmarks).length?"flex":"none";
+  });
+  bookmarkPanel.style.display="flex"; bookmarkBackdrop.style.display="block";
 }
 
 // Browser controls
