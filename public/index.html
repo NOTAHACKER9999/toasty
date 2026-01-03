@@ -2,27 +2,33 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Proxy Browser</title>
+<title>Override Browser</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- ========= UV CONFIG ========= -->
+<script src="/uv/uv.bundle.js"></script>
+<script src="/uv/uv.config.js"></script>
 
 <style>
 *{box-sizing:border-box;font-family:Arial}
-body{margin:0;background:#111;color:#fff;overflow:hidden}
+body{margin:0;background:#0b0b0b;color:#fff;overflow:hidden}
 
 /* ---------- HOME ---------- */
 #home{
   position:absolute;inset:0;
   display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  gap:20px;z-index:1
+  justify-content:center;align-items:center;
+  gap:22px;z-index:1
 }
+#home h1{color:red;letter-spacing:3px}
 #home input{
-  width:420px;padding:14px;
+  width:440px;padding:14px;
   font-size:18px;border-radius:30px;
   border:none;outline:none
 }
+.homeBtns{display:flex;gap:14px}
 .homeBtns button{
-  padding:12px 22px;
+  padding:12px 24px;
   background:#000;border:1px solid red;
   color:red;font-size:16px;
   cursor:pointer
@@ -37,82 +43,74 @@ body{margin:0;background:#111;color:#fff;overflow:hidden}
 
 /* ---------- TOP BAR ---------- */
 #topBar{
-  height:44px;background:#1a1a1a;
+  height:46px;background:#161616;
   display:flex;align-items:center;
-  padding:0 8px;gap:8px;z-index:20
+  padding:0 10px;gap:8px;z-index:20
 }
 #tabs{display:flex;gap:4px;flex:1}
 .tab{
   background:#222;padding:6px 10px;
   border-radius:6px;cursor:pointer;
-  display:flex;align-items:center;gap:6px
+  display:flex;align-items:center;gap:6px;
+  max-width:180px;overflow:hidden
 }
 .tab.active{background:#333}
 .tab img{width:14px;height:14px}
 
 #urlBar{
-  flex:3;padding:6px 10px;
+  flex:3;padding:7px 12px;
   border-radius:20px;border:none;
-  outline:none
+  outline:none;font-size:14px
 }
 
+#dots{font-size:20px;cursor:pointer;padding:4px 8px}
 #closeBtn{
-  background:red;color:#000;
+  background:red;color:black;
   border:none;padding:6px 10px;
   cursor:pointer
 }
 
-#dots{
-  font-size:20px;cursor:pointer;
-  padding:4px 8px
-}
-
 /* ---------- 3 DOT MENU ---------- */
 #menu{
-  position:absolute;top:44px;right:10px;
+  position:absolute;top:46px;right:10px;
   background:#222;border-radius:10px;
   display:none;flex-direction:column;
-  min-width:160px;z-index:30
+  min-width:170px;z-index:30
 }
 #menu button{
   background:none;border:none;
   color:#fff;text-align:left;
-  padding:10px;cursor:pointer
+  padding:10px 14px;cursor:pointer
 }
 #menu button:hover{background:#333}
 
 /* ---------- BOOKMARK BAR ---------- */
 #bookmarkBar{
-  height:32px;background:#191919;
+  height:32px;background:#181818;
   display:flex;gap:6px;
-  padding:4px 6px;overflow-x:auto
+  padding:4px 8px;overflow-x:auto
 }
 .bm{
-  background:#222;padding:4px 8px;
+  background:#222;padding:4px 10px;
   border-radius:6px;cursor:pointer;
   white-space:nowrap
 }
 
 /* ---------- CONTENT ---------- */
-#content{
-  position:relative;flex:1
-}
+#content{position:relative;flex:1}
 iframe{
   position:absolute;inset:0;
   width:100%;height:100%;
   border:none;background:#000
 }
 
-/* ---------- PANEL OVERLAY ---------- */
+/* ---------- PANELS ---------- */
 .panel{
-  position:absolute;inset:50px;
+  position:absolute;inset:60px;
   background:#111;border:1px solid #333;
   border-radius:14px;padding:20px;
   overflow:auto;z-index:25
 }
-.panel h2{margin-top:0}
-
-/* ---------- HISTORY ---------- */
 .histItem{
   padding:10px;border-bottom:1px solid #333;
   cursor:pointer
@@ -123,17 +121,18 @@ iframe{
 
 <body>
 
-<!-- HOME -->
+<!-- ========= HOME ========= -->
 <div id="home">
+  <h1>SCHOOL OVERRIDE</h1>
   <input id="homeSearch" placeholder="Search or enter URL">
   <div class="homeBtns">
     <button onclick="openBrowser()">Browser</button>
-    <button onclick="alert('Games placeholder')">Games</button>
-    <button onclick="alert('Stuff placeholder')">Stuff</button>
+    <button onclick="alert('Games coming soon')">Games</button>
+    <button onclick="alert('Stuff coming soon')">Stuff</button>
   </div>
 </div>
 
-<!-- OVERLAY -->
+<!-- ========= OVERLAY ========= -->
 <div id="overlay">
 
   <div id="topBar">
@@ -150,13 +149,14 @@ iframe{
     <button onclick="openHistory()">History</button>
     <button onclick="openBookmarks()">Bookmarks</button>
     <button onclick="injectDevTools()">Dev Tools</button>
-    <button onclick="alert('Settings coming soon')">Settings</button>
+    <button onclick="alert('Settings soon')">Settings</button>
   </div>
 
   <div id="content"></div>
 </div>
 
 <script>
+/* ========= ELEMENTS ========= */
 const home=document.getElementById("home");
 const overlay=document.getElementById("overlay");
 const content=document.getElementById("content");
@@ -165,13 +165,15 @@ const urlBar=document.getElementById("urlBar");
 const bookmarkBar=document.getElementById("bookmarkBar");
 const menu=document.getElementById("menu");
 const dots=document.getElementById("dots");
+const homeSearch=document.getElementById("homeSearch");
 
+/* ========= STATE ========= */
 let tabs=[],activeTab=null;
 let historyLog=JSON.parse(localStorage.getItem("history")||"[]");
 let bookmarks=JSON.parse(localStorage.getItem("bookmarks")||"{}");
-let typing=false;
+let typing=false,lastURL=null;
 
-/* ---------- HOME ---------- */
+/* ========= HOME ========= */
 homeSearch.onkeydown=e=>{
   if(e.key==="Enter"){
     openBrowser();
@@ -179,34 +181,39 @@ homeSearch.onkeydown=e=>{
   }
 };
 
-/* ---------- BROWSER ---------- */
+/* ========= BROWSER ========= */
 function openBrowser(){
   home.style.display="none";
   overlay.style.display="flex";
   if(!tabs.length) newTab();
 }
-
 function closeBrowser(){
   overlay.style.display="none";
   home.style.display="flex";
 }
 
-function newTab(url="https://duckduckgo.com"){
+/* ========= TABS ========= */
+function newTab(input="https://duckduckgo.com"){
   const iframe=document.createElement("iframe");
+  const url = __uv$config.prefix + __uv$config.encodeUrl(
+    input.startsWith("http") ? input : "https://duckduckgo.com/?q="+encodeURIComponent(input)
+  );
   iframe.src=url;
   content.appendChild(iframe);
 
-  const tab={
-    iframe,url,title:"New Tab",icon:""
-  };
+  const tab={iframe,url:input,title:"New Tab",icon:""};
   tabs.push(tab);
   setActive(tab);
 
   iframe.onload=()=>{
     try{
-      tab.title=iframe.contentDocument.title||url;
+      const raw=iframe.contentWindow.location.href;
+      const enc=raw.split(__uv$config.prefix)[1];
+      const dec=__uv$config.decodeUrl(enc.replace(/^\/+/,""));
+      tab.url=dec;
+      tab.title=iframe.contentDocument.title||dec;
       tab.icon=iframe.contentDocument.querySelector("link[rel~='icon']")?.href||"";
-      logHistory(iframe.src);
+      logHistory(dec);
       renderTabs();
     }catch{}
   };
@@ -234,32 +241,37 @@ function renderTabs(){
   });
 }
 
-/* ---------- URL BAR ---------- */
+/* ========= URL BAR ========= */
 urlBar.onfocus=()=>typing=true;
 urlBar.onblur=()=>typing=false;
-
 urlBar.onkeydown=e=>{
-  if(e.key==="Enter"){
-    activeTab.iframe.src=urlBar.value;
-  }
+  if(e.key==="Enter") newTab(urlBar.value);
 };
 
 setInterval(()=>{
-  if(activeTab&&!typing){
+  if(activeTab && !typing){
     try{
-      urlBar.value=activeTab.iframe.contentWindow.location.href;
+      const raw=activeTab.iframe.contentWindow.location.href;
+      if(raw.includes(__uv$config.prefix)){
+        const enc=raw.split(__uv$config.prefix)[1];
+        const dec=__uv$config.decodeUrl(enc.replace(/^\/+/,""));
+        urlBar.value=dec;
+        logHistory(dec);
+      }
     }catch{}
   }
 },500);
 
-/* ---------- HISTORY ---------- */
+/* ========= HISTORY ========= */
 function logHistory(url){
+  if(!url||url===lastURL) return;
+  lastURL=url;
   historyLog.push({url,time:new Date().toLocaleString()});
   localStorage.setItem("history",JSON.stringify(historyLog));
 }
 
 function openHistory(){
-  showPanel("History",panel=>{
+  showPanel("History",p=>{
     const clear=document.createElement("button");
     clear.textContent="Clear History";
     clear.onclick=()=>{
@@ -267,19 +279,19 @@ function openHistory(){
       localStorage.removeItem("history");
       openHistory();
     };
-    panel.appendChild(clear);
+    p.appendChild(clear);
 
     historyLog.slice().reverse().forEach(h=>{
       const d=document.createElement("div");
       d.className="histItem";
       d.innerHTML=`<b>${h.url}</b><br><small>${h.time}</small>`;
       d.onclick=()=>newTab(h.url);
-      panel.appendChild(d);
+      p.appendChild(d);
     });
   });
 }
 
-/* ---------- BOOKMARKS ---------- */
+/* ========= BOOKMARKS ========= */
 function renderBookmarks(){
   bookmarkBar.innerHTML="";
   Object.keys(bookmarks).forEach(url=>{
@@ -290,16 +302,15 @@ function renderBookmarks(){
     bookmarkBar.appendChild(b);
   });
 }
-
 function openBookmarks(){
-  showPanel("Bookmarks",panel=>{
+  showPanel("Bookmarks",p=>{
     Object.keys(bookmarks).forEach(url=>{
-      panel.innerHTML+=`<div>${bookmarks[url]}<br><small>${url}</small></div>`;
+      p.innerHTML+=`<div>${bookmarks[url]}<br><small>${url}</small></div>`;
     });
   });
 }
 
-/* ---------- PANELS ---------- */
+/* ========= PANELS ========= */
 function showPanel(title,build){
   document.querySelectorAll(".panel").forEach(p=>p.remove());
   const p=document.createElement("div");
@@ -309,12 +320,12 @@ function showPanel(title,build){
   content.appendChild(p);
 }
 
-/* ---------- MENU ---------- */
+/* ========= MENU ========= */
 dots.onclick=()=>{
   menu.style.display=menu.style.display==="flex"?"none":"flex";
 };
 
-/* ---------- DEVTOOLS ---------- */
+/* ========= DEVTOOLS ========= */
 function injectDevTools(){
   try{
     const d=activeTab.iframe.contentDocument;
@@ -329,6 +340,5 @@ function injectDevTools(){
 
 renderBookmarks();
 </script>
-
 </body>
 </html>
