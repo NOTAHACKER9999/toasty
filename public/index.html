@@ -2,8 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Proxy Browser</title>
+<title>Override Browser</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- ================= ULTRAVIOLET ================= -->
+<script src="/uv/uv.bundle.js"></script>
+<script src="/uv/uv.config.js"></script>
 
 <style>
 :root{
@@ -34,7 +38,12 @@ body{
   align-items:center;
   justify-content:center;
   flex-direction:column;
-  gap:16px;
+  gap:20px;
+}
+
+#home h1{
+  color:#f00;
+  letter-spacing:2px;
 }
 
 #home input{
@@ -43,6 +52,19 @@ body{
   background:#000;
   color:#fff;
   border:1px solid var(--border);
+}
+
+#home .buttons{
+  display:flex;
+  gap:16px;
+}
+
+#home button{
+  padding:12px 24px;
+  background:#000;
+  color:#fff;
+  border:1px solid #fff;
+  cursor:pointer;
 }
 
 /* ===== OVERLAY ===== */
@@ -54,7 +76,7 @@ body{
   background:var(--bg);
 }
 
-/* ===== TABS BAR ===== */
+/* ===== TABS ===== */
 #tabsBar{
   display:flex;
   align-items:flex-end;
@@ -146,13 +168,13 @@ body{
 /* ===== BOOKMARK BAR ===== */
 #bookmarks{
   position:absolute;
-  top:72px;
+  top:74px;
   left:0;
   right:0;
   background:#000;
   border-bottom:1px solid var(--border);
   display:flex;
-  gap:14px;
+  gap:16px;
   padding:10px;
   z-index:10;
 }
@@ -160,7 +182,6 @@ body{
 .bookmark{
   font-size:13px;
   cursor:pointer;
-  user-select:none;
 }
 
 .bookmark[contenteditable]{
@@ -186,7 +207,7 @@ iframe.active{
   display:block;
 }
 
-/* ===== CLOSE OVERLAY ===== */
+/* ===== CLOSE ===== */
 #closeOverlay{
   position:absolute;
   top:6px;
@@ -200,10 +221,19 @@ iframe.active{
 
 <body>
 
+<!-- ================= HOME ================= -->
 <div id="home">
+  <h1>WELCOME</h1>
+
   <input id="homeSearch" placeholder="Search or enter URL">
+
+  <div class="buttons">
+    <button onclick="openBrowser()">Browser</button>
+    <button onclick="location.href='../games/index.html'">Games</button>
+  </div>
 </div>
 
+<!-- ================= BROWSER ================= -->
 <div id="overlay">
   <div id="closeOverlay">✕</div>
 
@@ -230,17 +260,18 @@ iframe.active{
 </div>
 
 <script>
-const home = document.getElementById("home");
-const overlay = document.getElementById("overlay");
-const frames = document.getElementById("frames");
-const tabsBar = document.getElementById("tabsBar");
-const newTabBtn = document.getElementById("newTab");
-const urlBar = document.getElementById("url");
-const star = document.getElementById("star");
-const bookmarksBar = document.getElementById("bookmarks");
+/* ===== ELEMENTS ===== */
+const home=document.getElementById("home");
+const overlay=document.getElementById("overlay");
+const frames=document.getElementById("frames");
+const tabsBar=document.getElementById("tabsBar");
+const newTabBtn=document.getElementById("newTab");
+const urlBar=document.getElementById("url");
+const star=document.getElementById("star");
+const bookmarksBar=document.getElementById("bookmarks");
 
 let tabs=[], active=null;
-let bookmarks = JSON.parse(localStorage.getItem("bm")||"{}");
+let bookmarks=JSON.parse(localStorage.getItem("bm")||"{}");
 
 /* ===== HELPERS ===== */
 function normalize(input){
@@ -262,10 +293,13 @@ function navigate(tab,raw){
 }
 
 /* ===== TABS ===== */
-function newTab(url=""){
+function openBrowser(){
   overlay.style.display="flex";
   home.style.display="none";
+  if(!tabs.length) newTab();
+}
 
+function newTab(url=""){
   const iframe=document.createElement("iframe");
   frames.appendChild(iframe);
 
@@ -326,35 +360,29 @@ function renderBookmarks(){
     const b=document.createElement("div");
     b.className="bookmark";
     b.textContent=bookmarks[url];
-    b.onclick=()=>navigate(active,url);
 
+    b.onclick=()=>navigate(active,url);
     b.ondblclick=()=>{
       b.contentEditable=true;
       b.focus();
     };
-
     b.onblur=()=>{
       b.contentEditable=false;
       bookmarks[url]=b.textContent.trim();
       localStorage.setItem("bm",JSON.stringify(bookmarks));
     };
-
     bookmarksBar.appendChild(b);
   }
 }
 
 function updateStar(){
-  if(active && bookmarks[active.url]) star.textContent="★";
-  else star.textContent="☆";
+  star.textContent=(active && bookmarks[active.url])?"★":"☆";
 }
 
 star.onclick=()=>{
   if(!active||!active.url) return;
-  if(bookmarks[active.url]){
-    delete bookmarks[active.url];
-  }else{
-    bookmarks[active.url]=active.url;
-  }
+  if(bookmarks[active.url]) delete bookmarks[active.url];
+  else bookmarks[active.url]=active.url;
   localStorage.setItem("bm",JSON.stringify(bookmarks));
   renderBookmarks();
   updateStar();
@@ -363,6 +391,13 @@ star.onclick=()=>{
 /* ===== CONTROLS ===== */
 urlBar.onkeydown=e=>{
   if(e.key==="Enter"&&active) navigate(active,urlBar.value);
+};
+
+homeSearch.onkeydown=e=>{
+  if(e.key==="Enter"){
+    openBrowser();
+    newTab(homeSearch.value);
+  }
 };
 
 document.getElementById("reload").onclick=()=>active&&active.iframe.contentWindow.location.reload();
@@ -374,20 +409,12 @@ document.getElementById("fs").onclick=()=>{
   else document.exitFullscreen();
 };
 
-document.getElementById("dev").onclick=()=>{
-  if(active) active.iframe.contentWindow.eval("alert('Dev tools injected')");
-};
-
 document.getElementById("closeOverlay").onclick=()=>{
   overlay.style.display="none";
   home.style.display="flex";
 };
 
 newTabBtn.onclick=()=>newTab();
-
-homeSearch.onkeydown=e=>{
-  if(e.key==="Enter") newTab(homeSearch.value);
-};
 
 /* ===== URL DECODE LOOP ===== */
 setInterval(()=>{
