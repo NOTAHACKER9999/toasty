@@ -1,4 +1,4 @@
-<!-- Full updated code with bookmarklets injected directly into the proxyed site -->
+<!-- Full HTML with Eruda-style bookmarklet injection -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,7 +6,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Glitch Hub</title>
 
-<!-- Ultraviolet Proxy -->
 <script src="/uv/uv.bundle.js"></script>
 <script src="/uv/uv.config.js"></script>
 <script>
@@ -24,162 +23,38 @@ if ("serviceWorker" in navigator) {
   --tab-active:#121212;
   --text:#ffffff;
 }
-
-/* Reset */
 *{margin:0;padding:0;box-sizing:border-box}
-body{
-  font-family:Segoe UI,Arial;
-  background:var(--bg);
-  color:var(--text);
-  height:100vh;
-  display:flex;
-  flex-direction:column;
-  overflow:hidden;
-}
-
-/* Header/Home */
-header{
-  background:var(--panel);
-  padding:14px;
-  text-align:center;
-  font-size:2rem;
-  font-weight:700;
-}
-nav{
-  display:flex;
-  justify-content:center;
-  gap:18px;
-  padding:10px;
-  background:var(--panel);
-}
-.nav-btn{
-  padding:10px 18px;
-  background:#111;
-  border:none;
-  border-radius:8px;
-  color:white;
-  cursor:pointer;
-}
+body{font-family:Segoe UI,Arial;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+header{background:var(--panel);padding:14px;text-align:center;font-size:2rem;font-weight:700;}
+nav{display:flex;justify-content:center;gap:18px;padding:10px;background:var(--panel);}
+.nav-btn{padding:10px 18px;background:#111;border:none;border-radius:8px;color:white;cursor:pointer;}
 .nav-btn:hover{background:#222}
-
-#home{
-  flex:1;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-}
-#homeSearch{
-  width:420px;
-  max-width:90%;
-  padding:14px 18px;
-  background:#111;
-  border:none;
-  border-radius:999px;
-  color:white;
-  font-size:1.1rem;
-  outline:none;
-}
-
-/* Proxy Overlay */
-#proxyOverlay{
-  position:fixed;
-  inset:0;
-  background:var(--bg);
-  display:none;
-  flex-direction:column;
-  z-index:900;
-}
-
-/* Tabs */
-#tabsBar{
-  display:flex;
-  align-items:flex-end;
-  background:var(--panel);
-  padding:4px;
-  overflow:hidden;
-  position:relative;
-}
-.tab{
-  position:relative;
-  display:flex;
-  align-items:center;
-  gap:6px;
-  padding:8px 26px 8px 10px;
-  background:var(--tab);
-  color:white;
-  border-top-left-radius:8px;
-  border-top-right-radius:8px;
-  cursor:pointer;
-  min-width:80px;
-  max-width:192px;
-  white-space:nowrap;
-  overflow:hidden;
-}
+#home{flex:1;display:flex;justify-content:center;align-items:center;}
+#homeSearch{width:420px;max-width:90%;padding:14px 18px;background:#111;border:none;border-radius:999px;color:white;font-size:1.1rem;outline:none;}
+#proxyOverlay{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;z-index:900;}
+#tabsBar{display:flex;align-items:flex-end;background:var(--panel);padding:4px;overflow:hidden;position:relative;}
+.tab{position:relative;display:flex;align-items:center;gap:6px;padding:8px 26px 8px 10px;background:var(--tab);color:white;border-top-left-radius:8px;border-top-right-radius:8px;cursor:pointer;min-width:80px;max-width:192px;white-space:nowrap;overflow:hidden;}
 .tab.active{background:var(--tab-active);}
 .tab img{width:16px;height:16px;}
 .tab span{overflow:hidden;text-overflow:ellipsis;}
-.tab .close{
-  position:absolute; top:4px; right:6px;
-  color:white; font-weight:700; font-size:14px;
-  cursor:pointer; z-index:5;
-}
-
-/* New tab + overlay close */
+.tab .close{position:absolute;top:4px;right:6px;color:white;font-weight:700;font-size:14px;cursor:pointer;z-index:5;}
 #newTabBtn{padding:8px 14px;background:#111;color:white;cursor:pointer;border-radius:8px;margin-left:4px;}
 #closeOverlayBtn{position:absolute;right:4px;top:4px;padding:4px 10px;background:#111;color:white;font-weight:bold;border-radius:6px;cursor:pointer;z-index:10;}
 #closeOverlayBtn:hover{background:#222;}
-
-/* Browser Bar */
-#browserBar{
-  display:flex; align-items:center; gap:6px; padding:6px; background:var(--bar);
-}
+#browserBar{display:flex;align-items:center;gap:6px;padding:6px;background:var(--bar);}
 .ctrl{padding:6px 10px;background:#111;border:none;color:white;cursor:pointer;}
 .ctrl:hover{background:#222}
 #urlWrap{position:relative;flex:1;}
 #urlBar{width:100%;padding:6px 36px 6px 10px;background:black;border:none;color:white;font-family:monospace;outline:none;}
 #bookmarkStar{position:absolute;right:8px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:24px;user-select:none;}
-
-/* Bottom Bookmark BAR */
-#bookmarkBar{
-  display:flex;
-  flex-wrap:nowrap;
-  gap:6px;
-  padding:6px;
-  background:var(--panel);
-  overflow-x:auto;
-  min-height:36px;
-}
-.bookmarkButton{
-  padding:6px 10px;
-  background:#111;
-  color:white;
-  border-radius:6px;
-  font-size:0.9rem;
-  cursor:pointer;
-  white-space:nowrap;
-}
+#bookmarkBar{display:flex;flex-wrap:nowrap;gap:6px;padding:6px;background:var(--panel);overflow-x:auto;min-height:36px;}
+.bookmarkButton{padding:6px 10px;background:#111;color:white;border-radius:6px;font-size:0.9rem;cursor:pointer;white-space:nowrap;}
 .bookmarkButton:hover{background:#222;}
-
-/* Frames */
-#frames{flex:1; position:relative;}
-iframe{position:absolute; inset:0;width:100%;height:100%;border:none;display:none;}
+#frames{flex:1;position:relative;}
+iframe{position:absolute;inset:0;width:100%;height:100%;border:none;display:none;}
 iframe.active{display:block;}
-
-/* Create/Edit Bookmark Modals */
-#bmModalCreate, #bmModalEdit{
-  position:fixed; inset:0;
-  background:rgba(0,0,0,.6);
-  display:none; justify-content:center; align-items:center;
-  z-index:10001;
-}
-.bmBox{
-  background:#111;
-  padding:24px;
-  border-radius:14px;
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-}
+#bmModalCreate,#bmModalEdit{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:10001;}
+.bmBox{background:#111;padding:24px;border-radius:14px;display:flex;flex-direction:column;gap:12px;}
 .bmBox input{padding:10px;background:black;border:none;color:white;font-size:1rem;}
 .bmBox button{padding:8px;background:#222;color:white;border:none;border-radius:6px;cursor:pointer;}
 .bmBox button:hover{background:#333;}
@@ -201,7 +76,6 @@ iframe.active{display:block;}
   <input id="homeSearch" placeholder="Search or enter URL">
 </div>
 
-<!-- Proxy Overlay -->
 <div id="proxyOverlay">
   <div id="tabsBar">
     <div id="newTabBtn" onclick="newTab()">＋</div>
@@ -218,14 +92,10 @@ iframe.active{display:block;}
     <button class="ctrl" onclick="fullscreen()">⛶</button>
     <button class="ctrl" onclick="injectDev()">&lt;/&gt;</button>
   </div>
-
-  <!-- Bottom bookmark bar -->
   <div id="bookmarkBar"></div>
-
   <div id="frames"></div>
 </div>
 
-<!-- CREATE BOOKMARK MODAL -->
 <div id="bmModalCreate">
   <div class="bmBox">
     <input id="bmNameCreate" placeholder="Bookmark Name">
@@ -235,7 +105,6 @@ iframe.active{display:block;}
   </div>
 </div>
 
-<!-- EDIT BOOKMARK MODAL -->
 <div id="bmModalEdit">
   <div class="bmBox">
     <input id="bmNameEdit" placeholder="Bookmark Name">
@@ -301,7 +170,6 @@ function activate(t){
   star.textContent=bookmarks[t.url]?"★":"☆";
 }
 
-// Browser controls
 urlBar.onkeydown=e=>{if(e.key==="Enter"){active.url=normalize(urlBar.value); active.iframe.src=__uv$config.prefix+__uv$config.encodeUrl(active.url);}}
 function closeTab(t){t.tab.remove(); t.iframe.remove(); tabs=tabs.filter(x=>x!==t); if(tabs.length) activate(tabs[tabs.length-1]); else closeOverlay();}
 function closeOverlay(){tabs.forEach(t=>{t.tab.remove(); t.iframe.remove();}); tabs=[]; overlay.style.display="none"; home.style.display="flex";}
@@ -311,7 +179,6 @@ function reloadTab(){active?.iframe.contentWindow.location.reload();}
 function fullscreen(){active?.iframe.requestFullscreen();}
 function injectDev(){try{active.iframe.contentWindow.eval(`var s=document.createElement('script');s.src='//cdn.jsdelivr.net/npm/eruda';document.body.appendChild(s);s.onload=()=>eruda.init();`);}catch{}}
 
-// Toggle bookmark (open CREATE panel if new)
 function toggleBookmark(){
   if(!active) return;
   if(bookmarks[active.url]){
@@ -323,7 +190,6 @@ function toggleBookmark(){
   }
 }
 
-// CREATE bookmark
 function saveBookmarkCreate(){
   const n=bmNameCreate.value.trim(), c=bmCodeCreate.value.trim();
   if(!n || !c) return;
@@ -332,32 +198,11 @@ function saveBookmarkCreate(){
   renderBookmarks();
 }
 function closeBMCreate(){bmModalCreate.style.display="none";}
-
-// EDIT bookmark
-function openBMEdit(url){
-  editingURL=url;
-  bmNameEdit.value=bookmarks[url].name;
-  bmCodeEdit.value=bookmarks[url].code;
-  bmModalEdit.style.display="flex";
-}
-function saveBookmarkEdit(){
-  const n=bmNameEdit.value.trim(), c=bmCodeEdit.value.trim();
-  if(!n || !c) return;
-  delete bookmarks[editingURL];
-  bookmarks[c]={name:n, code:c};
-  bmModalEdit.style.display="none";
-  editingURL=null;
-  renderBookmarks();
-}
-function deleteBookmarkEdit(){
-  delete bookmarks[editingURL];
-  bmModalEdit.style.display="none";
-  editingURL=null;
-  renderBookmarks();
-}
+function openBMEdit(url){editingURL=url; bmNameEdit.value=bookmarks[url].name; bmCodeEdit.value=bookmarks[url].code; bmModalEdit.style.display="flex";}
+function saveBookmarkEdit(){const n=bmNameEdit.value.trim(),c=bmCodeEdit.value.trim();if(!n||!c)return;delete bookmarks[editingURL]; bookmarks[c]={name:n,code:c}; bmModalEdit.style.display="none"; editingURL=null; renderBookmarks();}
+function deleteBookmarkEdit(){delete bookmarks[editingURL]; bmModalEdit.style.display="none"; editingURL=null; renderBookmarks();}
 function closeBMEdit(){bmModalEdit.style.display="none"; editingURL=null;}
 
-// Render bookmarks with hold-to-edit and inject JS bookmarklets
 function renderBookmarks(){
   bookmarkBar.innerHTML="";
   Object.keys(bookmarks).forEach(url=>{
@@ -366,28 +211,24 @@ function renderBookmarks(){
     btn.textContent=bookmarks[url].name;
 
     let holdTimer;
+    btn.onmousedown=()=>{holdTimer=setTimeout(()=>openBMEdit(url),600);}
+    btn.onmouseup=btn.onmouseleave=()=>clearTimeout(holdTimer);
 
-    btn.onmousedown = () => {
-      holdTimer = setTimeout(() => {
-        openBMEdit(url); // Hold to edit
-      }, 600);
-    };
-    btn.onmouseup = btn.onmouseleave = () => clearTimeout(holdTimer);
-
-    btn.onclick = (e) => {
-      if(e.detail === 1){ // Quick click opens
-        if(url.startsWith("javascript:") && active){
-          // Inject directly into iframe console
+    btn.onclick=(e)=>{
+      if(e.detail===1 && active){
+        const code=bookmarks[url].code;
+        if(code.startsWith("javascript:")){
+          // Inject like Eruda: create <script> in proxied page
           try{
-            active.iframe.contentWindow.eval(url.replace(/^javascript:/,""));
-          }catch(err){
-            console.error("Bookmarklet error:", err);
-          }
+            const script = active.iframe.contentDocument.createElement("script");
+            script.textContent = code.replace(/^javascript:/,"");
+            active.iframe.contentDocument.body.appendChild(script);
+          }catch(err){console.error("Bookmarklet injection failed", err);}
         } else {
-          newTab(url);
+          newTab(code);
         }
       }
-    };
+    }
 
     bookmarkBar.appendChild(btn);
   });
