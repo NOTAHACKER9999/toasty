@@ -5,7 +5,7 @@
 <title>Glitch Hub</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- UV -->
+<!-- Ultraviolet -->
 <script src="/uv/uv.bundle.js"></script>
 <script src="/uv/uv.config.js"></script>
 <script>
@@ -16,177 +16,285 @@ if ("serviceWorker" in navigator) {
 
 <style>
 :root{
-  --bg:#0a0a0a;--panel:#121212;--bar:#0e0e0e;
-  --tab:#1a1a1a;--tab-active:#1f1f1f;--text:#fff;
+  --bg:#0a0a0a;
+  --panel:#121212;
+  --bar:#0e0e0e;
+  --tab:#1a1a1a;
+  --tab-active:#222;
+  --text:#fff;
 }
-*{box-sizing:border-box;margin:0;padding:0}
+*{margin:0;padding:0;box-sizing:border-box}
 body{
-  background:var(--bg);color:var(--text);
-  height:100vh;display:flex;flex-direction:column;
+  background:var(--bg);
+  color:var(--text);
+  height:100vh;
   font-family:Segoe UI,Arial;
 }
 
-/* ===== HOME ===== */
-#home{
-  flex:1;display:flex;justify-content:center;align-items:center;
-}
-#home input{
-  width:420px;max-width:90%;
-  padding:14px 18px;border-radius:999px;
-  background:#111;border:none;color:white;
-  font-size:1.1rem;outline:none;
+/* ================= HOME ================= */
+#homePage{
+  position:absolute;
+  inset:0;
+  display:flex;
+  flex-direction:column;
 }
 
-/* ===== HEADER ===== */
-header{padding:14px;background:var(--panel);text-align:center;font-size:2rem}
-nav{
-  display:flex;gap:12px;justify-content:center;
-  background:var(--panel);padding:8px;
+header{
+  background:var(--panel);
+  padding:14px;
+  text-align:center;
+  font-size:2rem;
 }
+
+nav{
+  display:flex;
+  justify-content:center;
+  gap:14px;
+  background:var(--panel);
+  padding:10px;
+}
+
 .nav-btn{
-  padding:8px 16px;background:#111;border-radius:8px;
-  cursor:pointer;user-select:none;
+  padding:10px 18px;
+  background:#111;
+  border-radius:8px;
+  cursor:pointer;
 }
 .nav-btn:hover{background:#222}
 
-/* ===== PROXY OVERLAY ===== */
-#proxyOverlay{
-  position:fixed;inset:0;
-  background:var(--bg);
-  display:none;flex-direction:column;
-  z-index:1000;
+#homeMain{
+  flex:1;
+  display:flex;
+  justify-content:center;
+  align-items:center;
 }
 
-/* ===== TABS ===== */
-#tabsBar{
-  display:flex;align-items:flex-end;
-  background:var(--panel);padding:4px;
+#homeSearch{
+  width:420px;
+  max-width:90%;
+  padding:14px 18px;
+  background:#111;
+  border:none;
+  border-radius:999px;
+  color:white;
+  font-size:1.1rem;
+  outline:none;
 }
+
+/* ================= PROXY OVERLAY ================= */
+#proxyOverlay{
+  position:absolute;
+  inset:0;
+  display:none;
+  flex-direction:column;
+  background:var(--bg);
+  z-index:100;
+}
+
+/* ---------- Tabs ---------- */
+#tabsBar{
+  display:flex;
+  align-items:flex-end;
+  background:var(--panel);
+  padding:4px;
+}
+
 .tab{
-  display:flex;align-items:center;gap:6px;
+  display:flex;
+  align-items:center;
+  gap:6px;
   padding:8px 26px 8px 10px;
   background:var(--tab);
   border-radius:8px 8px 0 0;
-  cursor:pointer;max-width:220px;
+  cursor:pointer;
+  max-width:200px;
   position:relative;
 }
 .tab.active{background:var(--tab-active)}
 .tab img{width:16px;height:16px}
-.tab span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.tab .close{
-  position:absolute;right:6px;top:4px;
-  cursor:pointer;
+.tab span{
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
-#newTabBtn,#closeOverlayBtn{
-  padding:8px 12px;background:#111;
-  border-radius:8px;margin-left:6px;
+.tab .close{
+  position:absolute;
+  right:6px;
+  top:4px;
   cursor:pointer;
 }
 
-/* ===== BROWSER BAR ===== */
-#browserBar{
-  display:flex;align-items:center;gap:6px;
-  background:var(--bar);padding:6px;
-  position:relative;z-index:2000;
+#newTabBtn,#closeProxyBtn{
+  padding:8px 12px;
+  background:#111;
+  border-radius:8px;
+  margin-left:6px;
+  cursor:pointer;
 }
+
+/* ---------- Browser Bar ---------- */
+#browserBar{
+  position:relative;
+  z-index:50;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  background:var(--bar);
+  padding:6px;
+}
+
 .ctrl{
-  padding:6px 10px;background:#111;
-  border:none;color:white;cursor:pointer;
+  padding:6px 10px;
+  background:#111;
+  border:none;
+  color:white;
+  cursor:pointer;
 }
 .ctrl:hover{background:#222}
-#urlWrap{position:relative;flex:1}
+
+#urlWrap{
+  flex:1;
+  position:relative;
+}
 #urlBar{
-  width:100%;padding:6px 36px 6px 10px;
-  background:black;border:none;color:white;
+  width:100%;
+  padding:6px 36px 6px 10px;
+  background:black;
+  border:none;
+  color:white;
   font-family:monospace;
 }
 #bookmarkStar{
-  position:absolute;right:8px;top:50%;
+  position:absolute;
+  right:8px;
+  top:50%;
   transform:translateY(-50%);
-  font-size:22px;cursor:pointer;
+  cursor:pointer;
+  font-size:22px;
 }
 
-/* ===== 3 DOT MENU ===== */
+/* ---------- 3 DOT MENU ---------- */
 #menuWrap{position:relative}
 #menu{
-  position:absolute;right:0;top:36px;
-  background:#111;display:none;
-  flex-direction:column;min-width:170px;
-  z-index:3000;
+  position:absolute;
+  top:38px;
+  right:0;
+  background:#111;
+  display:none;
+  flex-direction:column;
+  min-width:180px;
+  z-index:200;
 }
 #menu button{
-  padding:10px;background:none;border:none;
-  color:white;text-align:left;cursor:pointer;
+  padding:10px;
+  background:none;
+  border:none;
+  color:white;
+  text-align:left;
+  cursor:pointer;
 }
 #menu button:hover{background:#222}
 #menu .bottom{border-top:1px solid #222}
 
-/* ===== BOOKMARK BAR ===== */
+/* ---------- Bookmark Bar ---------- */
 #bookmarkBar{
-  display:flex;gap:6px;padding:6px;
   background:var(--panel);
-  overflow-x:auto;min-height:36px;
+  padding:6px;
+  display:flex;
+  gap:6px;
+  overflow-x:auto;
 }
-.bookmarkButton{
-  padding:6px 10px;background:#111;
-  border-radius:6px;cursor:pointer;
+.bookmarkBtn{
+  padding:6px 10px;
+  background:#111;
+  border-radius:6px;
+  cursor:pointer;
 }
-.bookmarkButton:hover{background:#222}
 
-/* ===== FRAME AREA ===== */
-#frames{flex:1;position:relative}
+/* ---------- Content Area ---------- */
+#contentArea{
+  flex:1;
+  position:relative;
+}
+
+/* iframe layer */
 iframe{
-  position:absolute;inset:0;
-  width:100%;height:100%;
-  border:none;display:none;
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  border:none;
+  display:none;
+  z-index:1;
 }
 iframe.active{display:block}
 
-/* ===== INTERNAL PANEL ===== */
+/* internal panels */
 .internalPanel{
-  position:absolute;inset:0;
+  position:absolute;
+  inset:0;
   background:#0b0b0b;
-  padding:20px;overflow:auto;
-  z-index:1500;
+  padding:20px;
+  overflow:auto;
+  z-index:10;
 }
 
-/* ===== MODALS ===== */
+/* ---------- Modals ---------- */
 .modal{
-  position:fixed;inset:0;
+  position:fixed;
+  inset:0;
   background:rgba(0,0,0,.6);
-  display:none;align-items:center;justify-content:center;
-  z-index:4000;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:300;
 }
-.box{
-  background:#111;padding:24px;
-  border-radius:14px;display:flex;
-  flex-direction:column;gap:12px;
+.modalBox{
+  background:#111;
+  padding:22px;
+  border-radius:14px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
 }
-.box input{padding:10px;background:black;border:none;color:white}
-.box button{padding:8px;background:#222;border:none;color:white}
+.modalBox input{
+  padding:10px;
+  background:black;
+  border:none;
+  color:white;
+}
+.modalBox button{
+  padding:8px;
+  background:#222;
+  border:none;
+  color:white;
+}
 .deleteBtn{background:#660000}
 </style>
 </head>
 
 <body>
 
-<header>Glitch Hub</header>
-<nav>
-  <div class="nav-btn">Games</div>
-  <div class="nav-btn">Movies</div>
-  <div class="nav-btn">AI</div>
-  <div class="nav-btn">Tools</div>
-</nav>
-
-<div id="home">
-  <input id="homeSearch" placeholder="Search or enter URL">
+<!-- ================= HOME ================= -->
+<div id="homePage">
+  <header>Glitch Hub</header>
+  <nav>
+    <div class="nav-btn" onclick="location.href='../games/app.html'">Games</div>
+    <div class="nav-btn" onclick="location.href='../movies/index.html'">Movies</div>
+    <div class="nav-btn" onclick="location.href='../ai/index.html'">AI</div>
+    <div class="nav-btn" onclick="location.href='../tools/index.html'">Tools</div>
+  </nav>
+  <div id="homeMain">
+    <input id="homeSearch" placeholder="Search or enter URL">
+  </div>
 </div>
 
+<!-- ================= PROXY ================= -->
 <div id="proxyOverlay">
 
   <div id="tabsBar">
     <div id="newTabBtn">＋</div>
-    <div id="closeOverlayBtn">✕</div>
+    <div id="closeProxyBtn">✕</div>
   </div>
 
   <div id="browserBar">
@@ -205,81 +313,54 @@ iframe.active{display:block}
       <button class="ctrl" onclick="toggleMenu()">⋮</button>
       <div id="menu">
         <button onclick="newTab()">New Tab</button>
-        <button onclick="openInternal('History')">History</button>
-        <button onclick="openInternal('Bookmarks')">Bookmarks</button>
+        <button onclick="openPanel('History')">History</button>
+        <button onclick="openPanel('Bookmarks')">Bookmarks</button>
         <button onclick="injectDev()">Dev Tools</button>
-        <button class="bottom" onclick="openInternal('Settings')">Settings</button>
+        <button class="bottom" onclick="openPanel('Settings')">Settings</button>
       </div>
     </div>
   </div>
 
   <div id="bookmarkBar"></div>
-  <div id="frames"></div>
+  <div id="contentArea"></div>
 </div>
 
-<!-- BOOKMARK MODALS -->
-<div class="modal" id="bmCreate">
-  <div class="box">
-    <input id="bmNameC" placeholder="Name">
-    <input id="bmCodeC" placeholder="URL or javascript:">
-    <button onclick="saveBookmark()">Save</button>
-    <button onclick="closeModal()">Cancel</button>
-  </div>
-</div>
-
-<div class="modal" id="bmEdit">
-  <div class="box">
-    <input id="bmNameE">
-    <input id="bmCodeE">
-    <button onclick="saveEdit()">Save</button>
-    <button class="deleteBtn" onclick="deleteEdit()">Delete</button>
-    <button onclick="closeModal()">Cancel</button>
-  </div>
-</div>
-
+<!-- ================= SCRIPT ================= -->
 <script>
-/* ===== STATE ===== */
-const home=document.getElementById("home");
-const overlay=document.getElementById("proxyOverlay");
-const homeSearch=document.getElementById("homeSearch");
-const frames=document.getElementById("frames");
-const urlBar=document.getElementById("urlBar");
-const star=document.getElementById("bookmarkStar");
-const bookmarkBar=document.getElementById("bookmarkBar");
-const menu=document.getElementById("menu");
+/* ---------- STATE ---------- */
+const homePage = document.getElementById("homePage");
+const proxy = document.getElementById("proxyOverlay");
+const homeSearch = document.getElementById("homeSearch");
+const contentArea = document.getElementById("contentArea");
+const urlBar = document.getElementById("urlBar");
+const star = document.getElementById("bookmarkStar");
+const bookmarkBar = document.getElementById("bookmarkBar");
+const menu = document.getElementById("menu");
 
 let tabs=[],active=null;
 let bookmarks=JSON.parse(localStorage.bookmarks||"{}");
 let historyLog=JSON.parse(localStorage.history||"[]");
-let editing=null,userTyping=false;
+let userTyping=false;
 
-/* ===== HOME ===== */
-homeSearch.addEventListener("keydown",e=>{
+/* ---------- HOME ---------- */
+homeSearch.onkeydown=e=>{
   if(e.key==="Enter") newTab(normalize(homeSearch.value));
-});
+};
 
-/* ===== MENU ===== */
-function toggleMenu(){
-  menu.style.display=menu.style.display==="flex"?"none":"flex";
-}
-document.addEventListener("click",e=>{
-  if(!menu.contains(e.target)) menu.style.display="none";
-});
-
-/* ===== UTILS ===== */
+/* ---------- UTILS ---------- */
 function normalize(v){
   if(!v.includes(".")) return "https://www.startpage.com/sp/search?q="+encodeURIComponent(v);
   if(!v.startsWith("http")) return "https://"+v;
   return v;
 }
 
-/* ===== TABS ===== */
+/* ---------- TABS ---------- */
 newTabBtn.onclick=()=>newTab();
-closeOverlayBtn.onclick=closeOverlay;
+closeProxyBtn.onclick=closeProxy;
 
 function newTab(url="https://www.startpage.com"){
-  home.style.display="none";
-  overlay.style.display="flex";
+  homePage.style.display="none";
+  proxy.style.display="flex";
 
   const iframe=document.createElement("iframe");
   const tab=document.createElement("div");
@@ -288,10 +369,12 @@ function newTab(url="https://www.startpage.com"){
   const title=document.createElement("span");
   title.textContent="New Tab";
   const close=document.createElement("span");
-  close.textContent="✕";close.className="close";
+  close.textContent="✕";
+  close.className="close";
   tab.append(icon,title,close);
+
   tabsBar.insertBefore(tab,newTabBtn);
-  frames.appendChild(iframe);
+  contentArea.appendChild(iframe);
 
   const obj={iframe,tab,url};
   tabs.push(obj);
@@ -326,21 +409,21 @@ function closeTab(t){
   t.iframe.remove();
   tabs=tabs.filter(x=>x!==t);
   if(tabs.length) activate(tabs.at(-1));
-  else closeOverlay();
+  else closeProxy();
 }
 
-function closeOverlay(){
-  overlay.style.display="none";
-  home.style.display="flex";
+function closeProxy(){
+  proxy.style.display="none";
+  homePage.style.display="flex";
   homeSearch.focus();
 }
 
-/* ===== NAV ===== */
+/* ---------- NAV ---------- */
 function goBack(){active?.iframe.contentWindow.history.back()}
 function goForward(){active?.iframe.contentWindow.history.forward()}
 function reloadTab(){active?.iframe.contentWindow.location.reload()}
 
-/* ===== URL BAR ===== */
+/* ---------- URL BAR ---------- */
 urlBar.oninput=()=>userTyping=true;
 urlBar.onblur=()=>userTyping=false;
 urlBar.onkeydown=e=>{
@@ -351,7 +434,7 @@ urlBar.onkeydown=e=>{
 };
 
 function updateURL(){
-  if(active&&!userTyping){
+  if(active && !userTyping){
     try{
       const enc=active.iframe.contentWindow.location.href.split(__uv$config.prefix)[1];
       active.url=__uv$config.decodeUrl(enc?.replace(/^\/+/,""));
@@ -364,34 +447,47 @@ function updateURL(){
 }
 requestAnimationFrame(updateURL);
 
-/* ===== HISTORY ===== */
+/* ---------- HISTORY ---------- */
 function logHistory(url){
-  if(!url||url.startsWith("/?/"))return;
-  if(historyLog[0]?.url===url)return;
+  if(!url || url.startsWith("/?/")) return;
+  if(historyLog[0]?.url===url) return;
   historyLog.unshift({url,time:new Date().toLocaleString()});
   localStorage.history=JSON.stringify(historyLog);
 }
 
-/* ===== INTERNAL PAGES ===== */
-function openInternal(type){
-  if(!active)return;
-  const panel=document.createElement("div");
-  panel.className="internalPanel";
-  panel.innerHTML=`<button onclick="this.parentElement.remove()">Close</button><h1>${type}</h1>`;
+/* ---------- INTERNAL PANELS ---------- */
+function openPanel(type){
+  closePanels();
+  const p=document.createElement("div");
+  p.className="internalPanel";
+  p.innerHTML=`<button onclick="this.parentElement.remove()">Close</button><h2>${type}</h2>`;
   if(type==="History"){
     historyLog.forEach(h=>{
-      panel.innerHTML+=`<div>${h.time} — ${h.url}</div>`;
+      p.innerHTML+=`<div>${h.time} — ${h.url}</div>`;
     });
   }
   if(type==="Bookmarks"){
     Object.values(bookmarks).forEach(b=>{
-      panel.innerHTML+=`<div>${b.name} — ${b.code}</div>`;
+      p.innerHTML+=`<div>${b.name} — ${b.code}</div>`;
     });
   }
-  frames.appendChild(panel);
+  contentArea.appendChild(p);
+}
+function closePanels(){
+  document.querySelectorAll(".internalPanel").forEach(p=>p.remove());
 }
 
-/* ===== DEVTOOLS ===== */
+/* ---------- MENU ---------- */
+function toggleMenu(){
+  menu.style.display = menu.style.display==="flex"?"none":"flex";
+}
+document.addEventListener("click",e=>{
+  if(!menu.contains(e.target) && !e.target.textContent.includes("⋮")){
+    menu.style.display="none";
+  }
+});
+
+/* ---------- DEVTOOLS ---------- */
 function injectDev(){
   try{
     active.iframe.contentWindow.eval(`
@@ -402,64 +498,6 @@ function injectDev(){
     `);
   }catch{}
 }
-
-/* ===== BOOKMARKS ===== */
-bookmarkStar.onclick=()=>{
-  if(bookmarks[active.url]) openEdit(active.url);
-  else{
-    bmCreate.style.display="flex";
-    bmNameC.value=active.url;
-    bmCodeC.value=active.url;
-  }
-};
-
-function saveBookmark(){
-  bookmarks[bmCodeC.value]={name:bmNameC.value,code:bmCodeC.value};
-  localStorage.bookmarks=JSON.stringify(bookmarks);
-  closeModal();renderBookmarks();
-}
-function openEdit(url){
-  editing=url;
-  bmEdit.style.display="flex";
-  bmNameE.value=bookmarks[url].name;
-  bmCodeE.value=bookmarks[url].code;
-}
-function saveEdit(){
-  delete bookmarks[editing];
-  bookmarks[bmCodeE.value]={name:bmNameE.value,code:bmCodeE.value};
-  localStorage.bookmarks=JSON.stringify(bookmarks);
-  closeModal();renderBookmarks();
-}
-function deleteEdit(){
-  delete bookmarks[editing];
-  localStorage.bookmarks=JSON.stringify(bookmarks);
-  closeModal();renderBookmarks();
-}
-function closeModal(){
-  bmCreate.style.display="none";
-  bmEdit.style.display="none";
-}
-
-function renderBookmarks(){
-  bookmarkBar.innerHTML="";
-  Object.entries(bookmarks).forEach(([url,b])=>{
-    const btn=document.createElement("div");
-    btn.className="bookmarkButton";
-    btn.textContent=b.name;
-    let hold;
-    btn.onmousedown=()=>hold=setTimeout(()=>openEdit(url),600);
-    btn.onmouseup=btn.onmouseleave=()=>clearTimeout(hold);
-    btn.onclick=()=>{
-      if(b.code.startsWith("javascript:")){
-        const s=active.iframe.contentDocument.createElement("script");
-        s.textContent=b.code.replace(/^javascript:/,"");
-        active.iframe.contentDocument.body.appendChild(s);
-      }else newTab(b.code);
-    };
-    bookmarkBar.appendChild(btn);
-  });
-}
-renderBookmarks();
 </script>
 
 </body>
