@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Glitch Hub Proxy</title>
+<title>Glitch Hub</title>
 
 <script src="/uv/uv.bundle.js"></script>
 <script src="/uv/uv.config.js"></script>
@@ -17,12 +17,12 @@ if ("serviceWorker" in navigator) {
 :root{
   --bg:#0a0a0a; --panel:#121212; --bar:#0e0e0e; --tab:#1a1a1a; --tab-active:#121212; --text:#ffffff;
 }
-*{margin:0;padding:0;box-sizing:border-box}
+*{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:Segoe UI,Arial;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
 header{background:var(--panel);padding:14px;text-align:center;font-size:2rem;font-weight:700;}
 nav{display:flex;justify-content:center;gap:18px;padding:10px;background:var(--panel);}
 .nav-btn{padding:10px 18px;background:#111;border:none;border-radius:8px;color:white;cursor:pointer;}
-.nav-btn:hover{background:#222}
+.nav-btn:hover{background:#222;}
 #home{flex:1;display:flex;justify-content:center;align-items:center;}
 #homeSearch{width:420px;max-width:90%;padding:14px 18px;background:#111;border:none;border-radius:999px;color:white;font-size:1.1rem;outline:none;}
 #proxyOverlay{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;z-index:900;}
@@ -37,7 +37,7 @@ nav{display:flex;justify-content:center;gap:18px;padding:10px;background:var(--p
 #closeOverlayBtn:hover{background:#222;}
 #browserBar{display:flex;align-items:center;gap:6px;padding:6px;background:var(--bar);}
 .ctrl{padding:6px 10px;background:#111;border:none;color:white;cursor:pointer;}
-.ctrl:hover{background:#222}
+.ctrl:hover{background:#222;}
 #urlWrap{position:relative;flex:1;}
 #urlBar{width:100%;padding:6px 36px 6px 10px;background:black;border:none;color:white;font-family:monospace;outline:none;}
 #bookmarkStar{position:absolute;right:8px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:24px;user-select:none;}
@@ -47,12 +47,9 @@ nav{display:flex;justify-content:center;gap:18px;padding:10px;background:var(--p
 #frames{flex:1;position:relative;}
 iframe{position:absolute;inset:0;width:100%;height:100%;border:none;display:none;}
 iframe.active{display:block;}
-#historyOverlay{position:fixed;inset:0;background:rgba(0,0,0,.9);display:none;flex-direction:column;z-index:10000;padding:20px;overflow-y:auto;}
-#historyOverlay h1{margin-top:0;}
-.historyEntry{padding:6px 10px;margin:2px 0;background:#111;border-radius:6px;cursor:pointer;}
-.historyEntry:hover{background:#222;}
-#historyOverlay button{background:#660000;color:white;padding:6px;border:none;border-radius:6px;cursor:pointer;margin-bottom:10px;}
-#historyOverlay button:hover{background:#990000;}
+#overlayPanel{position:absolute;inset:0;background:rgba(0,0,0,0.95);display:none;flex-direction:column;z-index:10000;padding:16px;overflow:auto;}
+#overlayPanel h1{margin-bottom:12px;}
+#overlayClose{position:absolute;top:12px;right:12px;background:#111;color:white;border:none;padding:6px 10px;border-radius:6px;cursor:pointer;}
 #bmModalCreate,#bmModalEdit{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:10001;}
 .bmBox{background:#111;padding:24px;border-radius:14px;display:flex;flex-direction:column;gap:12px;}
 .bmBox input{padding:10px;background:black;border:none;color:white;font-size:1rem;}
@@ -60,9 +57,12 @@ iframe.active{display:block;}
 .bmBox button:hover{background:#333;}
 .bmBox .deleteBtn{background:#660000;}
 .bmBox .deleteBtn:hover{background:#990000;}
-#threeDotsMenu{position:absolute;right:6px;top:6px;background:#111;color:white;padding:6px;border-radius:6px;display:none;flex-direction:column;gap:4px;z-index:10000;}
-#threeDotsMenu button{background:#111;color:white;border:none;padding:4px 6px;border-radius:4px;cursor:pointer;}
-#threeDotsMenu button:hover{background:#222;}
+#menuContainer{position:relative;}
+#menuBtn{padding:6px 10px;background:#111;border:none;color:white;border-radius:6px;cursor:pointer;font-size:18px;}
+#menuBtn:hover{background:#222;}
+#menuPanel{position:absolute;top:36px;right:0;background:#111;border:1px solid #333;border-radius:6px;display:none;flex-direction:column;min-width:140px;z-index:1002;}
+.menuItem{padding:8px 12px;color:white;cursor:pointer;}
+.menuItem:hover{background:#222;}
 </style>
 </head>
 <body>
@@ -89,34 +89,37 @@ iframe.active{display:block;}
     <button class="ctrl" onclick="goBack()">⟵</button>
     <button class="ctrl" onclick="goForward()">⟶</button>
     <button class="ctrl" onclick="reloadTab()">⟳</button>
+
     <div id="urlWrap">
       <input id="urlBar">
       <span id="bookmarkStar" onclick="toggleBookmark()">☆</span>
     </div>
-    <button class="ctrl" onclick="fullscreen()">⛶</button>
-    <button class="ctrl" id="threeDotsBtn">⋮</button>
-  </div>
 
-  <div id="threeDotsMenu">
-    <button onclick="newTab()">New Tab</button>
-    <button onclick="openHistory()">History</button>
-    <button onclick="alert('Bookmarks panel')">Bookmarks</button>
-    <button onclick="injectDev()">Dev Tools</button>
-    <button onclick="alert('Settings')">Settings</button>
+    <div id="menuContainer">
+      <button id="menuBtn">⋮</button>
+      <div id="menuPanel">
+        <div class="menuItem" onclick="newTab()">New Tab</div>
+        <div class="menuItem" onclick="openOverlay('/?/History')">History</div>
+        <div class="menuItem" onclick="openBookmarksPanel()">Bookmarks</div>
+        <div class="menuItem" onclick="injectDev()">Dev Tools</div>
+        <div class="menuItem" onclick="alert('Settings panel')">Settings</div>
+      </div>
+    </div>
+
+    <button class="ctrl" onclick="fullscreen()">⛶</button>
   </div>
 
   <div id="bookmarkBar"></div>
   <div id="frames"></div>
+
+  <!-- Overlay panel for /?/ pages -->
+  <div id="overlayPanel">
+    <button id="overlayClose" onclick="closeOverlayPanel()">Close</button>
+    <div id="overlayContent"></div>
+  </div>
 </div>
 
-<!-- History overlay -->
-<div id="historyOverlay">
-  <button onclick="closeHistory()">Close History</button>
-  <h1>History</h1>
-  <div id="historyList"></div>
-</div>
-
-<!-- Bookmarks modals -->
+<!-- Bookmark modals -->
 <div id="bmModalCreate">
   <div class="bmBox">
     <input id="bmNameCreate" placeholder="Bookmark Name">
@@ -145,80 +148,151 @@ const frames=document.getElementById("frames");
 const urlBar=document.getElementById("urlBar");
 const star=document.getElementById("bookmarkStar");
 const bookmarkBar=document.getElementById("bookmarkBar");
-const threeDotsBtn=document.getElementById("threeDotsBtn");
-const threeDotsMenu=document.getElementById("threeDotsMenu");
-
-const historyOverlay=document.getElementById("historyOverlay");
-const historyListDiv=document.getElementById("historyList");
+const overlayPanel=document.getElementById("overlayPanel");
+const overlayContent=document.getElementById("overlayContent");
 
 const bmModalCreate=document.getElementById("bmModalCreate");
 const bmNameCreate=document.getElementById("bmNameCreate");
 const bmCodeCreate=document.getElementById("bmCodeCreate");
-
 const bmModalEdit=document.getElementById("bmModalEdit");
 const bmNameEdit=document.getElementById("bmNameEdit");
 const bmCodeEdit=document.getElementById("bmCodeEdit");
 
+const menuBtn=document.getElementById("menuBtn");
+const menuPanel=document.getElementById("menuPanel");
+
 let tabs=[], active=null;
-let bookmarks={};
-let editingURL=null;
-let userEditingURL=false;
-let historyList=[];
+let bookmarks={}, editingURL=null;
+let historyList=[], userEditingURL=false;
 
-// 3-dot menu toggle
-threeDotsBtn.onclick=()=>threeDotsMenu.style.display='flex';
-threeDotsMenu.onmouseleave=()=>threeDotsMenu.style.display='none';
+// Home search
+homeSearch.addEventListener('keydown', e=>{if(e.key==="Enter") newTab(normalize(homeSearch.value));});
 
-function normalize(v){
-  if(!v.includes(".")) return "https://www.startpage.com/sp/search?q="+encodeURIComponent(v);
-  if(!v.startsWith("http")) return "https://"+v;
-  return v;
-}
+// Normalize URLs
+function normalize(v){if(!v.includes(".")) return "https://www.startpage.com/sp/search?q="+encodeURIComponent(v); if(!v.startsWith("http")) return "https://"+v; return v;}
 
-// Tabs
+// New tab
 function newTab(url="https://www.startpage.com"){
-  home.style.display="none";
-  overlay.style.display="flex";
-  const iframe=document.createElement("iframe");
+  home.style.display="none"; overlay.style.display="flex";
+  if(url.startsWith("/?/")) { openOverlay(url); return; }
+
+  const iframe=document.createElement("iframe"); frames.appendChild(iframe);
   const tab=document.createElement("div"); tab.className="tab";
-  const icon=document.createElement("img");
-  const title=document.createElement("span"); title.textContent="New Tab";
+  const icon=document.createElement("img"); icon.src=""; 
+  const span=document.createElement("span"); span.textContent=url;
   const close=document.createElement("span"); close.className="close"; close.textContent="✕";
-  tab.append(icon,title,close);
+  close.onclick=e=>{ e.stopPropagation(); closeTab(tab,iframe); };
+  tab.onclick=()=>activateTab(tab,iframe);
+  tab.append(icon,span,close);
   tabsBar.insertBefore(tab,document.getElementById("newTabBtn"));
-  frames.appendChild(iframe);
-  const obj={iframe,tab,url}; tabs.push(obj);
-  close.onclick=e=>{e.stopPropagation(); closeTab(obj);};
-  tab.onclick=()=>activate(obj);
+
+  tabs.push({tab,iframe,url,icon});
+  activateTab(tab,iframe);
+
   iframe.src=__uv$config.prefix+__uv$config.encodeUrl(url);
-  activate(obj);
-  iframe.onload=()=>{try{title.textContent=iframe.contentDocument.title||url; const ico=iframe.contentDocument.querySelector("link[rel~='icon']"); if(ico) icon.src=ico.href;}catch{}};
-  historyList.push({url,time:new Date().toLocaleString()});
+  addHistory(url);
+
+  iframe.onload=()=>{
+    try{
+      span.textContent=iframe.contentDocument.title||url;
+      const ico=iframe.contentDocument.querySelector("link[rel~='icon']");
+      if(ico) icon.src=ico.href;
+    }catch{}
+  };
 }
 
-function activate(t){
-  tabs.forEach(x=>{x.tab.classList.remove("active"); x.iframe.classList.remove("active");});
-  active=t; t.tab.classList.add("active"); t.iframe.classList.add("active");
+function activateTab(tab,iframe){
+  tabs.forEach(t=>{t.tab.classList.remove("active"); t.iframe.classList.remove("active");});
+  tab.classList.add("active"); iframe.classList.add("active");
+  active=tabs.find(t=>t.tab===tab);
+  showFrame(active.iframe);
   updateURLBar();
 }
 
-// URL bar
+function closeTab(tab,iframe){
+  tab.remove(); iframe.remove();
+  tabs=tabs.filter(t=>t.tab!==tab);
+  if(tabs.length) activateTab(tabs[tabs.length-1].tab, tabs[tabs.length-1].iframe);
+  else closeOverlay();
+}
+
+function closeOverlay(){
+  tabs.forEach(t=>{t.tab.remove(); t.iframe.remove();});
+  tabs=[]; overlay.style.display='none'; home.style.display='flex';
+  overlayPanel.style.display='none';
+}
+
+function showFrame(frame){
+  Array.from(frames.children).forEach(f=>f.style.display='none');
+  frame.style.display='block';
+  overlayPanel.style.display='none';
+}
+
+// Open /?/ pages in overlay
+function openOverlay(url){
+  overlayPanel.style.display='flex';
+  overlayContent.innerHTML="";
+  urlBar.value=url;
+
+  if(active) active.url=url;
+
+  if(url==="/?/History"){
+    const h1=document.createElement("h1"); h1.textContent="History"; overlayContent.appendChild(h1);
+    historyList.forEach(hd=>{
+      const div=document.createElement("div"); div.textContent=`[${hd.time}] ${hd.url}`;
+      div.style.cursor="pointer"; div.onclick=()=>newTab(hd.url);
+      overlayContent.appendChild(div);
+    });
+    const clr=document.createElement("button"); clr.textContent="Clear History";
+    clr.onclick=()=>{historyList=[]; overlayContent.innerHTML="<h1>History</h1>";};
+    overlayContent.appendChild(clr);
+  }
+}
+
+function closeOverlayPanel(){overlayPanel.style.display='none';}
+
+// URL bar auto-update
 urlBar.addEventListener('input', ()=>{userEditingURL=true;});
 urlBar.addEventListener('blur', ()=>{userEditingURL=false;});
-function updateURLBar(){if(active&&!userEditingURL){try{const enc=active.iframe.contentWindow.location.href.split(__uv$config.prefix)[1]; active.url=__uv$config.decodeUrl(enc?.replace(/^\/+/, '')||active.url);}catch{} urlBar.value=active.url; star.textContent=bookmarks[active.url]?"★":"☆";} requestAnimationFrame(updateURLBar);}
-urlBar.onkeydown=e=>{if(e.key==="Enter"){active.url=normalize(urlBar.value); active.iframe.src=__uv$config.prefix+__uv$config.encodeUrl(active.url); historyList.push({url:active.url,time:new Date().toLocaleString()});}}
+function updateURLBar(){
+  if(active && !userEditingURL){
+    if(active.url.startsWith("/?/")) urlBar.value=active.url;
+    else{
+      try{const enc = active.iframe.contentWindow.location.href.split(__uv$config.prefix)[1]; active.url = __uv$config.decodeUrl(enc?.replace(/^\/+/,"")||active.url);}catch{}
+      urlBar.value=active.url;
+    }
+    star.textContent = bookmarks[active.url]?"★":"☆";
+  }
+  requestAnimationFrame(updateURLBar);
+}
 
 // Browser controls
-function closeTab(t){t.tab.remove(); t.iframe.remove(); tabs=tabs.filter(x=>x!==t); if(tabs.length) activate(tabs[tabs.length-1]); else closeOverlay();}
-function closeOverlay(){tabs.forEach(t=>{t.tab.remove(); t.iframe.remove();}); tabs=[]; overlay.style.display="none"; home.style.display="flex";}
-function goBack(){active?.iframe.contentWindow.history.back();}
-function goForward(){active?.iframe.contentWindow.history.forward();}
-function reloadTab(){active?.iframe.contentWindow.location.reload();}
+urlBar.onkeydown=e=>{
+  if(e.key==="Enter"){
+    active.url=normalize(urlBar.value);
+    if(active.url.startsWith("/?/")) openOverlay(active.url);
+    else active.iframe.src=__uv$config.prefix+__uv$config.encodeUrl(active.url);
+    addHistory(active.url);
+  }
+}
+function goBack(){active?.iframe?.contentWindow.history.back();}
+function goForward(){active?.iframe?.contentWindow.history.forward();}
+function reloadTab(){active?.iframe?.contentWindow.location.reload();}
 function fullscreen(){active?.iframe.requestFullscreen();}
-function injectDev(){try{const win=active.iframe.contentWindow; if(!win.eruda){const s=win.document.createElement('script'); s.src='//cdn.jsdelivr.net/npm/eruda'; win.document.body.appendChild(s); s.onload=()=>win.eruda.init();} else win.eruda.show();}catch{}}
+function injectDev(){try{const s=document.createElement('script');s.src='//cdn.jsdelivr.net/npm/eruda';active.iframe.contentDocument.body.appendChild(s);s.onload=()=>eruda.init();}catch{}}
+function addHistory(url){historyList.push({url,time:new Date().toLocaleString()});}
+
+// 3-dot menu hover
+menuBtn.addEventListener('mouseenter',()=>{menuPanel.style.display='flex';});
+menuBtn.addEventListener('mouseleave',()=>{setTimeout(()=>{if(!menuPanel.matches(':hover')) menuPanel.style.display='none';},150);});
+menuPanel.addEventListener('mouseleave',()=>{menuPanel.style.display='none';});
 
 // Bookmarks
-function toggleBookmark(){if(!active) return; if(bookmarks[active.url]) openBMEdit(active.url); else {bmNameCreate.value=active.tab.querySelector("span").textContent; bmCodeCreate.value=active.url; bmModalCreate.style.display="flex";}}
+function toggleBookmark(){
+  if(!active) return;
+  if(bookmarks[active.url]) openBMEdit(active.url);
+  else {bmNameCreate.value=active.tab.querySelector("span").textContent; bmCodeCreate.value=active.url; bmModalCreate.style.display="flex";}
+}
 function saveBookmarkCreate(){const n=bmNameCreate.value.trim(),c=bmCodeCreate.value.trim();if(!n||!c)return;bookmarks[c]={name:n,code:c}; bmModalCreate.style.display="none"; renderBookmarks();}
 function closeBMCreate(){bmModalCreate.style.display="none";}
 function openBMEdit(url){editingURL=url; bmNameEdit.value=bookmarks[url].name; bmCodeEdit.value=bookmarks[url].code; bmModalEdit.style.display="flex";}
@@ -236,7 +310,7 @@ function renderBookmarks(){
       if(e.detail===1 && active){
         const code=bookmarks[url].code;
         if(code.startsWith("javascript:")){
-          try{const script=active.iframe.contentDocument.createElement("script"); script.textContent=code.replace(/^javascript:/,""); active.iframe.contentDocument.body.appendChild(script);}catch(err){console.error(err);}
+          try{const script=active.iframe.contentDocument.createElement("script");script.textContent=code.replace(/^javascript:/,""); active.iframe.contentDocument.body.appendChild(script);}catch(err){console.error(err);}
         } else newTab(code);
       }
     }
@@ -244,10 +318,7 @@ function renderBookmarks(){
   });
 }
 
-// History overlay
-function openHistory(){historyOverlay.style.display='flex'; renderHistory();}
-function closeHistory(){historyOverlay.style.display='none';}
-function renderHistory(){historyListDiv.innerHTML=''; historyList.forEach(h=>{const div=document.createElement('div'); div.className='historyEntry'; div.textContent=`[${h.time}] ${h.url}`; div.onclick=()=>newTab(h.url); historyListDiv.appendChild(div);});}
+requestAnimationFrame(updateURLBar);
 </script>
 </body>
 </html>
