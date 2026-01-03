@@ -16,7 +16,7 @@ if ("serviceWorker" in navigator) {
 <style>
 :root{
   --bg:#0a0a0a; --panel:#121212; --bar:#0e0e0e;
-  --tab:#1a1a1a; --tab-active:#202020; --text:#fff;
+  --tab:#1a1a1a; --tab-active:#222; --text:#fff;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:Segoe UI,Arial;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
@@ -31,12 +31,12 @@ nav{display:flex;justify-content:center;gap:18px;padding:10px;background:var(--p
 
 #proxyOverlay{position:fixed;inset:0;background:var(--bg);display:none;flex-direction:column;z-index:900;}
 
-#tabsBar{display:flex;align-items:flex-end;background:var(--panel);padding:4px;}
-.tab{display:flex;align-items:center;gap:6px;padding:8px 26px 8px 10px;background:var(--tab);border-radius:8px 8px 0 0;cursor:pointer;max-width:200px;}
+#tabsBar{display:flex;align-items:flex-end;background:var(--panel);padding:4px;gap:4px;}
+.tab{display:flex;align-items:center;gap:6px;padding:8px 26px 8px 10px;background:var(--tab);border-radius:8px 8px 0 0;cursor:pointer;max-width:200px;position:relative;}
 .tab.active{background:var(--tab-active);}
 .tab img{width:16px;height:16px;}
 .tab span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.tab .close{position:absolute;right:6px;cursor:pointer;}
+.tab .close{position:absolute;right:6px;top:4px;cursor:pointer;}
 
 #newTabBtn{padding:8px;background:#111;border-radius:8px;cursor:pointer;}
 #closeOverlayBtn{margin-left:auto;padding:8px;background:#111;border-radius:8px;cursor:pointer;}
@@ -81,7 +81,6 @@ iframe.active,.customPage.active{display:block;}
 
 .listItem{
   padding:12px;border-bottom:1px solid #222;
-  display:flex;justify-content:space-between;gap:10px;
 }
 .listItem span{color:#aaa;font-size:.85rem}
 </style>
@@ -122,8 +121,8 @@ iframe.active,.customPage.active{display:block;}
 
     <div id="menuPanel">
       <button onclick="newTab()">New Tab</button>
-      <button onclick="openHistory()">History</button>
-      <button onclick="openBookmarks()">Bookmarks</button>
+      <button onclick="openCustom('/?/History')">History</button>
+      <button onclick="openCustom('/?/Bookmarks')">Bookmarks</button>
       <button onclick="injectDev()">Dev Tools</button>
       <button>Settings</button>
     </div>
@@ -142,8 +141,8 @@ const star=document.getElementById("bookmarkStar");
 const menu=document.getElementById("menuPanel");
 
 let tabs=[],active=null;
-let bookmarks={},history=[];
-let editingURL=false;
+let bookmarks={},historyLog=[];
+let editing=false;
 
 document.getElementById("menuBtn").onclick=()=>menu.style.display="flex";
 menu.onmouseleave=()=>menu.style.display="none";
@@ -155,113 +154,118 @@ function normalize(v){
   return v;
 }
 
-homeSearch.onkeydown=e=>e.key==="Enter"&&newTab(normalize(homeSearch.value));
+homeSearch.onkeydown=e=>{
+  if(e.key==="Enter") newTab(normalize(homeSearch.value));
+};
 
 function newTab(url="https://www.startpage.com"){
   home.style.display="none";overlay.style.display="flex";
 
   const iframe=document.createElement("iframe");
-  const tab=document.createElement("div");tab.className="tab";
-  const icon=document.createElement("img");
-  const title=document.createElement("span");title.textContent="New Tab";
-  const close=document.createElement("span");close.textContent="✕";close.className="close";
-  tab.append(icon,title,close);
+  const tab=document.createElement("div");
+  tab.className="tab";
+  tab.innerHTML=`<img><span>New Tab</span><span class="close">✕</span>`;
 
-  document.getElementById("tabsBar").insertBefore(tab,document.getElementById("newTabBtn"));
+  document.getElementById("tabsBar").insertBefore(tab,newTabBtn);
   frames.appendChild(iframe);
 
-  const obj={iframe,tab,url};
-  tabs.push(obj);
+  const t={tab,iframe,custom:null,url,mode:"proxy"};
+  tabs.push(t);
 
-  tab.onclick=()=>activate(obj);
-  close.onclick=e=>{e.stopPropagation();closeTab(obj)};
+  tab.onclick=()=>activate(t);
+  tab.querySelector(".close").onclick=e=>{e.stopPropagation();closeTab(t)};
 
   iframe.src=__uv$config.prefix+__uv$config.encodeUrl(url);
-  activate(obj);
-
   iframe.onload=()=>{
     try{
-      title.textContent=iframe.contentDocument.title;
+      tab.querySelector("span").textContent=iframe.contentDocument.title;
       const ico=iframe.contentDocument.querySelector("link[rel~='icon']");
-      if(ico) icon.src=ico.href;
+      if(ico) tab.querySelector("img").src=ico.href;
     }catch{}
   };
+
+  activate(t);
 }
 
 function activate(t){
-  tabs.forEach(x=>{x.tab.classList.remove("active");x.iframe.classList.remove("active")});
-  document.querySelectorAll(".customPage").forEach(p=>p.classList.remove("active"));
+  tabs.forEach(x=>{
+    x.tab.classList.remove("active");
+    if(x.iframe) x.iframe.classList.remove("active");
+    if(x.custom) x.custom.classList.remove("active");
+  });
   active=t;
   t.tab.classList.add("active");
-  t.iframe.classList.add("active");
+  if(t.mode==="proxy") t.iframe.classList.add("active");
+  else t.custom.classList.add("active");
+  urlBar.value=t.url;
+  star.textContent=bookmarks[t.url]?"★":"☆";
 }
 
-urlBar.onfocus=()=>editingURL=true;
-urlBar.onblur=()=>editingURL=false;
-
-function updateURL(){
-  if(active&&!editingURL){
-    try{
-      const enc=active.iframe.contentWindow.location.href.split(__uv$config.prefix)[1];
-      active.url=__uv$config.decodeUrl(enc.replace(/^\/+/,''));
-      urlBar.value=active.url;
-      history.push({url:active.url,time:new Date().toLocaleString()});
-    }catch{}
-    star.textContent=bookmarks[active.url]?"★":"☆";
-  }
-  requestAnimationFrame(updateURL);
-}
-requestAnimationFrame(updateURL);
+urlBar.onfocus=()=>editing=true;
+urlBar.onblur=()=>editing=false;
 
 urlBar.onkeydown=e=>{
-  if(e.key==="Enter"){
-    const v=normalize(urlBar.value);
-    if(v.startsWith("/?/")) openCustom(v);
-    else active.iframe.src=__uv$config.prefix+__uv$config.encodeUrl(v);
-  }
+  if(e.key!=="Enter") return;
+  const v=normalize(urlBar.value);
+  if(v.startsWith("/?/")) openCustom(v);
+  else navigate(v);
 };
 
+function navigate(url){
+  active.mode="proxy";
+  active.url=url;
+  if(active.custom){active.custom.remove();active.custom=null;}
+  active.iframe.src=__uv$config.prefix+__uv$config.encodeUrl(url);
+  logHistory(url);
+}
+
 function openCustom(path){
-  document.querySelectorAll("iframe").forEach(i=>i.classList.remove("active"));
-  let page=document.getElementById(path);
-  if(!page){
-    page=document.createElement("div");
-    page.className="customPage";
-    page.id=path;
-    frames.appendChild(page);
-  }
-  page.innerHTML="";
-  page.classList.add("active");
+  active.mode="custom";
+  active.url=path;
+  active.iframe.classList.remove("active");
+
+  if(active.custom) active.custom.remove();
+  const p=document.createElement("div");
+  p.className="customPage active";
+  frames.appendChild(p);
+  active.custom=p;
+
+  if(path==="/?/History") renderHistory(p);
+  if(path==="/?/Bookmarks") renderBookmarks(p);
+
   urlBar.value=path;
-  if(path==="/?/History") renderHistory(page);
-  if(path==="/?/Bookmarks") renderBookmarksPage(page);
 }
 
 function renderHistory(p){
   p.innerHTML=`<div class="customHeader"><h1>History</h1><button onclick="closeCustom()">Close</button></div>`;
-  history.forEach(h=>{
-    p.innerHTML+=`<div class="listItem"><div>${h.url}<br><span>${h.time}</span></div></div>`;
+  historyLog.forEach(h=>{
+    p.innerHTML+=`<div class="listItem">${h.url}<br><span>${h.time}</span></div>`;
   });
 }
 
-function renderBookmarksPage(p){
+function renderBookmarks(p){
   p.innerHTML=`<div class="customHeader"><h1>Bookmarks</h1><button onclick="closeCustom()">Close</button></div>`;
   Object.values(bookmarks).forEach(b=>{
-    p.innerHTML+=`<div class="listItem"><div>${b.name}<br><span>${b.code}</span></div></div>`;
+    p.innerHTML+=`<div class="listItem">${b.name}<br><span>${b.code}</span></div>`;
   });
 }
 
 function closeCustom(){
-  document.querySelectorAll(".customPage").forEach(p=>p.classList.remove("active"));
+  active.custom.remove();
+  active.custom=null;
+  active.mode="proxy";
   active.iframe.classList.add("active");
+  urlBar.value=active.url;
 }
 
-function openHistory(){openCustom("/?/History")}
-function openBookmarks(){openCustom("/?/Bookmarks")}
+function logHistory(url){
+  historyLog.push({url,time:new Date().toLocaleString()});
+}
 
 function toggleBookmark(){
-  if(!active) return;
-  bookmarks[active.url]={name:active.url,code:active.url};
+  if(bookmarks[active.url]) delete bookmarks[active.url];
+  else bookmarks[active.url]={name:active.url,code:active.url};
+  star.textContent=bookmarks[active.url]?"★":"☆";
 }
 
 function injectDev(){
@@ -274,12 +278,12 @@ function injectDev(){
   }catch{}
 }
 
-function goBack(){active?.iframe.contentWindow.history.back()}
-function goForward(){active?.iframe.contentWindow.history.forward()}
-function reloadTab(){active?.iframe.contentWindow.location.reload()}
-function fullscreen(){active?.iframe.requestFullscreen()}
-function closeTab(t){t.tab.remove();t.iframe.remove();tabs=tabs.filter(x=>x!==t)}
-function closeOverlay(){overlay.style.display="none";home.style.display="flex"}
+function goBack(){active?.iframe.contentWindow.history.back();}
+function goForward(){active?.iframe.contentWindow.history.forward();}
+function reloadTab(){active?.iframe.contentWindow.location.reload();}
+function fullscreen(){active?.iframe.requestFullscreen();}
+function closeTab(t){t.tab.remove();t.iframe.remove();t.custom?.remove();tabs=tabs.filter(x=>x!==t);}
+function closeOverlay(){overlay.style.display="none";home.style.display="flex";}
 </script>
 
 </body>
