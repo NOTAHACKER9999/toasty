@@ -1,3 +1,4 @@
+<!-- Full updated code with bookmarklets injected directly into the proxyed site -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -356,7 +357,7 @@ function deleteBookmarkEdit(){
 }
 function closeBMEdit(){bmModalEdit.style.display="none"; editingURL=null;}
 
-// Render bookmarks (bottom bar) with hold-to-edit
+// Render bookmarks with hold-to-edit and inject JS bookmarklets
 function renderBookmarks(){
   bookmarkBar.innerHTML="";
   Object.keys(bookmarks).forEach(url=>{
@@ -375,9 +376,16 @@ function renderBookmarks(){
 
     btn.onclick = (e) => {
       if(e.detail === 1){ // Quick click opens
-        if(url.startsWith("javascript:")){
-          active.iframe.contentWindow.eval(url.replace(/^javascript:/,""));
-        } else newTab(url);
+        if(url.startsWith("javascript:") && active){
+          // Inject directly into iframe console
+          try{
+            active.iframe.contentWindow.eval(url.replace(/^javascript:/,""));
+          }catch(err){
+            console.error("Bookmarklet error:", err);
+          }
+        } else {
+          newTab(url);
+        }
       }
     };
 
