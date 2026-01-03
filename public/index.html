@@ -5,277 +5,436 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Glitch Hub</title>
 
-<!-- ============ UV PROXY ============ -->
+<!-- Ultraviolet -->
 <script src="/uv/uv.bundle.js"></script>
 <script src="/uv/uv.config.js"></script>
 <script>
-if("serviceWorker" in navigator){
-  window.addEventListener("load",()=>{navigator.serviceWorker.register("/uv/sw.js",{scope:__uv$config.prefix});});
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/uv/sw.js", { scope: __uv$config.prefix });
 }
 </script>
 
 <style>
 :root{
-  --bg:#050505; --panel:#0f0f0f; --border:#2a2a2a; --accent:#ff2d2d; --text:#e0e0e0; --bubble-bg:#151515;
+  --bg:#0a0a0a;
+  --panel:#121212;
+  --bar:#0e0e0e;
+  --tab:#1a1a1a;
+  --tab-active:#121212;
+  --text:#ffffff;
+  --hover:#222;
 }
 
-/* ===== RESET ===== */
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Segoe UI,Arial;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:Segoe UI,Arial;
+  background:var(--bg);
+  color:var(--text);
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
 
-/* ===== HEADER ===== */
-header{background:var(--panel);padding:16px;text-align:center;font-size:2rem;font-weight:700;border-bottom:1px solid var(--border);}
-nav{display:flex;justify-content:center;gap:18px;padding:10px;background:var(--panel);border-bottom:1px solid var(--border);}
-.nav-btn{padding:10px 18px;border-radius:14px;cursor:pointer;background:#141414;color:var(--text);transition:.3s;}
-.nav-btn:hover{box-shadow:0 0 10px var(--accent);}
+/* ---------- HEADER / HOME ---------- */
+header{
+  background:var(--panel);
+  padding:14px;
+  text-align:center;
+  font-size:2rem;
+  font-weight:700;
+}
+nav{
+  display:flex;
+  justify-content:center;
+  gap:18px;
+  padding:10px;
+  background:var(--panel);
+}
+.nav-btn{
+  padding:10px 18px;
+  background:#111;
+  border:none;
+  border-radius:8px;
+  color:white;
+  cursor:pointer;
+}
+.nav-btn:hover{background:#222}
 
-/* ===== MAIN SEARCH ===== */
-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;}
-#searchInput{width:100%;max-width:600px;padding:16px 20px;background:#111;border:1px solid var(--border);color:var(--text);border-radius:999px;font-size:1.1rem;outline:none;}
+#home{
+  flex:1;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+#homeSearch{
+  width:420px;
+  max-width:90%;
+  padding:14px 18px;
+  background:#111;
+  border:none;
+  border-radius:999px;
+  color:white;
+  font-size:1.1rem;
+  outline:none;
+}
 
-/* ===== FOOTER ===== */
-footer{padding:12px;text-align:center;background:var(--panel);border-top:1px solid var(--border);font-size:.85rem;color:#aaa;}
+/* ---------- PROXY OVERLAY ---------- */
+#proxyOverlay{
+  position:fixed;
+  inset:0;
+  background:var(--bg);
+  display:none;
+  flex-direction:column;
+  z-index:9999;
+}
 
-/* ===== PROXY OVERLAY ===== */
-#proxyOverlay{position:fixed;inset:0;background:#0a0a0a;display:none;flex-direction:column;z-index:9999;}
-#tabsBar{display:flex;gap:2px;padding:4px;background:#111;overflow-x:auto;}
-.tab{display:flex;align-items:center;gap:6px;padding:6px 10px;background:#111;border:1px solid #111;border-radius:6px;cursor:pointer;white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis;}
-.tab.active{background:#1a1a1a;color:#fff;font-weight:700;}
-.tab img{width:16px;height:16px;}
-.tab .close-tab{position:absolute;right:4px;top:50%;transform:translateY(-50%);color:#fff;font-weight:900;cursor:pointer;font-size:12px;}
-#newTabBtn{padding:6px 10px;background:#111;border-radius:6px;color:#fff;cursor:pointer;flex-shrink:0;}
+/* ---------- TABS ---------- */
+#tabsBar{
+  display:flex;
+  align-items:flex-end;
+  background:var(--panel);
+  padding:4px;
+  overflow:hidden;
+}
 
-/* ===== BROWSER BAR ===== */
-#browserBar{display:flex;align-items:center;gap:8px;padding:8px;background:#111;border-bottom:1px solid #222;}
-.bubble-btn{padding:6px 10px;border-radius:6px;background:#111;border:none;color:var(--text);cursor:pointer;transition:.3s;}
-.bubble-btn:hover{box-shadow:0 0 10px var(--accent);}
-#urlBar{flex:1;padding:6px 10px;background:#0a0a0a;border:1px solid #fff;border-radius:6px;font-family:monospace;font-size:.85rem;color:#fff;outline:none;position:relative;}
-#bookmarkStar{position:absolute;right:4px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;color:#fff;}
+.tab{
+  position:relative;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:8px 26px 8px 10px;
+  background:var(--tab);
+  color:white;
+  border-top-left-radius:8px;
+  border-top-right-radius:8px;
+  cursor:pointer;
+  min-width:80px;
+  max-width:192px;
+  white-space:nowrap;
+  overflow:hidden;
+}
+.tab.active{
+  background:var(--tab-active);
+}
+.tab img{
+  width:16px;
+  height:16px;
+}
+.tab span{
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
 
-/* ===== BOOKMARK BAR ===== */
-#bookmarkBar{display:flex;align-items:center;gap:6px;padding:6px;background:#111;border-bottom:1px solid #222;overflow-x:auto;}
-.bookmark-btn{padding:4px 8px;background:#111;border-radius:6px;color:#fff;cursor:pointer;white-space:nowrap;transition:.3s;}
-.bookmark-btn:hover{background:#1a1a1a;}
+/* CLOSE BUTTON — OVERLAYED */
+.tab .close{
+  position:absolute;
+  top:4px;
+  right:6px;
+  color:white;
+  font-weight:700;
+  font-size:14px;
+  cursor:pointer;
+  z-index:5;
+}
 
-/* ===== FRAMES ===== */
-#frames{flex:1;position:relative;}
-.proxyFrame{position:absolute;inset:0;width:100%;height:100%;border:none;display:none;}
-.proxyFrame.active{display:block}
+/* NEW TAB */
+#newTabBtn{
+  padding:8px 14px;
+  background:#111;
+  color:white;
+  cursor:pointer;
+  border-radius:8px;
+  margin-left:4px;
+}
 
-/* ===== BOOKMARK MODAL ===== */
-#bookmarkModal{position:fixed;inset:0;background:#000000dd;display:none;justify-content:center;align-items:center;z-index:10001;}
-#bookmarkModalContent{background:#111;padding:20px;border-radius:10px;width:320px;display:flex;flex-direction:column;gap:10px;}
-#bookmarkModalContent input{padding:6px;border-radius:4px;border:1px solid #222;background:#0a0a0a;color:#fff;}
-#bookmarkModalContent button{padding:6px;border:none;background:#ff2d2d;color:#fff;border-radius:6px;cursor:pointer;transition:.3s;}
-#bookmarkModalContent button:hover{background:#ff5555;}
+/* ---------- BROWSER BAR ---------- */
+#browserBar{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:6px;
+  background:var(--bar);
+}
+
+.ctrl{
+  padding:6px 10px;
+  background:#111;
+  border:none;
+  color:white;
+  cursor:pointer;
+}
+.ctrl:hover{background:#222}
+
+#urlWrap{
+  position:relative;
+  flex:1;
+}
+
+#urlBar{
+  width:100%;
+  padding:6px 36px 6px 10px;
+  background:black;
+  border:none;
+  color:white;
+  font-family:monospace;
+  outline:none;
+}
+
+/* BOOKMARK STAR */
+#bookmarkStar{
+  position:absolute;
+  right:8px;
+  top:50%;
+  transform:translateY(-50%);
+  cursor:pointer;
+  font-size:16px;
+  user-select:none;
+}
+
+/* ---------- BOOKMARK BAR ---------- */
+#bookmarkBar{
+  display:flex;
+  gap:6px;
+  padding:6px;
+  background:var(--panel);
+  overflow-x:auto;
+}
+.bookmark{
+  padding:4px 10px;
+  background:#111;
+  color:white;
+  cursor:pointer;
+  border-radius:6px;
+  font-size:.85rem;
+}
+
+/* ---------- FRAMES ---------- */
+#frames{
+  flex:1;
+  position:relative;
+}
+iframe{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  border:none;
+  display:none;
+}
+iframe.active{display:block}
+
+/* ---------- BOOKMARK MODAL ---------- */
+#bmModal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.6);
+  display:none;
+  justify-content:center;
+  align-items:center;
+}
+#bmBox{
+  background:#111;
+  padding:20px;
+  border-radius:10px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+#bmBox input{
+  padding:6px;
+  background:black;
+  border:none;
+  color:white;
+}
 </style>
 </head>
 
 <body>
+
 <header>Glitch Hub</header>
 
 <nav>
-  <div class="nav-btn" onclick="openNav('../games/app.html')">Games</div>
-  <div class="nav-btn" onclick="openNav('../movies/index.html')">Movies</div>
-  <div class="nav-btn" onclick="openNav('../ai/index.html')">AI</div>
-  <div class="nav-btn" onclick="openNav('../tools/index.html')">Tools</div>
+  <div class="nav-btn" onclick="location.href='../games/app.html'">Games</div>
+  <div class="nav-btn" onclick="location.href='../movies/index.html'">Movies</div>
+  <div class="nav-btn" onclick="location.href='../ai/index.html'">AI</div>
+  <div class="nav-btn" onclick="location.href='../tools/index.html'">Tools</div>
 </nav>
 
-<main>
-  <input id="searchInput" placeholder="Search or enter URL (press Enter)">
-</main>
+<div id="home">
+  <input id="homeSearch" placeholder="Search or enter URL">
+</div>
 
-<footer>© 2026 Glitch Override</footer>
-
-<!-- ===== PROXY OVERLAY ===== -->
+<!-- PROXY -->
 <div id="proxyOverlay">
   <div id="tabsBar">
-    <div id="newTabBtn">＋</div>
+    <div id="newTabBtn" onclick="newTab()">＋</div>
   </div>
+
   <div id="browserBar">
-    <div class="bubble-btn" onclick="goBack()">⟵</div>
-    <div class="bubble-btn" onclick="goForward()">⟶</div>
-    <div class="bubble-btn" onclick="refreshTab()">⟳</div>
-    <div class="bubble-btn" onclick="fullscreenTab()">⛶</div>
-    <div class="bubble-btn" onclick="injectCode()">&lt;/&gt;</div>
-    <input id="urlBar" spellcheck="false">
-    <span id="bookmarkStar">☆</span>
-    <div class="bubble-btn" onclick="closeOverlay()">✕</div>
+    <button class="ctrl" onclick="goBack()">⟵</button>
+    <button class="ctrl" onclick="goForward()">⟶</button>
+    <button class="ctrl" onclick="reloadTab()">⟳</button>
+
+    <div id="urlWrap">
+      <input id="urlBar">
+      <span id="bookmarkStar" onclick="toggleBookmark()">☆</span>
+    </div>
+
+    <button class="ctrl" onclick="fullscreen()">⛶</button>
+    <button class="ctrl" onclick="injectDev()">&lt;/&gt;</button>
   </div>
+
   <div id="bookmarkBar"></div>
   <div id="frames"></div>
 </div>
 
-<!-- ===== BOOKMARK MODAL ===== -->
-<div id="bookmarkModal">
-  <div id="bookmarkModalContent">
-    <label>Name:</label>
-    <input id="bookmarkName" type="text">
-    <label>URL / JS:</label>
-    <input id="bookmarkUrl" type="text">
-    <div style="display:flex;justify-content:space-between;">
-      <button id="saveBookmarkBtn">Save</button>
-      <button id="deleteBookmarkBtn">Delete</button>
-      <button id="cancelBookmarkBtn">Cancel</button>
-    </div>
+<!-- BOOKMARK MODAL -->
+<div id="bmModal">
+  <div id="bmBox">
+    <input id="bmName">
+    <input id="bmCode">
+    <button onclick="saveBookmark()">Save</button>
+    <button onclick="closeBM()">Cancel</button>
   </div>
 </div>
 
 <script>
+const home=document.getElementById("home");
+const homeSearch=document.getElementById("homeSearch");
 const overlay=document.getElementById("proxyOverlay");
 const tabsBar=document.getElementById("tabsBar");
 const frames=document.getElementById("frames");
 const urlBar=document.getElementById("urlBar");
-const searchInput=document.getElementById("searchInput");
+const star=document.getElementById("bookmarkStar");
 const bookmarkBar=document.getElementById("bookmarkBar");
-const bookmarkStar=document.getElementById("bookmarkStar");
 
-const bookmarkModal=document.getElementById("bookmarkModal");
-const bookmarkName=document.getElementById("bookmarkName");
-const bookmarkUrl=document.getElementById("bookmarkUrl");
-const saveBookmarkBtn=document.getElementById("saveBookmarkBtn");
-const deleteBookmarkBtn=document.getElementById("deleteBookmarkBtn");
-const cancelBookmarkBtn=document.getElementById("cancelBookmarkBtn");
+let tabs=[],active=null;
+let bookmarks={};
 
-// ===== DEFAULTS =====
-let tabs=[],active=null,editingUrl=false;
-let bookmarks=[];
-
-// ===== URL NORMALIZER =====
-function normalize(input){
-  if(!input.includes(".")) return "https://www.startpage.com/sp/search?q="+encodeURIComponent(input);
-  if(!input.startsWith("http")) return "https://"+input;
-  return input;
+function normalize(v){
+  if(!v.includes(".")) return "https://www.startpage.com/sp/search?q="+encodeURIComponent(v);
+  if(!v.startsWith("http")) return "https://"+v;
+  return v;
 }
 
-// ===== HOME SEARCH =====
-searchInput.addEventListener("keydown",e=>{
-  if(e.key==="Enter") newTab(normalize(searchInput.value.trim()));
-});
+homeSearch.onkeydown=e=>{
+  if(e.key==="Enter") newTab(normalize(homeSearch.value));
+};
 
-// ===== BROWSER BAR INPUT =====
-urlBar.addEventListener("focus",()=>editingUrl=true);
-urlBar.addEventListener("blur",()=>editingUrl=false);
-urlBar.addEventListener("keydown",e=>{
-  if(e.key==="Enter" && active){
-    editingUrl=false;
-    active.iframe.src=__uv$config.prefix+__uv$config.encodeUrl(urlBar.value.trim());
-  }
-});
+function newTab(url){
+  home.style.display="none";
+  overlay.style.display="flex";
 
-// ===== NAV BUTTONS =====
-function openNav(path){ newTab(location.origin+path.replace(/^.\//,"/")); }
-
-// ===== TABS =====
-document.getElementById("newTabBtn").onclick=()=>newTab();
-
-function newTab(url=normalize("startpage.com")){
   const iframe=document.createElement("iframe");
-  iframe.className="proxyFrame";
   const tab=document.createElement("div");
   tab.className="tab";
-  tab.style.position="relative";
-  const icon=document.createElement("img"); icon.src="";
-  const title=document.createElement("span"); title.textContent="New Tab";
-  const close=document.createElement("span"); close.className="close-tab"; close.textContent="✕";
-  const tabObj={iframe,tab,icon,title,url};
-  close.onclick=e=>{e.stopPropagation();closeTab(tabObj)};
-  tab.onclick=()=>activate(tabObj);
+
+  const icon=document.createElement("img");
+  const title=document.createElement("span");
+  title.textContent="New Tab";
+
+  const close=document.createElement("span");
+  close.className="close";
+  close.textContent="✕";
+
   tab.append(icon,title,close);
-  tabs.splice(tabs.length-1,0,tabObj);
-  tabsBar.insertBefore(tab,tabsBar.lastElementChild);
+  tabsBar.insertBefore(tab,document.getElementById("newTabBtn"));
   frames.appendChild(iframe);
-  activate(tabObj);
+
+  const obj={iframe,tab,url};
+  tabs.push(obj);
+
+  close.onclick=e=>{e.stopPropagation();closeTab(obj)};
+  tab.onclick=()=>activate(obj);
+
   iframe.src=__uv$config.prefix+__uv$config.encodeUrl(url);
-  overlay.style.display="flex";
+  activate(obj);
+
+  iframe.onload=()=>{
+    try{
+      title.textContent=iframe.contentDocument.title;
+      const ico=iframe.contentDocument.querySelector("link[rel~='icon']");
+      if(ico) icon.src=ico.href;
+    }catch{}
+  };
 }
 
-// ===== ACTIVATE / CLOSE TAB =====
 function activate(t){
-  tabs.forEach(x=>{x.iframe.classList.remove("active"); x.tab.classList.remove("active");});
-  active=t; t.iframe.classList.add("active"); t.tab.classList.add("active");
-}
-function closeTab(t){
-  const i=tabs.indexOf(t);
-  if(i>-1){t.iframe.remove(); t.tab.remove(); tabs.splice(i,1); activate(tabs[i-1]||tabs[0]);}
+  tabs.forEach(x=>{
+    x.tab.classList.remove("active");
+    x.iframe.classList.remove("active");
+  });
+  active=t;
+  t.tab.classList.add("active");
+  t.iframe.classList.add("active");
+  updateURL();
 }
 
-// ===== NAV CONTROLS =====
-function goBack(){active?.iframe.contentWindow.history.back();}
-function goForward(){active?.iframe.contentWindow.history.forward();}
-function refreshTab(){active?.iframe.contentWindow.location.reload();}
-function fullscreenTab(){active?.iframe.requestFullscreen?.();}
-function injectCode(){
-  if(!active) return;
-  const code=`javascript:(function(){var s=document.createElement('script');s.src="//cdn.jsdelivr.net/npm/eruda";document.body.appendChild(s);s.onload=function(){eruda.init()}})();`;
-  active.iframe.contentWindow.eval(code);
-}
-function closeOverlay(){overlay.style.display="none";tabs.forEach(t=>{t.iframe.remove(); t.tab.remove();});tabs=[];}
-
-// ===== LIVE URL & FAVICON UPDATE =====
-setInterval(()=>{
-  if(!active||editingUrl) return;
+function updateURL(){
   try{
-    const w=active.iframe.contentWindow;
-    const href=w.location.href;
-    if(href.includes(__uv$config.prefix)){
-      const encoded=href.split(__uv$config.prefix)[1];
-      urlBar.value=__uv$config.decodeUrl(encoded.replace(/^\/+/,''))||urlBar.value;
-    }
-    const favicon=w.document.querySelector("link[rel~='icon']");
-    active.tab.querySelector("img").src=favicon?.href||"";
+    const enc=active.iframe.contentWindow.location.href.split(__uv$config.prefix)[1];
+    active.url=__uv$config.decodeUrl(enc.replace(/^\/+/,''));
   }catch{}
-},500);
-
-// ===== BOOKMARK STAR =====
-function updateBookmarkStar(){
-  if(!active) return;
-  const exists=bookmarks.some(b=>b.url===urlBar.value);
-  bookmarkStar.textContent=exists?"★":"☆";
+  urlBar.value=active.url;
+  star.textContent=bookmarks[active.url]?"★":"☆";
+  requestAnimationFrame(updateURL);
 }
-bookmarkStar.onclick=()=>{
-  if(!active) return;
-  const bIndex=bookmarks.findIndex(b=>b.url===urlBar.value);
-  if(bIndex>-1){
-    openBookmarkModal(bookmarks[bIndex]);
-  }else{
-    openBookmarkModal({name:active.tab.querySelector("span").textContent,url:urlBar.value});
+
+urlBar.onkeydown=e=>{
+  if(e.key==="Enter"){
+    active.url=urlBar.value;
+    active.iframe.src=__uv$config.prefix+__uv$config.encodeUrl(active.url);
   }
 };
-function openBookmarkModal(b){
-  bookmarkModal.style.display="flex";
-  bookmarkName.value=b.name; bookmarkUrl.value=b.url;
-  saveBookmarkBtn.onclick=()=>{saveBookmark(b); bookmarkModal.style.display="none";}
-  deleteBookmarkBtn.onclick=()=>{deleteBookmark(b); bookmarkModal.style.display="none";}
-  cancelBookmarkBtn.onclick=()=>{bookmarkModal.style.display="none";}
-}
-function saveBookmark(b){
-  const idx=bookmarks.findIndex(x=>x.url===b.url);
-  const newB={name:bookmarkName.value,url:bookmarkUrl.value};
-  if(idx>-1) bookmarks[idx]=newB; else bookmarks.push(newB);
-  renderBookmarkBar(); updateBookmarkStar();
-}
-function deleteBookmark(b){
-  const idx=bookmarks.findIndex(x=>x.url===b.url);
-  if(idx>-1) bookmarks.splice(idx,1);
-  renderBookmarkBar(); updateBookmarkStar();
-}
-function renderBookmarkBar(){
-  bookmarkBar.innerHTML="";
-  bookmarks.forEach(b=>{
-    const btn=document.createElement("div");
-    btn.className="bookmark-btn"; btn.textContent=b.name;
-    btn.onclick=()=>openBookmarkModal(b);
-    bookmarkBar.appendChild(btn);
-  });
+
+function closeTab(t){
+  t.tab.remove();
+  t.iframe.remove();
+  tabs=tabs.filter(x=>x!==t);
+  if(tabs.length) activate(tabs[tabs.length-1]);
+  else{
+    overlay.style.display="none";
+    home.style.display="flex";
+  }
 }
 
-// ===== OPEN NAV FILES =====
-function openFile(path){ newTab(location.origin+path); }
+function toggleBookmark(){
+  if(bookmarks[active.url]){
+    delete bookmarks[active.url];
+    star.textContent="☆";
+  }else{
+    document.getElementById("bmName").value=active.tab.innerText;
+    document.getElementById("bmCode").value=active.url;
+    document.getElementById("bmModal").style.display="flex";
+  }
+}
 
-// ===== DEFAULT BROWSER SEARCH =====
-searchInput.addEventListener("keydown",e=>{if(e.key==="Enter") newTab(normalize(searchInput.value));});
-urlBar.addEventListener("keydown",e=>{if(e.key==="Enter"&&active) active.iframe.src=__uv$config.prefix+__uv$config.encodeUrl(urlBar.value);});
+function saveBookmark(){
+  const n=bmName.value;
+  const c=bmCode.value;
+  bookmarks[c]=true;
+  const b=document.createElement("div");
+  b.className="bookmark";
+  b.textContent=n;
+  b.onclick=()=>active.iframe.contentWindow.eval(c);
+  bookmarkBar.appendChild(b);
+  closeBM();
+}
+function closeBM(){bmModal.style.display="none"}
+
+function goBack(){active?.iframe.contentWindow.history.back()}
+function goForward(){active?.iframe.contentWindow.history.forward()}
+function reloadTab(){active?.iframe.contentWindow.location.reload()}
+function fullscreen(){active?.iframe.requestFullscreen()}
+function injectDev(){
+  active.iframe.contentWindow.eval(`
+    var s=document.createElement('script');
+    s.src='//cdn.jsdelivr.net/npm/eruda';
+    document.body.appendChild(s);
+    s.onload=()=>eruda.init();
+  `);
+}
 </script>
 </body>
 </html>
