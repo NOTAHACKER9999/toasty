@@ -45,8 +45,8 @@ nav{display:flex;justify-content:center;gap:18px;padding:10px;background:var(--p
 .bookmarkButton{padding:6px 10px;background:#111;color:white;border-radius:6px;font-size:0.9rem;cursor:pointer;white-space:nowrap;}
 .bookmarkButton:hover{background:#222;}
 #frames{flex:1;position:relative;}
-iframe, .customFrame{position:absolute;inset:0;width:100%;height:100%;border:none;display:none;}
-iframe.active, .customFrame.active{display:block;}
+iframe{position:absolute;inset:0;width:100%;height:100%;border:none;display:none;}
+iframe.active{display:block;}
 #bmModalCreate,#bmModalEdit{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:10001;}
 .bmBox{background:#111;padding:24px;border-radius:14px;display:flex;flex-direction:column;gap:12px;}
 .bmBox input{padding:10px;background:black;border:none;color:white;font-size:1rem;}
@@ -60,6 +60,13 @@ iframe.active, .customFrame.active{display:block;}
 #menuPanel{position:absolute;top:36px;right:0;background:#111;border:1px solid #333;border-radius:6px;display:none;flex-direction:column;min-width:140px;z-index:1002;}
 .menuItem{padding:8px 12px;color:white;cursor:pointer;}
 .menuItem:hover{background:#222;}
+.customFrame{position:absolute;inset:0;width:100%;height:100%;background:#0a0a0a;color:white;overflow:auto;padding:10px;display:none;}
+.customFrame h1{margin-top:0;}
+.historyEntry{padding:4px 6px;margin:2px 0;border-radius:4px;cursor:pointer;background:#111;}
+.historyEntry:hover{background:#222;}
+#historyHeader{display:flex;justify-content:space-between;align-items:center;}
+#historyHeader button{background:#660000;padding:6px;border:none;color:white;border-radius:6px;cursor:pointer;}
+#historyHeader button:hover{background:#990000;}
 </style>
 </head>
 <body>
@@ -108,7 +115,7 @@ iframe.active, .customFrame.active{display:block;}
 
   <div id="bookmarkBar"></div>
   <div id="frames"></div>
-  <div id="customFrame" class="customFrame"></div>
+  <iframe id="customFrame"></iframe>
 </div>
 
 <!-- Bookmark modals -->
@@ -156,28 +163,25 @@ let tabs=[], active=null;
 let bookmarks={}, editingURL=null;
 let historyList=[], userEditingURL=false;
 
-// Normalize URLs
+// URL normalization
 function normalize(v){
   if(!v.includes(".")) return "https://www.startpage.com/sp/search?q="+encodeURIComponent(v);
   if(!v.startsWith("http")) return "https://"+v;
   return v;
 }
 
-// Home search
 homeSearch.addEventListener('keydown', e=>{if(e.key==="Enter") newTab(normalize(homeSearch.value));});
 
-// New tab
 function newTab(url="https://www.startpage.com"){
   home.style.display="none"; overlay.style.display="flex";
-
   // Handle /?/ pages
-  if(url.startsWith("/?/")) { openCustomPage(url); return; }
+  if(url.startsWith("/?/")) { openCustomPage(url); addHistory(url); return; }
 
   const iframe=document.createElement("iframe");
   frames.appendChild(iframe);
 
   const tab=document.createElement("div"); tab.className="tab";
-  const icon=document.createElement("img"); icon.src=""; // will fill later
+  const icon=document.createElement("img"); icon.src="";
   const span=document.createElement("span"); span.textContent=url;
   const close=document.createElement("span"); close.className="close"; close.textContent="✕";
   close.onclick=e=>{ e.stopPropagation(); closeTab(tab,iframe); };
@@ -221,10 +225,9 @@ function closeOverlay(){
   customFrame.style.display='none';
 }
 
-// Show iframe or custom frame in same area
 function showFrame(frame){
   Array.from(frames.children).forEach(f=>f.style.display='none');
-  Array.from(document.getElementsByClassName('customFrame')).forEach(f=>f.style.display='none');
+  customFrame.style.display='none';
   if(frame) frame.style.display='block';
 }
 
@@ -235,7 +238,6 @@ function openCustomPage(url){
   customFrame.innerHTML="";
   urlBar.value=url;
 
-  // Update active tab to reflect this
   if(active) active.url=url;
   else{
     const dummyTab=document.createElement("div"); dummyTab.className="tab active";
@@ -247,17 +249,28 @@ function openCustomPage(url){
     active=tabs[tabs.length-1];
   }
 
+  // History page
   if(url==="/?/History"){
-    const h1=document.createElement("h1"); h1.textContent="History"; customFrame.appendChild(h1);
-    historyList.forEach(hd=>{
-      const div=document.createElement("div"); div.textContent=`[${hd.time}] ${hd.url}`;
-      div.style.cursor="pointer"; div.onclick=()=>newTab(hd.url);
-      customFrame.appendChild(div);
-    });
-    const clr=document.createElement("button"); clr.textContent="Clear History";
-    clr.onclick=()=>{historyList=[]; customFrame.innerHTML="<h1>History</h1>";};
-    customFrame.appendChild(clr);
+    const header=document.createElement("div"); header.id="historyHeader";
+    const h1=document.createElement("h1"); h1.textContent="History";
+    const clearBtn=document.createElement("button"); clearBtn.textContent="Clear History";
+    clearBtn.onclick=()=>{historyList=[]; renderHistory();};
+    header.append(h1,clearBtn); customFrame.appendChild(header);
+
+    const list=document.createElement("div"); list.id="historyList"; customFrame.appendChild(list);
+    renderHistory();
   }
+}
+
+function renderHistory(){
+  const list=document.getElementById("historyList"); if(!list) return;
+  list.innerHTML="";
+  historyList.forEach(hd=>{
+    const div=document.createElement("div"); div.className="historyEntry";
+    div.textContent=`[${hd.time}] ${hd.url}`;
+    div.onclick=()=>newTab(hd.url);
+    list.appendChild(div);
+  });
 }
 
 // URL bar auto-update
@@ -279,11 +292,18 @@ function updateURLBar(){
 }
 
 // Browser controls
-urlBar.onkeydown=e=>{if(e.key==="Enter"){active.url=normalize(urlBar.value); if(active.url.startsWith("/?/")) openCustomPage(active.url); else active.iframe.src=__uv$config.prefix+__uv$config.encodeUrl(active.url); addHistory(active.url);}}
+urlBar.onkeydown=e=>{
+  if(e.key==="Enter"){
+    active.url=normalize(urlBar.value);
+    if(active.url.startsWith("/?/")) openCustomPage(active.url);
+    else active.iframe.src=__uv$config.prefix+__uv$config.encodeUrl(active.url);
+    addHistory(active.url);
+  }
+}
 function goBack(){active?.iframe?.contentWindow.history.back();}
 function goForward(){active?.iframe?.contentWindow.history.forward();}
 function reloadTab(){active?.iframe?.contentWindow.location.reload();}
-function fullscreen(){active?.iframe?.requestFullscreen();}
+function fullscreen(){active?.iframe.requestFullscreen();}
 function injectDev(){try{const s=document.createElement('script');s.src='//cdn.jsdelivr.net/npm/eruda';active.iframe.contentDocument.body.appendChild(s);s.onload=()=>eruda.init();}catch{}}
 function addHistory(url){historyList.push({url,time:new Date().toLocaleString()});}
 
