@@ -82,6 +82,7 @@ iframe.active{display:block;}
     <div id="newTabBtn" onclick="newTab()">＋</div>
     <div id="closeOverlayBtn" onclick="closeOverlay()">✕</div>
   </div>
+
   <div id="browserBar">
     <button class="ctrl" onclick="goBack()">⟵</button>
     <button class="ctrl" onclick="goForward()">⟶</button>
@@ -95,17 +96,19 @@ iframe.active{display:block;}
       <div id="menuPanel">
         <div class="menuItem" onclick="newTab()">New Tab</div>
         <div class="menuItem" onclick="openCustomPage('/?/History')">History</div>
-        <div class="menuItem" onclick="alert('Bookmarks Panel opened')">Bookmarks</div>
+        <div class="menuItem" onclick="openBookmarksPanel()">Bookmarks</div>
         <div class="menuItem" onclick="injectDev()">Dev Tools</div>
         <div class="menuItem" onclick="alert('Settings Panel opened')">Settings</div>
       </div>
     </div>
   </div>
+
   <div id="bookmarkBar"></div>
   <div id="frames"></div>
   <div id="customFrame" class="customFrame"></div>
 </div>
 
+<!-- Bookmark modals -->
 <div id="bmModalCreate">
   <div class="bmBox">
     <input id="bmNameCreate" placeholder="Bookmark Name">
@@ -125,7 +128,7 @@ iframe.active{display:block;}
 </div>
 
 <script>
-// ---------------- Variables ----------------
+// ------------------ Variables ------------------
 const home=document.getElementById("home");
 const homeSearch=document.getElementById("homeSearch");
 const overlay=document.getElementById("proxyOverlay");
@@ -150,7 +153,7 @@ let tabs=[], active=null;
 let bookmarks={}, editingURL=null;
 let userEditing=false;
 
-// ---------------- Tabs ----------------
+// ------------------ Tabs ------------------
 homeSearch.onkeydown=e=>{
   if(e.key==="Enter") newTab(normalize(homeSearch.value));
 };
@@ -168,6 +171,7 @@ function newTab(url="https://www.startpage.com"){
   const iframe=document.createElement("iframe");
   frames.appendChild(iframe);
   iframe.src=__uv$config.prefix+__uv$config.encodeUrl(url);
+  iframe.onload=()=>updateTabTitle(iframe);
   showFrame(iframe);
 }
 
@@ -177,7 +181,11 @@ function showFrame(frame){
   frame.style.display='block';
 }
 
-// ---------------- Custom Pages ----------------
+function updateTabTitle(iframe){
+  // can update the tab title from iframe.document.title
+}
+
+// ---------------- Custom Pages ------------------
 function openCustomPage(url){
   Array.from(frames.children).forEach(f=>f.style.display='none');
   customFrame.style.display='block';
@@ -185,26 +193,18 @@ function openCustomPage(url){
   if(url.startsWith("/?/History")){
     const h=document.createElement('h1'); h.textContent="History";
     customFrame.appendChild(h);
-    const p=document.createElement('p'); p.textContent="Your previous searches will appear here.";
-    customFrame.appendChild(p);
   } else {
     const h=document.createElement('h1'); h.textContent="Custom Page";
     customFrame.appendChild(h);
-    const p=document.createElement('p'); p.textContent="Content for "+url;
-    customFrame.appendChild(p);
   }
 }
 
-// ---------------- URL Bar ----------------
-urlBar.addEventListener('input', ()=>{userEditing=true;});
-urlBar.addEventListener('blur', ()=>{userEditing=false;});
-
-// ---------------- Menu ----------------
+// ---------------- Menu ------------------
 menuBtn.addEventListener('mouseenter',()=>{menuPanel.style.display='flex';});
 menuBtn.addEventListener('mouseleave',()=>{setTimeout(()=>{if(!menuPanel.matches(':hover')) menuPanel.style.display='none';},150);});
 menuPanel.addEventListener('mouseleave',()=>{menuPanel.style.display='none';});
 
-// ---------------- Proxy Controls ----------------
+// ---------------- Proxy Controls ------------------
 function goBack(){active?.iframe.contentWindow.history.back();}
 function goForward(){active?.iframe.contentWindow.history.forward();}
 function reloadTab(){active?.iframe.contentWindow.location.reload();}
