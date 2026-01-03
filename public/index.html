@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Glitch Hub</title>
 
-<!-- Ultraviolet -->
+<!-- Ultraviolet Proxy -->
 <script src="/uv/uv.bundle.js"></script>
 <script src="/uv/uv.config.js"></script>
 <script>
@@ -96,6 +96,7 @@ nav{
   background:var(--panel);
   padding:4px;
   overflow:hidden;
+  position:relative;
 }
 
 .tab{
@@ -126,7 +127,7 @@ nav{
   text-overflow:ellipsis;
 }
 
-/* CLOSE BUTTON — OVERLAYED */
+/* CLOSE BUTTON ON TAB */
 .tab .close{
   position:absolute;
   top:4px;
@@ -138,7 +139,7 @@ nav{
   z-index:5;
 }
 
-/* NEW TAB */
+/* NEW TAB BUTTON */
 #newTabBtn{
   padding:8px 14px;
   background:#111;
@@ -147,6 +148,21 @@ nav{
   border-radius:8px;
   margin-left:4px;
 }
+
+/* CLOSE OVERLAY BUTTON */
+#closeOverlayBtn{
+  position:absolute;
+  right:4px;
+  top:4px;
+  padding:4px 10px;
+  background:#111;
+  color:white;
+  font-weight:bold;
+  border-radius:6px;
+  cursor:pointer;
+  z-index:10;
+}
+#closeOverlayBtn:hover{background:#222}
 
 /* ---------- BROWSER BAR ---------- */
 #browserBar{
@@ -249,7 +265,6 @@ iframe.active{display:block}
 }
 </style>
 </head>
-
 <body>
 
 <header>Glitch Hub</header>
@@ -269,6 +284,7 @@ iframe.active{display:block}
 <div id="proxyOverlay">
   <div id="tabsBar">
     <div id="newTabBtn" onclick="newTab()">＋</div>
+    <div id="closeOverlayBtn" onclick="closeOverlay()">✕</div>
   </div>
 
   <div id="browserBar">
@@ -292,25 +308,25 @@ iframe.active{display:block}
 <!-- BOOKMARK MODAL -->
 <div id="bmModal">
   <div id="bmBox">
-    <input id="bmName">
-    <input id="bmCode">
+    <input id="bmName" placeholder="Bookmark Name">
+    <input id="bmCode" placeholder="Bookmark URL">
     <button onclick="saveBookmark()">Save</button>
     <button onclick="closeBM()">Cancel</button>
   </div>
 </div>
 
 <script>
-const home=document.getElementById("home");
-const homeSearch=document.getElementById("homeSearch");
-const overlay=document.getElementById("proxyOverlay");
-const tabsBar=document.getElementById("tabsBar");
-const frames=document.getElementById("frames");
-const urlBar=document.getElementById("urlBar");
-const star=document.getElementById("bookmarkStar");
-const bookmarkBar=document.getElementById("bookmarkBar");
+const home = document.getElementById("home");
+const homeSearch = document.getElementById("homeSearch");
+const overlay = document.getElementById("proxyOverlay");
+const tabsBar = document.getElementById("tabsBar");
+const frames = document.getElementById("frames");
+const urlBar = document.getElementById("urlBar");
+const star = document.getElementById("bookmarkStar");
+const bookmarkBar = document.getElementById("bookmarkBar");
 
-let tabs=[],active=null;
-let bookmarks={};
+let tabs = [], active = null;
+let bookmarks = {};
 
 function normalize(v){
   if(!v.includes(".")) return "https://www.startpage.com/sp/search?q="+encodeURIComponent(v);
@@ -318,106 +334,104 @@ function normalize(v){
   return v;
 }
 
-homeSearch.onkeydown=e=>{
-  if(e.key==="Enter") newTab(normalize(homeSearch.value));
+homeSearch.onkeydown = e => {
+  if(e.key === "Enter") newTab(normalize(homeSearch.value));
 };
 
-function newTab(url){
-  home.style.display="none";
-  overlay.style.display="flex";
+function newTab(url="https://www.startpage.com"){
+  home.style.display = "none";
+  overlay.style.display = "flex";
 
-  const iframe=document.createElement("iframe");
-  const tab=document.createElement("div");
-  tab.className="tab";
+  const iframe = document.createElement("iframe");
+  const tab = document.createElement("div");
+  tab.className = "tab";
 
-  const icon=document.createElement("img");
-  const title=document.createElement("span");
-  title.textContent="New Tab";
+  const icon = document.createElement("img");
+  const title = document.createElement("span");
+  title.textContent = "New Tab";
 
-  const close=document.createElement("span");
-  close.className="close";
-  close.textContent="✕";
+  const close = document.createElement("span");
+  close.className = "close";
+  close.textContent = "✕";
 
-  tab.append(icon,title,close);
-  tabsBar.insertBefore(tab,document.getElementById("newTabBtn"));
+  tab.append(icon, title, close);
+  tabsBar.insertBefore(tab, document.getElementById("newTabBtn"));
   frames.appendChild(iframe);
 
-  const obj={iframe,tab,url};
+  const obj = {iframe, tab, url};
   tabs.push(obj);
 
-  close.onclick=e=>{e.stopPropagation();closeTab(obj)};
-  tab.onclick=()=>activate(obj);
+  close.onclick = e => { e.stopPropagation(); closeTab(obj); };
+  tab.onclick = () => activate(obj);
 
-  iframe.src=__uv$config.prefix+__uv$config.encodeUrl(url);
+  iframe.src = __uv$config.prefix + __uv$config.encodeUrl(url);
   activate(obj);
 
-  iframe.onload=()=>{
-    try{
-      title.textContent=iframe.contentDocument.title;
-      const ico=iframe.contentDocument.querySelector("link[rel~='icon']");
-      if(ico) icon.src=ico.href;
-    }catch{}
+  iframe.onload = () => {
+    try {
+      title.textContent = iframe.contentDocument.title || "New Tab";
+      const ico = iframe.contentDocument.querySelector("link[rel~='icon']");
+      if(ico) icon.src = ico.href;
+    } catch {}
   };
 }
 
 function activate(t){
-  tabs.forEach(x=>{
+  tabs.forEach(x => {
     x.tab.classList.remove("active");
     x.iframe.classList.remove("active");
   });
-  active=t;
+  active = t;
   t.tab.classList.add("active");
   t.iframe.classList.add("active");
-  updateURL();
+  urlBar.value = t.url;
+  star.textContent = bookmarks[t.url] ? "★" : "☆";
 }
 
-function updateURL(){
-  try{
-    const enc=active.iframe.contentWindow.location.href.split(__uv$config.prefix)[1];
-    active.url=__uv$config.decodeUrl(enc.replace(/^\/+/,''));
-  }catch{}
-  urlBar.value=active.url;
-  star.textContent=bookmarks[active.url]?"★":"☆";
-  requestAnimationFrame(updateURL);
-}
-
-urlBar.onkeydown=e=>{
-  if(e.key==="Enter"){
-    active.url=urlBar.value;
-    active.iframe.src=__uv$config.prefix+__uv$config.encodeUrl(active.url);
+urlBar.onkeydown = e => {
+  if(e.key === "Enter"){
+    active.url = normalize(urlBar.value);
+    active.iframe.src = __uv$config.prefix + __uv$config.encodeUrl(active.url);
   }
 };
 
 function closeTab(t){
   t.tab.remove();
   t.iframe.remove();
-  tabs=tabs.filter(x=>x!==t);
+  tabs = tabs.filter(x => x !== t);
   if(tabs.length) activate(tabs[tabs.length-1]);
-  else{
-    overlay.style.display="none";
-    home.style.display="flex";
-  }
+  else closeOverlay();
+}
+
+function closeOverlay(){
+  tabs.forEach(t => {
+    t.tab.remove();
+    t.iframe.remove();
+  });
+  tabs = [];
+  overlay.style.display = "none";
+  home.style.display = "flex";
 }
 
 function toggleBookmark(){
   if(bookmarks[active.url]){
     delete bookmarks[active.url];
-    star.textContent="☆";
-  }else{
-    document.getElementById("bmName").value=active.tab.innerText;
-    document.getElementById("bmCode").value=active.url;
-    document.getElementById("bmModal").style.display="flex";
+    star.textContent = "☆";
+  } else {
+    document.getElementById("bmName").value = active.tab.querySelector("span").textContent;
+    document.getElementById("bmCode").value = active.url;
+    document.getElementById("bmModal").style.display = "flex";
   }
 }
 
 function saveBookmark(){
-  const n=bmName.value;
-  const c=bmCode.value;
-  bookmarks[c]=true;
-  const b=document.createElement("div");
-  b.className="bookmark";
-  b.textContent=n;
-  b.onclick=()=>active.iframe.contentWindow.eval(c);
+  const n = bmName.value;
+  const c = bmCode.value;
+  bookmarks[c] = true;
+  const b = document.createElement("div");
+  b.className = "bookmark";
+  b.textContent = n;
+  b.onclick = () => newTab(c);
   bookmarkBar.appendChild(b);
   closeBM();
 }
@@ -428,12 +442,14 @@ function goForward(){active?.iframe.contentWindow.history.forward()}
 function reloadTab(){active?.iframe.contentWindow.location.reload()}
 function fullscreen(){active?.iframe.requestFullscreen()}
 function injectDev(){
-  active.iframe.contentWindow.eval(`
-    var s=document.createElement('script');
-    s.src='//cdn.jsdelivr.net/npm/eruda';
-    document.body.appendChild(s);
-    s.onload=()=>eruda.init();
-  `);
+  try{
+    active.iframe.contentWindow.eval(`
+      var s=document.createElement('script');
+      s.src='//cdn.jsdelivr.net/npm/eruda';
+      document.body.appendChild(s);
+      s.onload=()=>eruda.init();
+    `);
+  } catch{}
 }
 </script>
 </body>
