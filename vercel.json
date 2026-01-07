@@ -15,27 +15,19 @@
   ],
 
   "routes": [
+    {
+      "src": "/(.*)",
+      "headers": {
+        "Cross-Origin-Opener-Policy": "same-origin",
+        "Cross-Origin-Embedder-Policy": "require-corp"
+      }
+    },
+
     { "src": "^/$", "dest": "/public/index.html" },
 
     { "src": "^/games/?$", "dest": "/games/app.html" },
     { "src": "^/games/(.*)", "dest": "/games/app.html" },
 
     { "src": "/(.*)", "dest": "/index.js" }
-  ],
-
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "Cross-Origin-Opener-Policy",
-          "value": "same-origin"
-        },
-        {
-          "key": "Cross-Origin-Embedder-Policy",
-          "value": "require-corp"
-        }
-      ]
-    }
   ]
 }
