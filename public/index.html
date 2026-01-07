@@ -123,6 +123,28 @@ iframe.active,.customPage.active{display:block}
 </div>
 
 <script>
+  // =================== HISTORY FIX ===================
+function refreshHistoryPage(){
+  if (typeof active !== "undefined" && active.custom) {
+    active.custom.remove();
+    active.custom = null;
+  }
+  openCustom("/?/History");
+}
+
+function deleteHistoryItem(index){
+  historyLog.splice(index, 1);
+  localStorage.setItem("history", JSON.stringify(historyLog));
+  refreshHistoryPage();
+}
+
+function clearHistory(){
+  if (!confirm("Clear all history?")) return;
+  historyLog.length = 0;
+  localStorage.setItem("history", "[]");
+  refreshHistoryPage();
+}
+// ==================================================
 // ------------------- PROXY BROWSER LOGIC -------------------
 const frames = document.getElementById("frames");
 const urlBar = document.getElementById("urlBar");
