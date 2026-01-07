@@ -16,7 +16,7 @@
 
   "routes": [
     {
-      "src": "/(.*)",
+      "src": "/Games/(.*)",
       "headers": {
         "Cross-Origin-Opener-Policy": "same-origin",
         "Cross-Origin-Embedder-Policy": "require-corp"
