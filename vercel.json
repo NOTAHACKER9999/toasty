@@ -1,26 +1,18 @@
 {
-  "version": 2,
-
   "headers": [
     {
       "source": "/games/(.*)",
       "headers": [
-        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin" },
-        { "key": "Cross-Origin-Embedder-Policy", "value": "require-corp" }
+        {
+          "key": "Cross-Origin-Opener-Policy",
+          "value": "same-origin"
+        },
+        {
+          "key": "Cross-Origin-Embedder-Policy",
+          "value": "require-corp"
+        }
       ]
     }
-  ],
-
-  "builds": [
-    { "src": "index.js", "use": "@vercel/node" },
-    { "src": "public/**", "use": "@vercel/static" },
-    { "src": "games/**", "use": "@vercel/static" }
-  ],
-
-  "routes": [
-    { "src": "^/$", "dest": "/public/index.html" },
-    { "src": "^/games/?$", "dest": "/games/app.html" },
-    { "src": "^/games/(.*)", "dest": "/games/app.html" },
-    { "src": "/(.*)", "dest": "/index.js" }
   ]
 }
+
