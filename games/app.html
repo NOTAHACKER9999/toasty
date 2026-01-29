@@ -24,7 +24,6 @@ body{
   height:100vh;overflow:hidden;
 }
 
-/* Layout */
 #app{display:flex;height:100vh;}
 
 #sidebar{
@@ -34,10 +33,6 @@ body{
   display:flex;flex-direction:column;gap:10px;
   height:100vh;overflow-y:auto;
 }
-#sidebar::-webkit-scrollbar{width:6px;}
-#sidebar::-webkit-scrollbar-thumb{
-  background:var(--border);border-radius:6px;
-}
 
 #sidebar button{
   background:none;border:none;color:var(--text);
@@ -45,11 +40,13 @@ body{
   text-align:left;cursor:pointer;
   position:relative;
 }
+
 #sidebar button::after{
   content:"";position:absolute;left:0;bottom:0;
   width:0;height:2px;background:var(--accent);
   transition:var(--transition);
 }
+
 #sidebar button:hover::after,
 #sidebar button.active::after{width:100%;}
 
@@ -63,8 +60,6 @@ body{
   padding:0 16px;font-size:1.3rem;font-weight:700;
 }
 
-/* Search */
-#search-container{position:relative;}
 #search-input{
   width:220px;padding:6px 10px;
   background:var(--panel);border:1px solid var(--border);
@@ -72,36 +67,16 @@ body{
 }
 
 #search-results{
-  position:absolute;
-  top:36px;
-  right:0;
-  width:240px;
-  max-height:300px;
+  position:absolute;top:36px;right:0;
+  width:240px;max-height:300px;
   background:var(--card);
   border:1px solid var(--border);
   border-radius:8px;
-  overflow-y:auto;
-  display:none;
-  flex-direction: column; /* changed to vertical */
+  overflow-y:auto;display:none;
   z-index:1000;
 }
 
-.search-item{
-  display:flex;gap:8px;padding:6px;
-  border-radius:6px;cursor:pointer;
-}
-.search-item:hover{background:var(--hover);}
-.search-item img{
-  width:36px;height:36px;border-radius:6px;
-}
-.search-item .info{
-  display:flex;flex-direction:column;font-size:.85rem;
-}
-.search-item .name{font-weight:600;color:#fff;}
-.search-item .type{font-size:.75rem;color:#aaa;}
-
-/* Content */
-#content{flex:1;overflow:auto;padding:16px;scroll-behavior:smooth;}
+#content{flex:1;overflow:auto;padding:16px;}
 
 .grid{
   display:grid;
@@ -124,7 +99,6 @@ body{
   color:var(--accent);font-weight:700;
 }
 
-/* Game */
 iframe{
   width:100%;height:65vh;border:none;
   background:black;border-radius:12px;
@@ -144,7 +118,6 @@ iframe.loaded{opacity:1;}
 }
 .favorite.active{color:var(--accent);}
 
-/* Clipboard */
 #clipboard-popup{
   position:fixed;bottom:30px;left:50%;
   transform:translateX(-50%);
@@ -163,10 +136,8 @@ iframe.loaded{opacity:1;}
   <div id="main">
     <div id="topbar">
       <span>Home</span>
-      <div id="search-container">
-        <input id="search-input" placeholder="Search games...">
-        <div id="search-results"></div>
-      </div>
+      <input id="search-input" placeholder="Search games...">
+      <div id="search-results"></div>
     </div>
     <div id="content"></div>
   </div>
@@ -175,259 +146,124 @@ iframe.loaded{opacity:1;}
 <div id="clipboard-popup">Link copied!</div>
 
 <script>
-/* Constants */
 const JSON_URL = "https://raw.githubusercontent.com/GLITCHED-OVERRIDE/Hypper-Drive-2/refs/heads/main/Games/Zones.json";
 const ERROR_404 = "https://raw.githubusercontent.com/GLITCHED-OVERRIDE/Malfunction/refs/heads/main/Pages/404.html";
 
-/* Zone mapping */
 const ZONE_TYPES = {
-  "Home": "Home",
-  "PC": "PC",
-  "Mobile": "Moblie",
-  "N64": "N64",
-  "NDS": "NDS",
-  "PS1": "PS1",
-  "PSP": "PSP",
-  "Game Boy": "GB",
-  "Game Boy Advance": "GBA",
-  "Game Boy Color": "GBC",
-  "NES": "NES",
-  "SNES": "SNES",
-  "Sega Genesis": "SG",
-  "Sega Saturn": "SSat",
-  "Neo Geo Pocket Color": "NGPC",
-  "MS-DOS": "MSDOS",
-  "Atari Jaguar": "AJ",
-  "Arcade": "Arcade",
-  "Sega Game Gear": "SGG",
-  "Pico 8": "P8",
-  "Atari Lynx": "AL",
-  "Atari 2600": "A2600"
+  "Home":"Home","PC":"PC","Mobile":"Moblie","N64":"N64","NDS":"NDS",
+  "PS1":"PS1","PSP":"PSP","Game Boy":"GB","Game Boy Advance":"GBA",
+  "Game Boy Color":"GBC","NES":"NES","SNES":"SNES","Sega Genesis":"SG",
+  "Sega Saturn":"SSat","Neo Geo Pocket Color":"NGPC","MS-DOS":"MSDOS",
+  "Atari Jaguar":"AJ","Arcade":"Arcade","Sega Game Gear":"SGG",
+  "Pico 8":"P8","Atari Lynx":"AL","Atari 2600":"A2600"
 };
 
-/* Storage */
-let recents = JSON.parse(localStorage.getItem("recentGames") || "[]");
-let favorites = JSON.parse(localStorage.getItem("favoriteGames") || "[]");
-
-/* State */
+let recents = JSON.parse(localStorage.getItem("recentGames")||"[]");
+let favorites = JSON.parse(localStorage.getItem("favoriteGames")||"[]");
 let allGames = [];
 
-/* DOM Elements */
 const sidebar = document.getElementById("sidebar");
 const content = document.getElementById("content");
 const searchInput = document.getElementById("search-input");
 const searchResults = document.getElementById("search-results");
 const topbarTitle = document.querySelector("#topbar span");
 
-/* Sidebar */
-Object.keys(ZONE_TYPES).forEach(z => {
-  const b = document.createElement("button");
-  b.textContent = z;
-  b.onclick = () => navigateZone(z);
+Object.keys(ZONE_TYPES).forEach(z=>{
+  const b=document.createElement("button");
+  b.textContent=z;
+  b.onclick=()=>navigateZone(z);
   sidebar.appendChild(b);
 });
 
-/* Active sidebar button */
-function setActive(zone) {
-  [...sidebar.children].forEach(b => {
-    b.classList.toggle("active", b.textContent === zone);
+function setActive(zone){
+  [...sidebar.children].forEach(b=>{
+    b.classList.toggle("active",b.textContent===zone);
   });
-  topbarTitle.textContent = zone;
+  topbarTitle.textContent=zone;
 }
 
-/* Render grid of games */
-function renderGrid(list) {
-  const g = document.createElement("div");
-  g.className = "grid";
-  list.forEach(game => {
-    const c = document.createElement("div");
-    c.className = "card";
-    c.innerHTML = `<img src="${game.cover}"><h3>${game.name}</h3>`;
-    c.onclick = () => openGame(game);
+function renderGrid(list){
+  const g=document.createElement("div");
+  g.className="grid";
+  list.forEach(game=>{
+    const c=document.createElement("div");
+    c.className="card";
+    c.innerHTML=`<img src="${game.cover}"><h3>${game.name}</h3>`;
+    c.onclick=()=>openGame(game);
     g.appendChild(c);
   });
   return g;
 }
 
-/* Home page */
-function renderHome() {
+function renderHome(){
   setActive("Home");
-  content.innerHTML = "";
-
-  if (recents.length === 0 && favorites.length === 0) {
-    const msg = document.createElement("div");
-    msg.textContent = "Go Try Some New Games!";
-    msg.style.color = "#ff2d2d";
-    msg.style.fontSize = "1.4rem";
-    msg.style.fontWeight = "700";
-    msg.style.textAlign = "center";
-    msg.style.marginTop = "40px";
-    content.appendChild(msg);
-  }
-
-  if (recents.length) {
-    content.innerHTML += `<div class="section-title">Recently Played</div>`;
-    const recentList = recents.slice(-10).reverse();
-    content.appendChild(renderGrid(recentList));
-  }
-
-  if (favorites.length) {
-    content.innerHTML += `<div class="section-title">Favorites</div>`;
-    content.appendChild(renderGrid(favorites));
-  }
+  content.innerHTML="";
+  if(recents.length)content.appendChild(renderGrid(recents.slice(-10).reverse()));
 }
 
-/* Zone page */
-function renderZone(zone) {
+function renderZone(zone){
   setActive(zone);
-  content.innerHTML = "";
-  const typeName = ZONE_TYPES[zone];
-  const list = allGames.filter(g => g.type.toLowerCase() === typeName.toLowerCase());
-  if (!list.length) {
-    renderError();
-  } else {
-    content.appendChild(renderGrid(list));
-  }
+  content.innerHTML="";
+  const list=allGames.filter(g=>g.type.toLowerCase()===ZONE_TYPES[zone].toLowerCase());
+  list.length?content.appendChild(renderGrid(list)):renderError();
 }
 
-/* Game page */
-async function openGame(game) {
-  history.pushState({}, "", `/games/${encodeURIComponent(game.type)}/${encodeURIComponent(game.name)}`);
+async function openGame(game){
   setActive(game.type);
-
-  const isFav = favorites.some(f => f.name === game.name);
-  if (!recents.find(g => g.name === game.name)) {
-    recents.push(game);
-    localStorage.setItem("recentGames", JSON.stringify(recents));
-  }
-
-  content.innerHTML = `
-    <div class="game-container">
-      <iframe id="player" src="about:blank" allowfullscreen></iframe>
-      <div class="game-actions-bar">
-        <button class="favorite ${isFav ? 'active' : ''}" title="Favorite">★</button>
-        <button class="fullscreen" title="Fullscreen">⛶</button>
-        <button class="share" title="Share">🔗</button>
-      </div>
-      <div class="section-title">More Games</div>
+  content.innerHTML=`
+    <iframe id="player" src="about:blank"></iframe>
+    <div class="game-actions-bar">
+      <button class="favorite ${favorites.some(f=>f.name===game.name)?'active':''}">★</button>
+      <button class="fullscreen">⛶</button>
+      <button class="newtab">↗</button>
+      <button class="share">🔗</button>
     </div>
   `;
 
-  const iframe = document.getElementById("player");
+  const iframe=document.getElementById("player");
+  const res=await fetch(game.url);
+  const html=await res.text();
+  iframe.contentWindow.document.open();
+  iframe.contentWindow.document.write(html);
+  iframe.contentWindow.document.close();
+  iframe.classList.add("loaded");
 
-  try {
-    const res = await fetch(game.url);
-    const html = await res.text();
-    const doc = iframe.contentWindow.document;
-    doc.open();
-    doc.write(html);
-    doc.close();
-    iframe.classList.add("loaded");
-  } catch (e) {
-    iframe.contentWindow.document.body.innerHTML = `<div style="color:red;text-align:center;padding:20px;">Failed to load game.</div>`;
-  }
-
-  /* Favorite toggle */
-  const favBtn = document.querySelector(".favorite");
-  favBtn.onclick = () => {
-    const idx = favorites.findIndex(f => f.name === game.name);
-    if (idx > -1) {
-      favorites.splice(idx, 1);
-      favBtn.classList.remove("active");
-    } else {
-      favorites.push(game);
-      favBtn.classList.add("active");
-    }
-    localStorage.setItem("favoriteGames", JSON.stringify(favorites));
+  document.querySelector(".fullscreen").onclick=()=>{
+    iframe.requestFullscreen();
   };
 
-  /* Fullscreen */
-  document.querySelector(".fullscreen").onclick = () => {
-    if (iframe.requestFullscreen) iframe.requestFullscreen();
+  document.querySelector(".newtab").onclick=()=>{
+    const win=window.open("about:blank","_blank");
+    if(win)win.focus();
   };
 
-  /* Share link */
-  document.querySelector(".share").onclick = () => {
-    navigator.clipboard.writeText(location.href).then(() => {
-      const popup = document.getElementById("clipboard-popup");
-      popup.classList.add("show");
-      setTimeout(() => popup.classList.remove("show"), 2000);
-    });
+  document.querySelector(".share").onclick=()=>{
+    navigator.clipboard.writeText(location.href);
+    const p=document.getElementById("clipboard-popup");
+    p.classList.add("show");
+    setTimeout(()=>p.classList.remove("show"),2000);
   };
-
-  /* More games */
-  const more = allGames.filter(g => g.type === game.type && g.name !== game.name)
-                       .sort(() => 0.5 - Math.random())
-                       .slice(0, 10);
-  content.appendChild(renderGrid(more));
 }
 
-/* Error page */
-async function renderError() {
-  try {
-    const res = await fetch(ERROR_404);
-    const html = await res.text();
-    const iframe = document.createElement("iframe");
-    iframe.src = "about:blank";
-    iframe.style.width = "100%";
-    iframe.style.height = "70vh";
-    iframe.style.border = "none";
-    content.innerHTML = `<div class="section-title">Error: Page Not Found</div>`;
-    content.appendChild(iframe);
-    const doc = iframe.contentWindow.document;
-    doc.open();
-    doc.write(html);
-    doc.close();
-    iframe.classList.add("loaded");
-  } catch (e) {
-    content.innerHTML = `<div class="section-title" style="color:red">Error: Could not load 404 page</div>`;
-  }
+async function renderError(){
+  const iframe=document.createElement("iframe");
+  iframe.src="about:blank";
+  const res=await fetch(ERROR_404);
+  const html=await res.text();
+  content.innerHTML="";
+  content.appendChild(iframe);
+  iframe.contentWindow.document.open();
+  iframe.contentWindow.document.write(html);
+  iframe.contentWindow.document.close();
 }
 
-/* Navigate */
-function navigateZone(zone) {
-  history.pushState({}, "", zone === "Home" ? "/games/Home" : `/games/${zone}`);
-  zone === "Home" ? renderHome() : renderZone(zone);
+function navigateZone(zone){
+  zone==="Home"?renderHome():renderZone(zone);
 }
 
-/* Live Search */
-searchInput.addEventListener("input", () => {
-  const q = searchInput.value.toLowerCase().trim();
-  searchResults.innerHTML = "";
-  if (!q) { searchResults.style.display = "none"; return; }
-
-  const matches = allGames.filter(g => g.name.toLowerCase().includes(q));
-  if (matches.length) {
-    matches.forEach(game => {
-      const item = document.createElement("div");
-      item.className = "search-item";
-      item.innerHTML = `<img src="${game.cover}"><div class="info"><div class="name">${game.name}</div><div class="type">${game.type}</div></div>`;
-      item.onclick = () => {
-        openGame(game);
-        searchResults.style.display = "none";
-        searchInput.value = "";
-      };
-      searchResults.appendChild(item);
-    });
-    searchResults.style.display = "block"; // changed from flex to block
-  } else searchResults.style.display = "none";
-});
-
-/* Init */
-fetch(JSON_URL).then(r => r.json()).then(games => {
-  allGames = games;
-  if (location.pathname.startsWith("/games/")) {
-    const [, , type, name] = location.pathname.split("/");
-    if (type && name) {
-      const g = games.find(x => x.type.toLowerCase() === decodeURIComponent(type).toLowerCase() &&
-                                x.name === decodeURIComponent(name));
-      g ? openGame(g) : renderError();
-    } else {
-      renderHome();
-    }
-  } else {
-    renderHome();
-  }
+fetch(JSON_URL).then(r=>r.json()).then(g=>{
+  allGames=g;
+  renderHome();
 });
 </script>
 </body>
